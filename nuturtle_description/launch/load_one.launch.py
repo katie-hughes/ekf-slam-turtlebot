@@ -20,6 +20,9 @@ def generate_launch_description():
         DeclareLaunchArgument(name='use_rviz', default_value='true',
                               choices=['true', 'false'],
                               description='Choose if rviz is launched'),
+        DeclareLaunchArgument(name='color', default_value='purple',
+                              choices=['purple', 'red', 'green', 'blue'],
+                              description='Change the color of the turtlebot'),
 
         DeclareLaunchArgument(name='model',
                               default_value=str(get_package_share_path('nuturtle_description') /
@@ -37,7 +40,10 @@ def generate_launch_description():
         Node(package='robot_state_publisher',
              executable='robot_state_publisher',
              parameters=[{'robot_description':
-                          ParameterValue(Command(['xacro ', LaunchConfiguration('model')]),
+                          ParameterValue(Command(['xacro ',
+                                                  LaunchConfiguration('model'),
+                                                  ' color:=',
+                                                  LaunchConfiguration('color')]),
                                          value_type=str)}]),
         Node(package='rviz2',
              executable='rviz2',
