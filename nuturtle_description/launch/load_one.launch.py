@@ -14,8 +14,10 @@ from launch.conditions import LaunchConfigurationEquals
 
 def generate_launch_description():
     pkg_share = get_package_share_path('nuturtle_description')
-    urdf_path = pkg_share / 'turtlebot3_burger.urdf'
-    rviz_config_path = pkg_share / 'turtle_urdf.rviz'
+    urdf_path = pkg_share / 'urdf/turtlebot3_burger.urdf.xacro'
+    rviz_config_path = pkg_share / 'config/turtle_urdf.rviz'
+    print("URDF PATH:", str(urdf_path))
+    print("RVIZ config path:", str(rviz_config_path))
 
     jsp_arg = DeclareLaunchArgument(name='use_jsp', default_value='true',
                                     choices=['true', 'false'],
@@ -25,7 +27,8 @@ def generate_launch_description():
     rviz_arg = DeclareLaunchArgument(name='rvizconfig',
                                      default_value=str(rviz_config_path),
                                      description='Absolute path to rviz config file')
-    robot_description = ParameterValue(LaunchConfiguration('model'), value_type=str)
+    robot_description = ParameterValue(Command(['xacro ', LaunchConfiguration('model')]),
+                                       value_type=str)
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
