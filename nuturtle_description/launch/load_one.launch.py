@@ -13,48 +13,35 @@ from launch.conditions import LaunchConfigurationEquals
 
 
 def generate_launch_description():
-    pkg_share = get_package_share_path('nuturtle_description')
-    urdf_path = pkg_share / 'urdf/turtlebot3_burger.urdf.xacro'
-    rviz_config_path = pkg_share / 'config/turtle_urdf.rviz'
-    print("URDF PATH:", str(urdf_path))
-    print("RVIZ config path:", str(rviz_config_path))
-
-    jsp_arg = DeclareLaunchArgument(name='use_jsp', default_value='true',
-                                    choices=['true', 'false'],
-                                    description='Choose if joint_state_publisher is launched')
-    model_arg = DeclareLaunchArgument(name='model', default_value=str(urdf_path),
-                                      description='Absolute path to robot urdf file')
-    rviz_arg = DeclareLaunchArgument(name='rvizconfig',
-                                     default_value=str(rviz_config_path),
-                                     description='Absolute path to rviz config file')
-    robot_description = ParameterValue(Command(['xacro ', LaunchConfiguration('model')]),
-                                       value_type=str)
-
-    robot_state_publisher_node = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        parameters=[{'robot_description': robot_description}]
-    )
-
-    # Launch JSP if use_jsp is true.
-    joint_state_publisher_node = Node(
-        package='joint_state_publisher',
-        executable='joint_state_publisher',
-        condition=LaunchConfigurationEquals('use_jsp', 'true')
-    )
-
-    rviz_node = Node(
-            package='rviz2',
-            executable='rviz2',
-            name='rviz2',
-            arguments=['-d', LaunchConfiguration('rvizconfig')],
-    )
-
     return LaunchDescription([
-        jsp_arg,
-        model_arg,
-        rviz_arg,
-        joint_state_publisher_node,
-        robot_state_publisher_node,
-        rviz_node,
+        DeclareLaunchArgument(name='use_jsp', default_value='true',
+                              choices=['true', 'false'],
+                              description='Choose if joint_state_publisher is launched'),
+        DeclareLaunchArgument(name='use_rviz', default_value='true',
+                              choices=['true', 'false'],
+                              description='Choose if rviz is launched'),
+
+        DeclareLaunchArgument(name='model',
+                              default_value=str(get_package_share_path('nuturtle_description') /
+                                                'urdf/turtlebot3_burger.urdf.xacro'),
+                              description='Absolute path to robot urdf file'),
+        DeclareLaunchArgument(name='rvizconfig',
+                              default_value=str(get_package_share_path('nuturtle_description') /
+                                                'config/turtle_urdf.rviz'),
+                              description='Absolute path to rviz config file'),
+
+        Node(package='joint_state_publisher',
+             executable='joint_state_publisher',
+             condition=LaunchConfigurationEquals('use_jsp', 'true')),
+
+        Node(package='robot_state_publisher',
+             executable='robot_state_publisher',
+             parameters=[{'robot_description':
+                          ParameterValue(Command(['xacro ', LaunchConfiguration('model')]),
+                                         value_type=str)}]),
+        Node(package='rviz2',
+             executable='rviz2',
+             name='rviz2',
+             arguments=['-d', LaunchConfiguration('rvizconfig')],
+             condition=LaunchConfigurationEquals('use_rviz', 'true'))
     ])
