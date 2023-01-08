@@ -29,21 +29,9 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     SOURCE_DIR=${CMAKE_SOURCE_DIR}  BINARY_DIR=${CMAKE_BINARY_DIR} ")
 endif()
 
-# Put launch directory into package share
+# Put directories into package share
 install(DIRECTORY
-  launch
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-# Put config directory into package share
-install(DIRECTORY
-  config
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-# Put urdf directory into package share
-install(DIRECTORY
-  urdf
+  launch config urdf meshes
   DESTINATION share/${PROJECT_NAME}/
 )
 
