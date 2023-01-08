@@ -5,7 +5,7 @@ Launches rviz with the turtlebot3 urdf file.
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, Shutdown
 from launch_ros.parameter_descriptions import ParameterValue
 from launch.substitutions import Command, LaunchConfiguration
 from ament_index_python.packages import get_package_share_path
@@ -43,5 +43,6 @@ def generate_launch_description():
              executable='rviz2',
              name='rviz2',
              arguments=['-d', LaunchConfiguration('rvizconfig')],
-             condition=LaunchConfigurationEquals('use_rviz', 'true'))
+             condition=LaunchConfigurationEquals('use_rviz', 'true'),
+             on_exit = Shutdown())
     ])
