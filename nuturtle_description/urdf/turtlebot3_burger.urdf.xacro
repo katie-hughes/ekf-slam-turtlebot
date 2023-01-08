@@ -2,13 +2,21 @@
 <robot name="turtlebot3_burger"
   xmlns:xacro="http://ros.org/wiki/xacro">
 
+  <xacro:property name="yaml_file" value="$(find nuturtle_description)/config/diff_params.yaml" />
+  <xacro:property name="my_params" value="${xacro.load_yaml(yaml_file)}"/>
+  <xacro:property name="ros_params" value="${my_params['/**']['ros__parameters']}"/>
+
+  <xacro:property name="wheel_radius" value="${ros_params['wheel_radius']}"/>
+  <xacro:property name="track_width" value="${ros_params['track_width']}"/>
+  <xacro:property name="collision_radius" value="${ros_params['collision_radius']}"/>
+
   <material name="black">
       <color rgba="0.0 0.0 0.0 1.0"/>
   </material>
 
   <material name="dark">
     <color rgba="0.3 0.3 0.3 1.0"/>
-  </material>
+  </material>track_width
 
   <material name="light_black">
     <color rgba="0.4 0.4 0.4 1.0"/>
@@ -76,7 +84,7 @@
   <joint name="wheel_left_joint" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_left_link"/>
-    <origin xyz="0.0 0.08 0.023" rpy="-1.57 0 0"/>
+    <origin xyz="0.0 ${track_width/2} 0.023" rpy="-1.57 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
@@ -106,7 +114,7 @@
   <joint name="wheel_right_joint" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_right_link"/>
-    <origin xyz="0.0 -0.080 0.023" rpy="-1.57 0 0"/>
+    <origin xyz="0.0 ${-track_width/2} 0.023" rpy="-1.57 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
