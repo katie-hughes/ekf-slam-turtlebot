@@ -27,7 +27,7 @@ def generate_launch_description():
                               description='Absolute path to robot urdf file'),
         DeclareLaunchArgument(name='rvizconfig',
                               default_value=str(get_package_share_path('nuturtle_description') /
-                                                'config/turtle_urdf.rviz'),
+                                                'config/basic_purple.rviz'),
                               description='Absolute path to rviz config file'),
 
         Node(package='joint_state_publisher',
