@@ -10,6 +10,8 @@
   <xacro:property name="track_width" value="${ros_params['track_width']}"/>
   <xacro:property name="collision_radius" value="${ros_params['collision_radius']}"/>
 
+  <xacro:arg name="color" default="purple"/>
+
   <material name="black">
       <color rgba="0.0 0.0 0.0 1.0"/>
   </material>
@@ -50,6 +52,10 @@
     <color rgba="1.0 1.0 1.0 1.0"/>
   </material>
 
+  <material name="purple">
+    <color rgba="0.3 0.16 0.52 1.0"/>
+  </material>
+
   <link name="base_footprint"/>
 
   <joint name="base_joint" type="fixed">
@@ -64,7 +70,7 @@
       <geometry>
         <mesh filename="package://nuturtle_description/meshes/burger_base.stl" scale="0.001 0.001 0.001"/>
       </geometry>
-      <material name="light_black"/>
+      <material name="$(arg color)"/>
     </visual>
 
     <collision>
