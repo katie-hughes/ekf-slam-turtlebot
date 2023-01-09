@@ -13,9 +13,7 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    # TODO: set frame_prefix parameter of robot_state_publisher st all tf frames are 
-    # prefixed with color/
-    # TODO: Set appropriate Tf-prefix in the robot view in rviz. Might need 4 new 
+    # TODO: "Sets the appropriate fixed_frame in rviz, without changing the .rviz configuration file"
     return LaunchDescription([
         DeclareLaunchArgument(name='use_jsp', default_value='true',
                               choices=['true', 'false'],
@@ -59,7 +57,8 @@ def generate_launch_description():
         Node(package='rviz2',
              executable='rviz2',
              name='rviz2',
-             arguments=['-d', LaunchConfiguration('rvizconfig')],
+             arguments=['-d', LaunchConfiguration('rvizconfig'),
+                        '-f', PathJoinSubstitution([LaunchConfiguration('color'), 'base_link'])],
              condition=LaunchConfigurationEquals('use_rviz', 'true'),
              namespace=PathJoinSubstitution([LaunchConfiguration('color')]),
              on_exit = Shutdown())
