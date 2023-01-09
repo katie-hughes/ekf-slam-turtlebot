@@ -40,4 +40,7 @@ URDF files for Nuturtle Rotundo
         (default: 'purple')
 
   ```
+  These arguments are inherited from usage for the load_one.launch.py launchfile. They can be accepted, but they don't change anything about the behavior if you include them. I am not sure if there is a way to disable them in this context.
+
+
 Worked With: Liz Metzger, Marno Nel, James Oubre, Ava Zahedi, Nick Morales, Dilan Wijensinghe
