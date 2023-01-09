@@ -1,0 +1,29 @@
+<launch>
+
+  <!-- launch all color robots without rviz -->
+  <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py">
+    <arg name="color" value="red"/>
+    <arg name="use_rviz" value="false"/>
+  </include>
+  <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py">
+    <arg name="color" value="green"/>
+    <arg name="use_rviz" value="false"/>
+  </include>
+  <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py">
+    <arg name="color" value="blue"/>
+    <arg name="use_rviz" value="false"/>
+  </include>
+  <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py">
+    <arg name="color" value="purple"/>
+    <arg name="use_rviz" value="false"/>
+  </include>
+
+  <!-- create static broadcasters to put robots in world frame -->
+  <node pkg="tf2_ros" exec="static_transform_publisher" args="0.25 0 0 0 0 0 nusim/world red/base_footprint"/>
+  <node pkg="tf2_ros" exec="static_transform_publisher" args="0 0.5 0 0 0 0 nusim/world green/base_footprint"/>
+  <node pkg="tf2_ros" exec="static_transform_publisher" args="-0.75 0 0 0 0 0 nusim/world blue/base_footprint"/>
+  <node pkg="tf2_ros" exec="static_transform_publisher" args="0 -1 0 0 0 0 nusim/world purple/base_footprint"/>
+
+  <!-- launch new rviz -->
+  <node pkg="rviz2" exec="rviz2" args="-d $(find-pkg-share nuturtle_description)/config/basic_all.rviz">
+</launch>
