@@ -5,10 +5,9 @@ Launches rviz with the turtlebot3 urdf file.
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import DeclareLaunchArgument, Shutdown
+from launch.actions import DeclareLaunchArgument, Shutdown, SetLaunchConfiguration
 from launch_ros.parameter_descriptions import ParameterValue
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
-from ament_index_python.packages import get_package_share_path
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 from launch.conditions import LaunchConfigurationEquals
 from launch_ros.substitutions import FindPackageShare
 
@@ -29,16 +28,18 @@ def generate_launch_description():
                               choices=['purple', 'red', 'green', 'blue'],
                               description='Change the color of the turtlebot'),
 
-        DeclareLaunchArgument(name='model',
-                              default_value=PathJoinSubstitution([
-                                                FindPackageShare('nuturtle_description'),
-                                                'urdf/turtlebot3_burger.urdf.xacro']),
-                              description='Absolute path to robot urdf file'),
-        DeclareLaunchArgument(name='rvizconfig',
-                              default_value=PathJoinSubstitution([
-                                                FindPackageShare('nuturtle_description'),
-                                                'config/basic_purple.rviz']),
-                              description='Absolute path to rviz config file'),
+        SetLaunchConfiguration(name='config_file',
+                               value=[TextSubstitution(text='basic_'),
+                                      LaunchConfiguration('color'),
+                                      TextSubstitution(text='.rviz')]),
+        SetLaunchConfiguration(name='model',
+                              value=PathJoinSubstitution([FindPackageShare('nuturtle_description'),
+                                                          'urdf',
+                                                          'turtlebot3_burger.urdf.xacro'])),
+        SetLaunchConfiguration(name='rvizconfig',
+                               value=PathJoinSubstitution([FindPackageShare('nuturtle_description'),
+                                                           'config',
+                                                           LaunchConfiguration('config_file')])),
 
         Node(package='joint_state_publisher',
              executable='joint_state_publisher',
