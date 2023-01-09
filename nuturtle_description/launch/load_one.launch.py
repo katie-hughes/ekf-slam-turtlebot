@@ -13,7 +13,6 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    # TODO: Change namespace to color/....
     # TODO: set frame_prefix parameter of robot_state_publisher st all tf frames are 
     # prefixed with color/
     # TODO: Set appropriate Tf-prefix in the robot view in rviz. Might need 4 new 
@@ -53,8 +52,10 @@ def generate_launch_description():
                                                   LaunchConfiguration('model'),
                                                   ' color:=',
                                                   LaunchConfiguration('color')]),
-                                         value_type=str)}],
+                                         value_type=str)},
+                         {'frame_prefix': [LaunchConfiguration('color'),'/']}],
             namespace=PathJoinSubstitution([LaunchConfiguration('color')])),
+
         Node(package='rviz2',
              executable='rviz2',
              name='rviz2',
