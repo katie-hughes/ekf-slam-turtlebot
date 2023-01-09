@@ -7,12 +7,17 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument, Shutdown
 from launch_ros.parameter_descriptions import ParameterValue
-from launch.substitutions import Command, LaunchConfiguration
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 from ament_index_python.packages import get_package_share_path
 from launch.conditions import LaunchConfigurationEquals
+from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    # TODO: Change namespace to color/....
+    # TODO: set frame_prefix parameter of robot_state_publisher st all tf frames are 
+    # prefixed with color/
+    # TODO: Set appropriate Tf-prefix in the robot view in rviz. Might need 4 new 
     return LaunchDescription([
         DeclareLaunchArgument(name='use_jsp', default_value='true',
                               choices=['true', 'false'],
@@ -25,17 +30,20 @@ def generate_launch_description():
                               description='Change the color of the turtlebot'),
 
         DeclareLaunchArgument(name='model',
-                              default_value=str(get_package_share_path('nuturtle_description') /
-                                                'urdf/turtlebot3_burger.urdf.xacro'),
+                              default_value=PathJoinSubstitution([
+                                                FindPackageShare('nuturtle_description'),
+                                                'urdf/turtlebot3_burger.urdf.xacro']),
                               description='Absolute path to robot urdf file'),
         DeclareLaunchArgument(name='rvizconfig',
-                              default_value=str(get_package_share_path('nuturtle_description') /
-                                                'config/basic_purple.rviz'),
+                              default_value=PathJoinSubstitution([
+                                                FindPackageShare('nuturtle_description'),
+                                                'config/basic_purple.rviz']),
                               description='Absolute path to rviz config file'),
 
         Node(package='joint_state_publisher',
              executable='joint_state_publisher',
-             condition=LaunchConfigurationEquals('use_jsp', 'true')),
+             condition=LaunchConfigurationEquals('use_jsp', 'true'),
+             namespace=PathJoinSubstitution([LaunchConfiguration('color')])),
 
         Node(package='robot_state_publisher',
              executable='robot_state_publisher',
@@ -44,11 +52,13 @@ def generate_launch_description():
                                                   LaunchConfiguration('model'),
                                                   ' color:=',
                                                   LaunchConfiguration('color')]),
-                                         value_type=str)}]),
+                                         value_type=str)}],
+            namespace=PathJoinSubstitution([LaunchConfiguration('color')])),
         Node(package='rviz2',
              executable='rviz2',
              name='rviz2',
              arguments=['-d', LaunchConfiguration('rvizconfig')],
              condition=LaunchConfigurationEquals('use_rviz', 'true'),
+             namespace=PathJoinSubstitution([LaunchConfiguration('color')]),
              on_exit = Shutdown())
     ])
