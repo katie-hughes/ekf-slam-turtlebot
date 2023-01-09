@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /RedRobotModel1/Description Topic1
+        - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 515
   - Class: rviz_common/Selection
@@ -282,6 +283,126 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Class: rviz_default_plugins/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        blue/base_footprint:
+          Value: false
+        blue/base_link:
+          Value: false
+        blue/base_scan:
+          Value: false
+        blue/caster_back_link:
+          Value: false
+        blue/imu_link:
+          Value: false
+        blue/wheel_left_link:
+          Value: false
+        blue/wheel_right_link:
+          Value: false
+        green/base_footprint:
+          Value: false
+        green/base_link:
+          Value: false
+        green/base_scan:
+          Value: false
+        green/caster_back_link:
+          Value: false
+        green/imu_link:
+          Value: false
+        green/wheel_left_link:
+          Value: false
+        green/wheel_right_link:
+          Value: false
+        nusim/world:
+          Value: true
+        purple/base_footprint:
+          Value: false
+        purple/base_link:
+          Value: false
+        purple/base_scan:
+          Value: false
+        purple/caster_back_link:
+          Value: false
+        purple/imu_link:
+          Value: false
+        purple/wheel_left_link:
+          Value: false
+        purple/wheel_right_link:
+          Value: false
+        red/base_footprint:
+          Value: false
+        red/base_link:
+          Value: false
+        red/base_scan:
+          Value: false
+        red/caster_back_link:
+          Value: false
+        red/imu_link:
+          Value: false
+        red/wheel_left_link:
+          Value: false
+        red/wheel_right_link:
+          Value: false
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: false
+      Tree:
+        nusim/world:
+          blue/base_footprint:
+            blue/base_link:
+              blue/base_scan:
+                {}
+              blue/caster_back_link:
+                {}
+              blue/imu_link:
+                {}
+              blue/wheel_left_link:
+                {}
+              blue/wheel_right_link:
+                {}
+          green/base_footprint:
+            green/base_link:
+              green/base_scan:
+                {}
+              green/caster_back_link:
+                {}
+              green/imu_link:
+                {}
+              green/wheel_left_link:
+                {}
+              green/wheel_right_link:
+                {}
+          purple/base_footprint:
+            purple/base_link:
+              purple/base_scan:
+                {}
+              purple/caster_back_link:
+                {}
+              purple/imu_link:
+                {}
+              purple/wheel_left_link:
+                {}
+              purple/wheel_right_link:
+                {}
+          red/base_footprint:
+            red/base_link:
+              red/base_scan:
+                {}
+              red/caster_back_link:
+                {}
+              red/imu_link:
+                {}
+              red/wheel_left_link:
+                {}
+              red/wheel_right_link:
+                {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
