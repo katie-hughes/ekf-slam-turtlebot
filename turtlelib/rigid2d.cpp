@@ -5,8 +5,7 @@ namespace turtlelib
 {
     // help: https://www.learncpp.com/cpp-tutorial/printing-inherited-classes-using-operator/
     std::ostream & operator<<(std::ostream & os, const Vector2D & v){
-        os << " [" << v.x << "] ";
-        os << " [" << v.y << "] ";
+        os << " [" << v.x << " " << v.y << "] ";
         return os;
     }
 
