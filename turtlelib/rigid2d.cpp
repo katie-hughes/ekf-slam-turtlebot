@@ -10,9 +10,19 @@ namespace turtlelib
     }
 
     std::istream & operator>>(std::istream & is, Vector2D & v){
+        char c = is.peek();
+        if (c == '['){
+            // grab the bracket
+            c = is.get();
+            // the next two are the chars
+            is >> v.x >> v.y;
+            // v.x = is.get();
+            // v.y = is.get();
+            // grab final bracket
+            c = is.get();
+        } else {
+            is >> v.x >> v.y;
+        }
         return is;
     }
 }
-
-
-

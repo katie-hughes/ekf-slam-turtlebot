@@ -4,7 +4,6 @@ using namespace turtlelib;
 
 int main(){
     Vector2D v_b = {};
-    v_b.x = 2.0;
     std::cout << "Enter transform T_{a,b}:" << std::endl;
     // Read in deg, x, y
     std::cout << "Enter transform T_{b,c}:" << std::endl;
@@ -16,6 +15,7 @@ int main(){
     // print Tac
     // print Tca
     std::cout << "Enter vector v_b:" << std::endl;
+    std::cin >> v_b;
     // enter 1 1
     // print v_bhat
     // print v_a
