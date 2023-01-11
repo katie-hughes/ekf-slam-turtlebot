@@ -3,9 +3,9 @@
 using namespace turtlelib;
 
 int main(){
-    Vector2D v_b = {};
     Transform2D Tab = {}; //{Vector2D{2,3}, 20};
     Transform2D Tbc = {};
+    Vector2D v_b = {};
     std::cout << "Enter transform T_{a,b}:" << std::endl;
     // Read in deg, x, y
     std::cin >> Tab;
@@ -22,14 +22,15 @@ int main(){
     std::cout << "Tac: " << Tac << std::endl;
     std::cout << "Tca: " << Tac.inv() << std::endl;
 
-    // Vector
+    // Vector2D
     std::cout << "Enter vector v_b:" << std::endl;
     std::cin >> v_b;
-    // enter 1 1
     // print v_bhat
-    // print v_a
+    std::cout << "v_a:" << Tab(v_b) << std::endl;
     std::cout << "v_b:" << v_b << std::endl;
-    // print v_c
+    std::cout << "v_c:" << (Tbc.inv())(v_b) << std::endl;
+
+    // Twist
     std::cout << "Enter twist V_b:" << std::endl;
     // enter 1 1 1
     // print V_a
