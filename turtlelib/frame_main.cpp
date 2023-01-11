@@ -12,12 +12,16 @@ int main(){
     std::cout << "Enter transform T_{b,c}:" << std::endl;
     // Read in deg, x, y
     std::cin >> Tbc;
+
+    Transform2D Tac = Tab*Tbc;
+
     std::cout << "Tab: " << Tab << std::endl;
     std::cout << "Tba: " << Tab.inv() << std::endl;
     std::cout << "Tbc: " << Tbc << std::endl;
     std::cout << "Tcb: " << Tbc.inv() << std::endl;
-    // print Tac
-    // print Tca
+    std::cout << "Tac: " << Tac << std::endl;
+    std::cout << "Tca: " << Tac.inv() << std::endl;
+
     std::cout << "Enter vector v_b:" << std::endl;
     std::cin >> v_b;
     // enter 1 1
