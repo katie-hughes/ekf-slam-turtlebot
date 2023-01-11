@@ -85,14 +85,18 @@ namespace turtlelib
     }
 
     std::istream & operator>>(std::istream & is, Transform2D & tf){
-        // char c = is.peek();
         // it is unhappy with this. Why?
-        // Because tf is class instead of struct?
+        // Below would be fine if this was friend function but it is not
         // is >> tf.angular >> tf.linear.x >> tf.linear.y;
+        double input_x, input_y, input_ang;
+        is >> input_ang >> input_x >> input_y;
+        // put these inputs into the tf vector?
+        tf = Transform2D(Vector2D{input_x, input_y},deg2rad(input_ang));
         return is;
     }
 
     Transform2D operator*(Transform2D lhs, const Transform2D & rhs){
+        // TODO: implement
         return lhs;
     }
 }
