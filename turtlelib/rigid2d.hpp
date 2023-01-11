@@ -98,9 +98,8 @@ namespace turtlelib
     /// \brief a rigid body transformation in 2 dimensions
     class Transform2D
     {
-        double x_diff {};
-        double y_diff {};
-        double rad_diff {};
+        Vector2D linear {};
+        double angular {};
     public:
         /// \brief Create an identity transformation
         Transform2D();

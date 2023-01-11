@@ -4,11 +4,12 @@ using namespace turtlelib;
 
 int main(){
     Vector2D v_b = {};
+    Transform2D Tab = {};
     std::cout << "Enter transform T_{a,b}:" << std::endl;
     // Read in deg, x, y
     std::cout << "Enter transform T_{b,c}:" << std::endl;
     // Read in deg, x, y
-    // print Tab
+    std::cout << "Tab: " << Tab << std::endl;
     // print Tba
     // print Tbc
     // print Tcb

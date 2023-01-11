@@ -1,4 +1,6 @@
 #include <iostream>
+// Is including math allowed?
+#include <math.h> 
 #include "rigid2d.hpp"
 
 namespace turtlelib
@@ -16,8 +18,6 @@ namespace turtlelib
             c = is.get();
             // the next two are the chars
             is >> v.x >> v.y;
-            // v.x = is.get();
-            // v.y = is.get();
             // grab final bracket
             c = is.get();
         } else {
@@ -26,36 +26,73 @@ namespace turtlelib
         return is;
     }
 
-    Transform2D::Transform2D(){
-        x_diff = 0;
-        y_diff = 0;
-        rad_diff = 0;
-    }
+    Transform2D::Transform2D():
+        linear{Vector2D{0,0}},
+        angular{0}
+        {}
 
-    Transform2D::Transform2D(Vector2D trans){
-        x_diff = trans.x;
-        y_diff = trans.y;
-        rad_diff = 0;
-    }
+    Transform2D::Transform2D(Vector2D trans):
+        linear{trans},
+        angular{0}
+        {}
 
-    Transform2D::Transform2D(double radians){
-        x_diff = 0;
-        y_diff = 0;
-        rad_diff = radians;
-    }
+    Transform2D::Transform2D(double radians):
+        linear{Vector2D{0,0}},
+        angular{radians}
+        {}
 
-    Transform2D::Transform2D(Vector2D trans, double radians){
-        x_diff = trans.x;
-        y_diff = trans.y;
-        rad_diff = radians;
-    }
+    Transform2D::Transform2D(Vector2D trans, double radians):
+        linear{trans},
+        angular{radians}
+        {}
 
     Vector2D Transform2D::operator()(Vector2D v) const{
-        // TODO figure this out
-        return v;
+        // To do something like va = Tab(vb)
+        double new_x = linear.x + v.x*cos(angular) - v.y*sin(angular);
+        double new_y = linear.y + v.x*sin(angular) + v.y*cos(angular);
+        return Vector2D{new_x, new_y};
     }
 
-    // Transform2D Transform2D::inv() const{
-    //     // TODO: Implement
-    // }
+    Transform2D Transform2D::inv() const{
+        double new_angular = -angular;
+        double new_x = -linear.x*cos(angular) - linear.y*sin(angular);
+        double new_y =  linear.x*sin(angular) - linear.y*cos(angular);
+        return Transform2D{Vector2D{new_x, new_y}, new_angular};
+    }
+
+    Transform2D & Transform2D::operator*=(const Transform2D & rhs){
+        double new_angular = angular + rhs.angular;
+        double new_x = rhs.linear.x*cos(angular) - rhs.linear.y*sin(angular) + linear.x;
+        double new_y = rhs.linear.x*sin(angular) + rhs.linear.y*cos(angular) + linear.y;
+
+        angular = new_angular;
+        linear.x = new_x;
+        linear.y = new_y;
+        return *this;
+    }
+
+    Vector2D Transform2D::translation() const{
+        return linear;
+    };
+
+    double Transform2D::rotation() const{
+        return angular;
+    }
+
+    std::ostream & operator<<(std::ostream & os, const Transform2D & tf){
+        os << "deg: " << rad2deg(tf.angular) << " x: " << tf.linear.x << " y: " << tf.linear.y;
+        return os;
+    }
+
+    std::istream & operator>>(std::istream & is, Transform2D & tf){
+        // char c = is.peek();
+        // it is unhappy with this. Why?
+        // Because tf is class instead of struct?
+        // is >> tf.angular >> tf.linear.x >> tf.linear.y;
+        return is;
+    }
+
+    Transform2D operator*(Transform2D lhs, const Transform2D & rhs){
+        return lhs;
+    }
 }
