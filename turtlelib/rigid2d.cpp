@@ -89,14 +89,21 @@ namespace turtlelib
         // Below would be fine if this was friend function but it is not
         // is >> tf.angular >> tf.linear.x >> tf.linear.y;
         double input_x, input_y, input_ang;
-        is >> input_ang >> input_x >> input_y;
+        char c = is.peek();
+        if (c=='d'){
+            // TODO dont' use these use std::string package
+            char label_ang[10], label_x[10], label_y[10];
+            is >> label_ang >> input_ang >> label_x >> input_x >> label_y >> input_y;
+        } else{
+            is >> input_ang >> input_x >> input_y;
+        }
         // put these inputs into the tf vector?
         tf = Transform2D(Vector2D{input_x, input_y},deg2rad(input_ang));
         return is;
     }
 
     Transform2D operator*(Transform2D lhs, const Transform2D & rhs){
-        // TODO: implement
-        return lhs;
+        // TODO: implement. Is it this easy?
+        return lhs*=rhs;
     }
 }

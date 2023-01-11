@@ -5,15 +5,17 @@ using namespace turtlelib;
 int main(){
     Vector2D v_b = {};
     Transform2D Tab = {}; //{Vector2D{2,3}, 20};
+    Transform2D Tbc = {};
     std::cout << "Enter transform T_{a,b}:" << std::endl;
     // Read in deg, x, y
     std::cin >> Tab;
     std::cout << "Enter transform T_{b,c}:" << std::endl;
     // Read in deg, x, y
+    std::cin >> Tbc;
     std::cout << "Tab: " << Tab << std::endl;
-    // print Tba
-    // print Tbc
-    // print Tcb
+    std::cout << "Tba: " << Tab.inv() << std::endl;
+    std::cout << "Tbc: " << Tbc << std::endl;
+    std::cout << "Tcb: " << Tbc.inv() << std::endl;
     // print Tac
     // print Tca
     std::cout << "Enter vector v_b:" << std::endl;
