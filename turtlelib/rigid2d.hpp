@@ -217,6 +217,19 @@ namespace turtlelib
 
     };
 
+    /// \brief should print a human readable version of the twist:
+    /// An example output:
+    /// deg: [1 2 3] for angular velocity 1, x velocity 2, y velocity 3
+    /// \param os - an output stream
+    /// \param tw - the twist to print
+    std::ostream & operator<<(std::ostream & os, const Twist2D & tw);
+
+    /// \brief Read a twist from stdin
+    /// Should be able to read input either as output by operator<< or
+    /// as 3 numbers (degrees, dx, dy) separated by spaces or newlines
+    /// For example:
+    /// 90 2 3
+    std::istream & operator>>(std::istream & is, Twist2D & tw);
 
 }
 

@@ -33,7 +33,7 @@ int main(){
 
     // Twist
     std::cout << "Enter twist V_b:" << std::endl;
-    // enter 1 1 1
+    std::cin >> V_b;
     // print V_a
     std::cout << "V_b: " << V_b << std::endl;
     // print V_c

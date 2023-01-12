@@ -139,4 +139,22 @@ namespace turtlelib
         os << "[" << tw.angular << " " << tw.linear.x << " " << tw.linear.y << "]";
         return os;
     }
+
+    std::istream & operator>>(std::istream & is, Twist2D & tw){
+        double input_w, input_vx, input_vy;
+        char c = is.peek();
+        if (c=='['){
+            // grab the bracket
+            c = is.get();
+            // the next two are the chars
+            is >> input_w >> input_vx >> input_vy;
+            // grab final bracket
+            c = is.get();
+        } else{
+            is >> input_w >> input_vx >> input_vy;
+        }
+        // put these inputs into the tw vector?
+        tw = Twist2D(input_w, Vector2D{input_vx, input_vy});
+        return is;
+    }
 }
