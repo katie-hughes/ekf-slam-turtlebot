@@ -6,6 +6,7 @@ int main(){
     Transform2D Tab = {}; //{Vector2D{2,3}, 20};
     Transform2D Tbc = {};
     Vector2D v_b = {};
+    Twist2D V_b = {};
     std::cout << "Enter transform T_{a,b}:" << std::endl;
     // Read in deg, x, y
     std::cin >> Tab;
@@ -26,15 +27,15 @@ int main(){
     std::cout << "Enter vector v_b:" << std::endl;
     std::cin >> v_b;
     // print v_bhat
-    std::cout << "v_a:" << Tab(v_b) << std::endl;
-    std::cout << "v_b:" << v_b << std::endl;
-    std::cout << "v_c:" << (Tbc.inv())(v_b) << std::endl;
+    std::cout << "v_a: " << Tab(v_b) << std::endl;
+    std::cout << "v_b: " << v_b << std::endl;
+    std::cout << "v_c: " << (Tbc.inv())(v_b) << std::endl;
 
     // Twist
     std::cout << "Enter twist V_b:" << std::endl;
     // enter 1 1 1
     // print V_a
-    // print V_b
+    std::cout << "V_b: " << V_b << std::endl;
     // print V_c
     return 0;
 }

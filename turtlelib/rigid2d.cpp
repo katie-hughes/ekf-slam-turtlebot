@@ -7,7 +7,7 @@ namespace turtlelib
 {
     // help: https://www.learncpp.com/cpp-tutorial/printing-inherited-classes-using-operator/
     std::ostream & operator<<(std::ostream & os, const Vector2D & v){
-        os << " [" << v.x << " " << v.y << "] ";
+        os << "[" << v.x << " " << v.y << "]";
         return os;
     }
 
@@ -105,5 +105,38 @@ namespace turtlelib
     Transform2D operator*(Transform2D lhs, const Transform2D & rhs){
         // TODO: implement. Is it this easy?
         return lhs*=rhs;
+    }
+
+    Twist2D::Twist2D():
+        angular{0},
+        linear{Vector2D{0,0}}
+        {}
+
+    Twist2D::Twist2D(double w):
+        angular{w},
+        linear{Vector2D{0,0}}
+        {}
+    
+    Twist2D::Twist2D(Vector2D v):
+        angular{0},
+        linear{v}
+        {}
+
+    Twist2D::Twist2D(double w, Vector2D v):
+        angular{w},
+        linear{v}
+        {}
+
+    double Twist2D::angular_velocity() const{
+        return angular;
+    };
+
+    Vector2D Twist2D::linear_velocity() const{
+        return linear;
+    };
+
+    std::ostream & operator<<(std::ostream & os, const Twist2D & tw){
+        os << "[" << tw.angular << " " << tw.linear.x << " " << tw.linear.y << "]";
+        return os;
     }
 }

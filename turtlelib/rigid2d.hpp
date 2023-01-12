@@ -123,7 +123,6 @@ namespace turtlelib
         /// \return a vector in the new coordinate system
         Vector2D operator()(Vector2D v) const;
 
-
         /// \brief invert the transformation
         /// \return the inverse transformation. 
         Transform2D inv() const;
@@ -170,6 +169,53 @@ namespace turtlelib
     /// HINT: This function should be implemented in terms of *=
     Transform2D operator*(Transform2D lhs, const Transform2D & rhs);
 
+
+    /// \brief a twist
+    class Twist2D
+    {
+        double angular {};
+        Vector2D linear {};
+    public:
+        /// \brief Create an identity transformation
+        Twist2D();
+
+        /// \brief create a twist that is pure angular velocity
+        /// \param w - angle of the rotation, in radians/s
+        explicit Twist2D(double w);
+
+        /// \brief create a twist that is pure linear velocity
+        /// \param v - the linear velocity vector, in m/s
+        explicit Twist2D(Vector2D v);
+
+        /// \brief Create a generic twist
+        /// \param w - the angular velocity vector, in radians/s
+        /// \param v - the linear velocity vector, in m/s
+        Twist2D(double w, Vector2D v);
+
+        // /// \brief apply a transformation to a Vector2D
+        // /// \param v - the vector to transform
+        // /// \return a vector in the new coordinate system
+        // Vector2D operator()(Vector2D v) const;
+
+        // /// \brief compose this transform with another and store the result 
+        // /// in this object
+        // /// \param rhs - the first transform to apply
+        // /// \return a reference to the newly transformed operator
+        // Transform2D & operator*=(const Transform2D & rhs);
+
+        /// \brief get the angular component of the twist
+        /// \return the angular velocity, in radians/s
+        double angular_velocity() const;
+
+        /// \brief the translational component of the transform
+        /// \return the x,y translation
+        Vector2D linear_velocity() const;
+
+        /// \brief \see operator<<(...) (declared outside this class)
+        /// for a description
+        friend std::ostream & operator<<(std::ostream & os, const Twist2D & tw);
+
+    };
 
 
 }
