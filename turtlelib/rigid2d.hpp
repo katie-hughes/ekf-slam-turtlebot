@@ -67,7 +67,7 @@ namespace turtlelib
         double y = 0.0;
     };
 
-
+    Vector2D normalize(Vector2D v);
 
     /// \brief output a 2 dimensional vector as [xcomponent ycomponent]
     /// os - stream to output to
@@ -94,6 +94,60 @@ namespace turtlelib
     /// When you call std::peek() it will wait for there to be at least one character in the buffer (e.g., the user types a character)
     /// HINT: this function can be written in under 20 lines and uses only std::peek(), std::get(), istream::operator>>() and a little logic
     std::istream & operator>>(std::istream & is, Vector2D & v);
+
+
+
+    /// \brief a twist
+    class Twist2D
+    {
+        double angular {};
+        Vector2D linear {};
+    public:
+        /// \brief Create an identity transformation
+        Twist2D();
+
+        /// \brief create a twist that is pure angular velocity
+        /// \param w - angle of the rotation, in radians/s
+        explicit Twist2D(double w);
+
+        /// \brief create a twist that is pure linear velocity
+        /// \param v - the linear velocity vector, in m/s
+        explicit Twist2D(Vector2D v);
+
+        /// \brief Create a generic twist
+        /// \param w - the angular velocity vector, in radians/s
+        /// \param v - the linear velocity vector, in m/s
+        Twist2D(double w, Vector2D v);
+
+        /// \brief get the angular component of the twist
+        /// \return the angular velocity, in radians/s
+        double angular_velocity() const;
+
+        /// \brief the translational component of the transform
+        /// \return the x,y translation
+        Vector2D linear_velocity() const;
+
+        /// \brief \see operator<<(...) (declared outside this class)
+        /// for a description
+        friend std::ostream & operator<<(std::ostream & os, const Twist2D & tw);
+
+    };
+
+    /// \brief should print a human readable version of the twist:
+    /// An example output:
+    /// deg: [1 2 3] for angular velocity 1, x velocity 2, y velocity 3
+    /// \param os - an output stream
+    /// \param tw - the twist to print
+    std::ostream & operator<<(std::ostream & os, const Twist2D & tw);
+
+    /// \brief Read a twist from stdin
+    /// Should be able to read input either as output by operator<< or
+    /// as 3 numbers (degrees, dx, dy) separated by spaces or newlines
+    /// For example:
+    /// 90 2 3
+    std::istream & operator>>(std::istream & is, Twist2D & tw);
+
+
 
     /// \brief a rigid body transformation in 2 dimensions
     class Transform2D
@@ -122,6 +176,11 @@ namespace turtlelib
         /// \param v - the vector to transform
         /// \return a vector in the new coordinate system
         Vector2D operator()(Vector2D v) const;
+
+        /// \brief apply a transformation to a Twist2D
+        /// \param v - the vector to transform
+        /// \return a Twist2D in the new coordinate system
+        Twist2D operator()(Twist2D tw) const;
 
         /// \brief invert the transformation
         /// \return the inverse transformation. 
@@ -170,66 +229,6 @@ namespace turtlelib
     Transform2D operator*(Transform2D lhs, const Transform2D & rhs);
 
 
-    /// \brief a twist
-    class Twist2D
-    {
-        double angular {};
-        Vector2D linear {};
-    public:
-        /// \brief Create an identity transformation
-        Twist2D();
-
-        /// \brief create a twist that is pure angular velocity
-        /// \param w - angle of the rotation, in radians/s
-        explicit Twist2D(double w);
-
-        /// \brief create a twist that is pure linear velocity
-        /// \param v - the linear velocity vector, in m/s
-        explicit Twist2D(Vector2D v);
-
-        /// \brief Create a generic twist
-        /// \param w - the angular velocity vector, in radians/s
-        /// \param v - the linear velocity vector, in m/s
-        Twist2D(double w, Vector2D v);
-
-        // /// \brief apply a transformation to a Vector2D
-        // /// \param v - the vector to transform
-        // /// \return a vector in the new coordinate system
-        // Vector2D operator()(Vector2D v) const;
-
-        // /// \brief compose this transform with another and store the result 
-        // /// in this object
-        // /// \param rhs - the first transform to apply
-        // /// \return a reference to the newly transformed operator
-        // Transform2D & operator*=(const Transform2D & rhs);
-
-        /// \brief get the angular component of the twist
-        /// \return the angular velocity, in radians/s
-        double angular_velocity() const;
-
-        /// \brief the translational component of the transform
-        /// \return the x,y translation
-        Vector2D linear_velocity() const;
-
-        /// \brief \see operator<<(...) (declared outside this class)
-        /// for a description
-        friend std::ostream & operator<<(std::ostream & os, const Twist2D & tw);
-
-    };
-
-    /// \brief should print a human readable version of the twist:
-    /// An example output:
-    /// deg: [1 2 3] for angular velocity 1, x velocity 2, y velocity 3
-    /// \param os - an output stream
-    /// \param tw - the twist to print
-    std::ostream & operator<<(std::ostream & os, const Twist2D & tw);
-
-    /// \brief Read a twist from stdin
-    /// Should be able to read input either as output by operator<< or
-    /// as 3 numbers (degrees, dx, dy) separated by spaces or newlines
-    /// For example:
-    /// 90 2 3
-    std::istream & operator>>(std::istream & is, Twist2D & tw);
 
 }
 

@@ -26,6 +26,13 @@ namespace turtlelib
         return is;
     }
 
+    Vector2D normalize(Vector2D v){
+        double norm = sqrt(v.x*v.x + v.y*v.y);
+        v.x = v.x/norm;
+        v.y = v.y/norm;
+        return v;
+    }
+
     Transform2D::Transform2D():
         linear{Vector2D{0,0}},
         angular{0}
@@ -156,5 +163,14 @@ namespace turtlelib
         // put these inputs into the tw vector?
         tw = Twist2D(input_w, Vector2D{input_vx, input_vy});
         return is;
+    }
+
+    Twist2D Transform2D::operator()(Twist2D tw) const{
+        // To do something like Va = Tab(Vb)
+        double wz = tw.angular_velocity();
+        Vector2D v = tw.linear_velocity();
+        double new_vx =  linear.y*wz + v.x*cos(angular) - v.y*sin(angular);
+        double new_vy = -linear.x*wz + v.x*sin(angular) - v.y*cos(angular);
+        return Twist2D{wz, Vector2D{new_vx,new_vy}};
     }
 }

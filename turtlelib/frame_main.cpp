@@ -16,26 +16,29 @@ int main(){
     // define Tac
     Transform2D Tac = Tab*Tbc;
     // print out Ts and their inverse
-    std::cout << "Tab: " << Tab << std::endl;
-    std::cout << "Tba: " << Tab.inv() << std::endl;
-    std::cout << "Tbc: " << Tbc << std::endl;
-    std::cout << "Tcb: " << Tbc.inv() << std::endl;
-    std::cout << "Tac: " << Tac << std::endl;
-    std::cout << "Tca: " << Tac.inv() << std::endl;
+    // These are all right
+    std::cout << "T_{a,b}: " << Tab << std::endl;
+    std::cout << "T_{b,a}: " << Tab.inv() << std::endl;
+    std::cout << "T_{b,c}: " << Tbc << std::endl;
+    std::cout << "T_{c,b}: " << Tbc.inv() << std::endl;
+    std::cout << "T_{a,c}: " << Tac << std::endl;
+    std::cout << "T_{c,a}: " << Tac.inv() << std::endl;
 
     // Vector2D
     std::cout << "Enter vector v_b:" << std::endl;
     std::cin >> v_b;
-    // print v_bhat
+    std::cout << "v_bhat: " << normalize(v_b) << std::endl;
     std::cout << "v_a: " << Tab(v_b) << std::endl;
     std::cout << "v_b: " << v_b << std::endl;
+    // THIS ONE IS SLIGHTLY OFF WHYYY ;-;
     std::cout << "v_c: " << (Tbc.inv())(v_b) << std::endl;
 
     // Twist
     std::cout << "Enter twist V_b:" << std::endl;
     std::cin >> V_b;
-    // print V_a
+    std::cout << "V_a: " << Tab(V_b) << std::endl;
     std::cout << "V_b: " << V_b << std::endl;
     // print V_c
+    std::cout << "V_c: " << (Tbc.inv())(V_b) << std::endl;
     return 0;
 }
