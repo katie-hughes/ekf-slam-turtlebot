@@ -1,6 +1,7 @@
 #include <iostream>
 // Is including math allowed?
-#include <math.h> 
+#include <cmath> 
+#include <string>
 #include "rigid2d.hpp"
 
 namespace turtlelib
@@ -23,6 +24,8 @@ namespace turtlelib
         } else {
             is >> v.x >> v.y;
         }
+        // Read \n character
+        c = is.get();
         return is;
     }
 
@@ -98,19 +101,23 @@ namespace turtlelib
         double input_x, input_y, input_ang;
         char c = is.peek();
         if (c=='d'){
-            // TODO dont' use these use std::string package
-            char label_ang[10], label_x[10], label_y[10];
+            // TODO dont' use these use std::string package. Also only works for first call.
+            char label_ang[4], label_x[2], label_y[2];
+            // This line breaks everything
+            // std::string label_ang, label_x, label_y;
             is >> label_ang >> input_ang >> label_x >> input_x >> label_y >> input_y;
         } else{
             is >> input_ang >> input_x >> input_y;
         }
-        // put these inputs into the tf vector?
+        // Read \n character
+        c = is.get();
+        // put values into Transform2D Object
         tf = Transform2D(Vector2D{input_x, input_y},deg2rad(input_ang));
         return is;
     }
 
     Transform2D operator*(Transform2D lhs, const Transform2D & rhs){
-        // TODO: implement. Is it this easy?
+        // Is it actually this easy?
         return lhs*=rhs;
     }
 
@@ -160,6 +167,8 @@ namespace turtlelib
         } else{
             is >> input_w >> input_vx >> input_vy;
         }
+        // Read \n character
+        c = is.get();
         // put these inputs into the tw vector?
         tw = Twist2D(input_w, Vector2D{input_vx, input_vy});
         return is;
