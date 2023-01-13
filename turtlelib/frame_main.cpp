@@ -1,8 +1,5 @@
 #include <iostream>
 #include "rigid2d.hpp"
-// using namespace turtlelib;
-
-/// CHANGE THIS TO using turtlelib::Transform2D:::....
 
 int main(){
     turtlelib::Transform2D Tab = {}; //{Vector2D{2,3}, 20};
