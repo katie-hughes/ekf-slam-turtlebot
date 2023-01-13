@@ -13,6 +13,8 @@ namespace turtlelib
     }
 
     std::istream & operator>>(std::istream & is, Vector2D & v){
+        // Remove whitespace
+        is >> std::ws;
         char c = is.peek();
         if (c == '['){
             // grab the bracket
@@ -95,16 +97,15 @@ namespace turtlelib
     }
 
     std::istream & operator>>(std::istream & is, Transform2D & tf){
-        // it is unhappy with this. Why?
-        // Below would be fine if this was friend function but it is not
-        // is >> tf.angular >> tf.linear.x >> tf.linear.y;
+        // Remove whitespace
+        is >> std::ws;
         double input_x, input_y, input_ang;
         char c = is.peek();
         if (c=='d'){
             // TODO dont' use these use std::string package. Also only works for first call.
-            char label_ang[4], label_x[2], label_y[2];
-            // This line breaks everything
-            // std::string label_ang, label_x, label_y;
+            // char label_ang[4], label_x[2], label_y[2];
+            // This seems suspicious as I am not specifying length of strings? But it works
+            std::string label_ang, label_x, label_y;
             is >> label_ang >> input_ang >> label_x >> input_x >> label_y >> input_y;
         } else{
             is >> input_ang >> input_x >> input_y;
@@ -155,6 +156,8 @@ namespace turtlelib
     }
 
     std::istream & operator>>(std::istream & is, Twist2D & tw){
+        // Remove whitespace
+        is >> std::ws;
         double input_w, input_vx, input_vy;
         char c = is.peek();
         if (c=='['){
