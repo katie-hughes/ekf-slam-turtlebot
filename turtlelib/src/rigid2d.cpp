@@ -2,7 +2,7 @@
 // Is including math allowed?
 #include <cmath> 
 #include <string>
-#include "rigid2d.hpp"
+#include "turtlelib/rigid2d.hpp"
 
 namespace turtlelib
 {

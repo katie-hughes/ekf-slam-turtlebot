@@ -36,4 +36,5 @@
 
 nuturtle_description/build/
 turtlelib/frame_main
+turtlelib/build
 .vscode
