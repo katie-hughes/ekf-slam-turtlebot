@@ -1,14 +1,14 @@
 #include <iostream>
 #include "rigid2d.hpp"
-using namespace turtlelib;
+// using namespace turtlelib;
 
 /// CHANGE THIS TO using turtlelib::Transform2D:::....
 
 int main(){
-    Transform2D Tab = {}; //{Vector2D{2,3}, 20};
-    Transform2D Tbc = {};
-    Vector2D v_b = {};
-    Twist2D V_b = {};
+    turtlelib::Transform2D Tab = {}; //{Vector2D{2,3}, 20};
+    turtlelib::Transform2D Tbc = {};
+    turtlelib::Vector2D v_b = {};
+    turtlelib::Twist2D V_b = {};
     std::cout << "Enter transform T_{a,b}:" << std::endl;
     // Read in deg, x, y
     std::cin >> Tab;
@@ -16,7 +16,7 @@ int main(){
     // Read in deg, x, y
     std::cin >> Tbc;
     // define Tac
-    Transform2D Tac = Tab*Tbc;
+    turtlelib::Transform2D Tac = Tab*Tbc;
     // print out Ts and their inverse
     // These are all right
     std::cout << "T_{a,b}: " << Tab << std::endl;
