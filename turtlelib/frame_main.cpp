@@ -2,6 +2,8 @@
 #include "rigid2d.hpp"
 using namespace turtlelib;
 
+/// CHANGE THIS TO using turtlelib::Transform2D:::....
+
 int main(){
     Transform2D Tab = {}; //{Vector2D{2,3}, 20};
     Transform2D Tbc = {};
@@ -27,6 +29,7 @@ int main(){
     // Vector2D
     std::cout << "Enter vector v_b:" << std::endl;
     std::cin >> v_b;
+    // print out different transforms
     std::cout << "v_bhat: " << normalize(v_b) << std::endl;
     std::cout << "v_a: " << Tab(v_b) << std::endl;
     std::cout << "v_b: " << v_b << std::endl;
@@ -36,9 +39,9 @@ int main(){
     // Twist
     std::cout << "Enter twist V_b:" << std::endl;
     std::cin >> V_b;
+    // print out different transforms
     std::cout << "V_a: " << Tab(V_b) << std::endl;
     std::cout << "V_b: " << V_b << std::endl;
-    // print V_c
     std::cout << "V_c: " << (Tbc.inv())(V_b) << std::endl;
     return 0;
 }

@@ -1,6 +1,7 @@
 #include <iostream>
 // Is including math allowed?
-#include <math.h> 
+#include <cmath> 
+#include <string>
 #include "rigid2d.hpp"
 
 namespace turtlelib
@@ -12,6 +13,8 @@ namespace turtlelib
     }
 
     std::istream & operator>>(std::istream & is, Vector2D & v){
+        // Remove whitespace
+        is >> std::ws;
         char c = is.peek();
         if (c == '['){
             // grab the bracket
@@ -23,6 +26,8 @@ namespace turtlelib
         } else {
             is >> v.x >> v.y;
         }
+        // Read \n character
+        c = is.get();
         return is;
     }
 
@@ -92,25 +97,28 @@ namespace turtlelib
     }
 
     std::istream & operator>>(std::istream & is, Transform2D & tf){
-        // it is unhappy with this. Why?
-        // Below would be fine if this was friend function but it is not
-        // is >> tf.angular >> tf.linear.x >> tf.linear.y;
+        // Remove whitespace
+        is >> std::ws;
         double input_x, input_y, input_ang;
         char c = is.peek();
         if (c=='d'){
-            // TODO dont' use these use std::string package
-            char label_ang[10], label_x[10], label_y[10];
+            // TODO dont' use these use std::string package. Also only works for first call.
+            // char label_ang[4], label_x[2], label_y[2];
+            // This seems suspicious as I am not specifying length of strings? But it works
+            std::string label_ang, label_x, label_y;
             is >> label_ang >> input_ang >> label_x >> input_x >> label_y >> input_y;
         } else{
             is >> input_ang >> input_x >> input_y;
         }
-        // put these inputs into the tf vector?
+        // Read \n character
+        c = is.get();
+        // put values into Transform2D Object
         tf = Transform2D(Vector2D{input_x, input_y},deg2rad(input_ang));
         return is;
     }
 
     Transform2D operator*(Transform2D lhs, const Transform2D & rhs){
-        // TODO: implement. Is it this easy?
+        // Is it actually this easy?
         return lhs*=rhs;
     }
 
@@ -148,6 +156,8 @@ namespace turtlelib
     }
 
     std::istream & operator>>(std::istream & is, Twist2D & tw){
+        // Remove whitespace
+        is >> std::ws;
         double input_w, input_vx, input_vy;
         char c = is.peek();
         if (c=='['){
@@ -160,6 +170,8 @@ namespace turtlelib
         } else{
             is >> input_w >> input_vx >> input_vy;
         }
+        // Read \n character
+        c = is.get();
         // put these inputs into the tw vector?
         tw = Twist2D(input_w, Vector2D{input_vx, input_vy});
         return is;
