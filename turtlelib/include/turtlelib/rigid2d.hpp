@@ -67,6 +67,9 @@ namespace turtlelib
         double y = 0.0;
     };
 
+    /// \brief normalize a 2 dimensional vector
+    /// v - the vector to normalize
+    /// \return A new normalized Vector2D
     Vector2D normalize(Vector2D v);
 
     /// \brief output a 2 dimensional vector as [xcomponent ycomponent]
@@ -169,7 +172,7 @@ namespace turtlelib
         /// \brief Create a transformation with a translational and rotational
         /// component
         /// \param trans - the translation
-        /// \param rot - the rotation, in radians
+        /// \param radians - the rotation, in radians
         Transform2D(Vector2D trans, double radians);
 
         /// \brief apply a transformation to a Vector2D
@@ -178,7 +181,7 @@ namespace turtlelib
         Vector2D operator()(Vector2D v) const;
 
         /// \brief apply a transformation to a Twist2D
-        /// \param v - the vector to transform
+        /// \param tw - the twist to transform
         /// \return a Twist2D in the new coordinate system
         Twist2D operator()(Twist2D tw) const;
 
