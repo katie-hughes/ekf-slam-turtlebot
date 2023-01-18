@@ -7,7 +7,7 @@
 #include "std_msgs/msg/u_int64.hpp"
 #include "std_srvs/srv/empty.hpp"
 
-#include "nusim/srv/Teleport.hpp"
+#include "nusim/srv/teleport.hpp"
 
 using namespace std::chrono_literals;
 

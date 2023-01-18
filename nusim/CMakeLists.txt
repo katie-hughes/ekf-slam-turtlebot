@@ -23,11 +23,18 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}_srv
   "srv/Teleport.srv" LIBRARY_NAME ${PROJECT_NAME}
 )
+rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME}_srv "rosidl_typesupport_cpp")
 
-ament_export_dependencies(rosidl_default_runtime)
 
 add_executable(nusim src/nusim.cpp)
 ament_target_dependencies(nusim rclcpp std_msgs std_srvs)
+
+target_link_libraries(nusim "${cpp_typesupport_target}")
+
+# ament_export_dependencies(rosidl_default_runtime)
+
+
+
 
 install(TARGETS
   nusim
