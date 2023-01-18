@@ -7,6 +7,9 @@
 #include "std_msgs/msg/u_int64.hpp"
 #include "std_srvs/srv/empty.hpp"
 #include "nusim/srv/teleport.hpp"
+#include "tf2/LinearMath/Quaternion.h"
+#include "tf2_ros/transform_broadcaster.h"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 
 using namespace std::chrono_literals;
 
@@ -31,19 +34,23 @@ class Nusim : public rclcpp::Node
       auto rate_param = this->get_parameter("rate");
       std::chrono::milliseconds rate = (std::chrono::milliseconds) (rate_param.as_int());
 
-      publisher_ = this->create_publisher<std_msgs::msg::UInt64>("timestep", 10);
+      publisher_ = this->create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
 
       timer_ = this->create_wall_timer(
         rate,
         std::bind(&Nusim::timer_callback, this));
 
       reset_ = this->create_service<std_srvs::srv::Empty>(
-        "reset",
+        "~/reset",
         std::bind(&Nusim::reset, this, std::placeholders::_1, std::placeholders::_2));
     
       teleport_ = this->create_service<nusim::srv::Teleport>(
-        "teleport",
+        "~/teleport",
         std::bind(&Nusim::teleport, this, std::placeholders::_1, std::placeholders::_2));
+
+      // From: https://docs.ros.org/en/humble/Tutorials/Intermediate/Tf2/
+      // Writing-A-Tf2-Broadcaster-Cpp.html
+      tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
     }
 
   private:
@@ -54,6 +61,7 @@ class Nusim : public rclcpp::Node
       RCLCPP_INFO_STREAM(get_logger(), "Publishing: '" << message.data << "'");
       publisher_->publish(message);
       count_++;
+      send_transform();
     }
 
     void reset(std::shared_ptr<std_srvs::srv::Empty::Request> req,
@@ -73,6 +81,26 @@ class Nusim : public rclcpp::Node
         res->success = true;
     }
 
+    void send_transform(){
+        // from here: https://docs.ros.org/en/humble/Tutorials/Intermediate/Tf2/
+        // Writing-A-Tf2-Broadcaster-Cpp.html
+        geometry_msgs::msg::TransformStamped t;
+        t.header.stamp = this->get_clock()->now();
+        t.header.frame_id = "nusim/world";
+        t.child_frame_id = "red/base_footprint";
+        t.transform.translation.x = x0;
+        t.transform.translation.y = y0;
+        t.transform.translation.z = 0.0;
+        tf2::Quaternion q;
+        q.setRPY(0, 0, theta0);
+        t.transform.rotation.x = q.x();
+        t.transform.rotation.y = q.y();
+        t.transform.rotation.z = q.z();
+        t.transform.rotation.w = q.w();
+        // Send the transformation
+        tf_broadcaster_->sendTransform(t);
+    }
+
     rclcpp::TimerBase::SharedPtr timer_;
 
     rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr publisher_;
@@ -81,9 +109,11 @@ class Nusim : public rclcpp::Node
 
     rclcpp::Service<nusim::srv::Teleport>::SharedPtr teleport_;
 
+    std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+
     size_t count_;
 
-    double x0, y0, theta0;
+    double x0, y0, theta0, curr_x, curr_y, curr_theta;
 };
 
 int main(int argc, char * argv[])
