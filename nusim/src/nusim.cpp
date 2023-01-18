@@ -2,6 +2,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/u_int64.hpp"
@@ -10,6 +11,7 @@
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_ros/transform_broadcaster.h"
 #include "geometry_msgs/msg/transform_stamped.hpp"
+#include "visualization_msgs/msg/marker.hpp"
 
 using namespace std::chrono_literals;
 
@@ -27,14 +29,25 @@ class Nusim : public rclcpp::Node
       this->declare_parameter("y0", 0.);
       this->declare_parameter("theta0", 0.);
 
+      // shoudl default to empty list. I feel like this is a very hacky solution?
+      this->declare_parameter("obstacles/x", obx);
+      this->declare_parameter("obstacles/y", oby);
+      this->declare_parameter("obstacles/r", obr);
+
       x0 = this->get_parameter("x0").as_double();
       y0 = this->get_parameter("y0").as_double();
       theta0 = this->get_parameter("theta0").as_double();
 
+      obx = this->get_parameter("obstacles/x").as_double_array();
+      oby = this->get_parameter("obstacles/y").as_double_array();
+      obr = this->get_parameter("obstacles/r").as_double();
+
       auto rate_param = this->get_parameter("rate");
       std::chrono::milliseconds rate = (std::chrono::milliseconds) (rate_param.as_int());
 
-      publisher_ = this->create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
+      timestep_pub_ = this->create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
+
+      marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("~/obstacles", 10);
 
       timer_ = this->create_wall_timer(
         rate,
@@ -59,7 +72,7 @@ class Nusim : public rclcpp::Node
       auto message = std_msgs::msg::UInt64();
       message.data = count_;
       RCLCPP_INFO_STREAM(get_logger(), "Publishing: '" << message.data << "'");
-      publisher_->publish(message);
+      timestep_pub_->publish(message);
       count_++;
       send_transform();
     }
@@ -103,7 +116,9 @@ class Nusim : public rclcpp::Node
 
     rclcpp::TimerBase::SharedPtr timer_;
 
-    rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr publisher_;
+    rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr timestep_pub_;
+
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
 
     rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_;
 
@@ -114,6 +129,10 @@ class Nusim : public rclcpp::Node
     size_t count_;
 
     double x0, y0, theta0, curr_x, curr_y, curr_theta;
+
+    // this initializes them as empty!
+    std::vector<double> obx, oby;
+    double obr = 1;
 };
 
 int main(int argc, char * argv[])

@@ -16,6 +16,7 @@ find_package(std_srvs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 
 find_package(rosidl_default_generators REQUIRED)
 
@@ -33,7 +34,8 @@ ament_target_dependencies(
   std_srvs
   tf2
   tf2_ros
-  geometry_msgs)
+  geometry_msgs
+  visualization_msgs)
 
 target_link_libraries(nusim "${cpp_typesupport_target}")
 
@@ -52,5 +54,10 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+install(DIRECTORY
+  launch config
+  DESTINATION share/${PROJECT_NAME}/
+)
 
 ament_package()
