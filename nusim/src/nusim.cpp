@@ -18,10 +18,15 @@ class Nusim : public rclcpp::Node
     Nusim()
     : Node("nusim"), count_(0)
     {
+      this->declare_parameter("rate", 200);
+
+      auto rate_param = this->get_parameter("rate");
+      std::chrono::milliseconds rate = (std::chrono::milliseconds) (rate_param.as_int());
+
       publisher_ = this->create_publisher<std_msgs::msg::UInt64>("timestep", 10);
 
       timer_ = this->create_wall_timer(
-        200ms,
+        rate,
         std::bind(&Nusim::timer_callback, this));
 
       reset_ = this->create_service<std_srvs::srv::Empty>(
