@@ -7,6 +7,8 @@
 #include "std_msgs/msg/u_int64.hpp"
 #include "std_srvs/srv/empty.hpp"
 
+#include "nusim/srv/Teleport.hpp"
+
 using namespace std::chrono_literals;
 
 /* This example creates a subclass of Node and uses std::bind() to register a
@@ -46,6 +48,8 @@ class Nusim : public rclcpp::Node
 
     void reset(std::shared_ptr<std_srvs::srv::Empty::Request> req,
                std::shared_ptr<std_srvs::srv::Empty::Response> res){
+        (void)req;
+        (void)res;
         RCLCPP_INFO_STREAM(get_logger(), "Resetting!");
         count_ = 0;
     }

@@ -14,6 +14,18 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 
+find_package(rosidl_default_generators REQUIRED)
+
+# rosidl_generate_interfaces(${PROJECT_NAME}
+#   "srv/Teleport.srv"
+#  )
+
+rosidl_generate_interfaces(${PROJECT_NAME}_srv
+  "srv/Teleport.srv" LIBRARY_NAME ${PROJECT_NAME}
+)
+
+ament_export_dependencies(rosidl_default_runtime)
+
 add_executable(nusim src/nusim.cpp)
 ament_target_dependencies(nusim rclcpp std_msgs std_srvs)
 
@@ -32,5 +44,7 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+
 
 ament_package()
