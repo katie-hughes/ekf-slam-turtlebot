@@ -49,6 +49,7 @@ class Nusim : public rclcpp::Node
         n_cylinders = obx.size();
       } else {
         RCLCPP_INFO_STREAM(get_logger(), "Marker Inputs not the same size!");
+        n_cylinders = 0;
       }
 
       color_red.a = 1;
@@ -144,6 +145,7 @@ class Nusim : public rclcpp::Node
             m.scale.z = 0.25;
             m.pose.position.x = obx[i];
             m.pose.position.y = oby[i];
+            m.pose.position.z = 0.125;
             marker_pub_->publish(m);
         }
     }
@@ -162,13 +164,12 @@ class Nusim : public rclcpp::Node
 
     size_t count_;
 
-    double x0, y0, theta0, curr_x, curr_y, curr_theta;
+    double x0, y0, theta0;
 
-    // this initializes them as empty!
+    // Initializations for the markers
     std::vector<double> obx, oby;
-    int n_cylinders = 0;
-    double obr = 1;
-
+    int n_cylinders;
+    double obr;
     std_msgs::msg::ColorRGBA color_red;
 };
 
