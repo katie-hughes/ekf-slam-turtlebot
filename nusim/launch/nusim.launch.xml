@@ -6,7 +6,9 @@
     <arg name="use_rviz" value="false"/>
   </include>
 
-  <node pkg="nusim" exec="nusim"/>
+  <node pkg="nusim" exec="nusim">
+    <param from="$(find-pkg-share nusim)/config/basic_world.yaml"/>
+  </node>
 
   <!-- launch new rviz -->
   <node pkg="rviz2" exec="rviz2" namespace="global" args="-d $(find-pkg-share nusim)/config/nusim.rviz"/>

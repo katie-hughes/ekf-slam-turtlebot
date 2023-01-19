@@ -43,17 +43,12 @@ class Nusim : public rclcpp::Node
       oby = this->get_parameter("obstacles/y").as_double_array();
       obr = this->get_parameter("obstacles/r").as_double();
 
-      // DO THIS EXPLICITLY FOR TESTING LOL
-      obx = {-0.6,  0.7, 0.5};
-      oby = {-0.8, -0.7, 0.9};
-      obr = 0.038;
-      // END
-
       if (obx.size() == oby.size()){
         // this is a valid input
+        RCLCPP_INFO_STREAM(get_logger(), "Valid Marker Input!");
         n_cylinders = obx.size();
       } else {
-        RCLCPP_INFO_STREAM(get_logger(), "Inputs are not the same size!");
+        RCLCPP_INFO_STREAM(get_logger(), "Marker Inputs not the same size!");
       }
 
       color_red.a = 1;
@@ -90,7 +85,7 @@ class Nusim : public rclcpp::Node
     {
       auto message = std_msgs::msg::UInt64();
       message.data = count_;
-      RCLCPP_INFO_STREAM(get_logger(), "Publishing: '" << message.data << "'");
+      RCLCPP_INFO_STREAM(get_logger(), "Timestep: " << message.data);
       timestep_pub_->publish(message);
       count_++;
       send_transform();
