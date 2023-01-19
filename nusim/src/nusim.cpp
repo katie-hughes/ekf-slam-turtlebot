@@ -12,6 +12,7 @@
 #include "tf2_ros/transform_broadcaster.h"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "visualization_msgs/msg/marker.hpp"
+#include "std_msgs/msg/color_rgba.hpp"
 
 using namespace std::chrono_literals;
 
@@ -41,6 +42,24 @@ class Nusim : public rclcpp::Node
       obx = this->get_parameter("obstacles/x").as_double_array();
       oby = this->get_parameter("obstacles/y").as_double_array();
       obr = this->get_parameter("obstacles/r").as_double();
+
+      // DO THIS EXPLICITLY FOR TESTING LOL
+      obx = {-0.6,  0.7, 0.5};
+      oby = {-0.8, -0.7, 0.9};
+      obr = 0.038;
+      // END
+
+      if (obx.size() == oby.size()){
+        // this is a valid input
+        n_cylinders = obx.size();
+      } else {
+        RCLCPP_INFO_STREAM(get_logger(), "Inputs are not the same size!");
+      }
+
+      color_red.a = 1;
+      color_red.r = 1;
+      color_red.g = 0;
+      color_red.b = 0;
 
       auto rate_param = this->get_parameter("rate");
       std::chrono::milliseconds rate = (std::chrono::milliseconds) (rate_param.as_int());
@@ -75,6 +94,7 @@ class Nusim : public rclcpp::Node
       timestep_pub_->publish(message);
       count_++;
       send_transform();
+      publish_markers();
     }
 
     void reset(std::shared_ptr<std_srvs::srv::Empty::Request> req,
@@ -114,6 +134,25 @@ class Nusim : public rclcpp::Node
         tf_broadcaster_->sendTransform(t);
     }
 
+    void publish_markers(){
+        for(int i=0;i<n_cylinders;i++){
+            visualization_msgs::msg::Marker m;
+            m.header.stamp = this->get_clock()->now();
+            m.header.frame_id = "nusim/world";
+            m.id = i; // so each has a unique ID
+            m.type = 3; // cylinder
+            m.action = 0; // add/modify
+            m.color = color_red;
+            // Set Radius
+            m.scale.x = obr;
+            m.scale.y = obr;
+            m.scale.z = 0.25;
+            m.pose.position.x = obx[i];
+            m.pose.position.y = oby[i];
+            marker_pub_->publish(m);
+        }
+    }
+
     rclcpp::TimerBase::SharedPtr timer_;
 
     rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr timestep_pub_;
@@ -132,7 +171,10 @@ class Nusim : public rclcpp::Node
 
     // this initializes them as empty!
     std::vector<double> obx, oby;
+    int n_cylinders = 0;
     double obr = 1;
+
+    std_msgs::msg::ColorRGBA color_red;
 };
 
 int main(int argc, char * argv[])

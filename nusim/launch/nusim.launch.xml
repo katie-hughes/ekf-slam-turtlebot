@@ -3,11 +3,11 @@
   <!-- launch red robot without rviz -->
   <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py">
     <arg name="color" value="red"/>
-    <arg name="use_rviz" value="true"/>
+    <arg name="use_rviz" value="false"/>
   </include>
 
   <node pkg="nusim" exec="nusim"/>
 
   <!-- launch new rviz -->
-  <!-- <node pkg="rviz2" exec="rviz2" namespace="global" args="-d $(find-pkg-share nusim)/config/nusim.rviz"/> -->
+  <node pkg="rviz2" exec="rviz2" namespace="global" args="-d $(find-pkg-share nusim)/config/nusim.rviz"/>
 </launch>
