@@ -1,6 +1,6 @@
 /**:
   ros__parameters:
-    rate: 200
+    rate: 200.
     x0: -0.6
     y0: 0.8
     theta0: 1.57

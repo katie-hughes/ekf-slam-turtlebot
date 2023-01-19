@@ -12,6 +12,7 @@
 #include "tf2_ros/transform_broadcaster.h"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "visualization_msgs/msg/marker.hpp"
+#include "visualization_msgs/msg/marker_array.hpp"
 #include "std_msgs/msg/color_rgba.hpp"
 
 using namespace std::chrono_literals;
@@ -25,7 +26,7 @@ class Nusim : public rclcpp::Node
     Nusim()
     : Node("nusim"), count_(0)
     {
-      this->declare_parameter("rate", 200);
+      this->declare_parameter("rate", 200.);
       this->declare_parameter("x0", 0.);
       this->declare_parameter("y0", 0.);
       this->declare_parameter("theta0", 0.);
@@ -57,12 +58,13 @@ class Nusim : public rclcpp::Node
       color_red.g = 0;
       color_red.b = 0;
 
-      auto rate_param = this->get_parameter("rate");
-      std::chrono::milliseconds rate = (std::chrono::milliseconds) (rate_param.as_int());
+      auto rate_param = this->get_parameter("rate").as_double();
+      RCLCPP_INFO_STREAM(get_logger(), "Input to rate:"<< ((int)(1000./rate_param)));
+      std::chrono::milliseconds rate = (std::chrono::milliseconds) ((int)(1000./rate_param));
 
       timestep_pub_ = this->create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
 
-      marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("~/obstacles", 10);
+      marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("~/obstacles", 10);
 
       timer_ = this->create_wall_timer(
         rate,
@@ -86,7 +88,7 @@ class Nusim : public rclcpp::Node
     {
       auto message = std_msgs::msg::UInt64();
       message.data = count_;
-      RCLCPP_INFO_STREAM(get_logger(), "Timestep: " << message.data);
+    //   RCLCPP_INFO_STREAM(get_logger(), "Timestep: " << message.data);
       timestep_pub_->publish(message);
       count_++;
       send_transform();
@@ -131,6 +133,7 @@ class Nusim : public rclcpp::Node
     }
 
     void publish_markers(){
+        visualization_msgs::msg::MarkerArray ma;
         for(int i=0;i<n_cylinders;i++){
             visualization_msgs::msg::Marker m;
             m.header.stamp = this->get_clock()->now();
@@ -146,15 +149,18 @@ class Nusim : public rclcpp::Node
             m.pose.position.x = obx[i];
             m.pose.position.y = oby[i];
             m.pose.position.z = 0.125;
-            marker_pub_->publish(m);
+            // Add to marker array
+            ma.markers.push_back(m);
         }
+        // RCLCPP_INFO_STREAM(get_logger(), "Publishing Marker Array");
+        marker_pub_->publish(ma);
     }
 
     rclcpp::TimerBase::SharedPtr timer_;
 
     rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr timestep_pub_;
 
-    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
+    rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
 
     rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_;
 

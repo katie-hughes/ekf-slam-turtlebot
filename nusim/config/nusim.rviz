@@ -149,15 +149,14 @@ Visualization Manager:
                 {}
       Update Interval: 0
       Value: true
-    - Class: rviz_default_plugins/Marker
+    - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: Marker
+      Name: MarkerArray
       Namespaces:
         "": true
       Topic:
         Depth: 5
         Durability Policy: Volatile
-        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /nusim/obstacles
@@ -208,25 +207,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 2.581441640853882
+      Distance: 2.851677894592285
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.006038746330887079
-        Y: -0.11146125197410583
-        Z: 0.21741458773612976
+        X: -0.04332953691482544
+        Y: -0.031969986855983734
+        Z: 0.16398468613624573
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.36539751291275024
+      Pitch: 0.37539738416671753
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.5203946828842163
+      Yaw: 0.7203952074050903
     Saved: ~
 Window Geometry:
   Displays:
