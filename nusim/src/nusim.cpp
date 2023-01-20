@@ -24,7 +24,7 @@ class Nusim : public rclcpp::Node
 {
   public:
     Nusim()
-    : Node("nusim"), count_(0)
+    : Node("nusim"), timestep_(0)
     {
       this->declare_parameter("rate", 200.);
       this->declare_parameter("x0", 0.);
@@ -87,12 +87,12 @@ class Nusim : public rclcpp::Node
     void timer_callback()
     {
       auto message = std_msgs::msg::UInt64();
-      message.data = count_;
+      message.data = timestep_;
     //   RCLCPP_INFO_STREAM(get_logger(), "Timestep: " << message.data);
       timestep_pub_->publish(message);
-      count_++;
       send_transform();
       publish_markers();
+      timestep_++;
     }
 
     void reset(std::shared_ptr<std_srvs::srv::Empty::Request> req,
@@ -100,7 +100,7 @@ class Nusim : public rclcpp::Node
         (void)req;
         (void)res;
         RCLCPP_INFO_STREAM(get_logger(), "Resetting!");
-        count_ = 0;
+        timestep_ = 0;
     }
 
     void teleport(std::shared_ptr<nusim::srv::Teleport::Request> req,
@@ -159,19 +159,15 @@ class Nusim : public rclcpp::Node
     rclcpp::TimerBase::SharedPtr timer_;
 
     rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr timestep_pub_;
-
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
 
     rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_;
-
     rclcpp::Service<nusim::srv::Teleport>::SharedPtr teleport_;
 
     std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
-    size_t count_;
-
+    size_t timestep_;
     double x0, y0, theta0;
-
     // Initializations for the markers
     std::vector<double> obx, oby;
     int n_cylinders;
