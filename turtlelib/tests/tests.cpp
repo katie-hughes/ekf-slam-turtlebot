@@ -81,6 +81,21 @@ TEST_CASE( "Inverse", "[transform]" ) { // Hughes, Katie
     REQUIRE_THAT( Ttest_inv.translation().y, Catch::Matchers::WithinAbs( 0.0, 1e-5));
 }
 
+TEST_CASE("operator *=", "[transform]"){    //Megan, Sindelar
+   Vector2D trans_ab = {1,2};
+   double rotate_ab = 0;
+   Transform2D T_ab_1 = {trans_ab, rotate_ab};      //T_ab's are all the same,
+   Transform2D T_ab_2 = {trans_ab, rotate_ab};      //but, need different vars
+   Transform2D T_ab_3 = {trans_ab, rotate_ab};      //b/c getting overwritten otherwise
+   Vector2D trans_bc = {3,4};
+   double rotate_bc = PI/2;
+   Transform2D T_bc = {trans_bc, rotate_bc};
+   REQUIRE_THAT( (T_ab_1*=T_bc).translation().x, Catch::Matchers::WithinAbs( 4.0, 1e-5));
+   REQUIRE_THAT( (T_ab_2*=T_bc).translation().y, Catch::Matchers::WithinAbs( 6.0, 1e-5));
+   REQUIRE_THAT( (T_ab_3*=T_bc).rotation(), Catch::Matchers::WithinAbs( PI/2, 1e-5));
+}
+
+
 TEST_CASE( "Stream insertion operator <<", "[transform]" ) // Ava, Zahedi
 {
    Vector2D vec;
