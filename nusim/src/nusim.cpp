@@ -13,7 +13,6 @@
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "visualization_msgs/msg/marker.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
-#include "std_msgs/msg/color_rgba.hpp"
 
 using namespace std::chrono_literals;
 
@@ -53,14 +52,8 @@ public:
       n_cylinders = 0;
     }
 
-    // initialize red color
-    ob_color.a = 1;
-    ob_color.r = 1;
-    ob_color.g = 0;
-    ob_color.b = 0;
-
     auto rate_param = this->get_parameter("rate").as_double();
-    RCLCPP_INFO_STREAM(get_logger(), "Input to rate:" << ((int)(1000. / rate_param)));
+    RCLCPP_INFO_STREAM(get_logger(), "Rate is " << ((int)(1000. / rate_param)) << "ms");
     std::chrono::milliseconds rate = (std::chrono::milliseconds) ((int)(1000. / rate_param));
 
     timestep_pub_ = this->create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
@@ -97,12 +90,9 @@ private:
   }
 
   void reset(
-    std::shared_ptr<std_srvs::srv::Empty::Request> req,
-    std::shared_ptr<std_srvs::srv::Empty::Response> res)
+    std::shared_ptr<std_srvs::srv::Empty::Request>,
+    std::shared_ptr<std_srvs::srv::Empty::Response>)
   {
-    // do this to stop it from throwing "var not used" warning
-    (void)req;
-    (void)res;
     RCLCPP_INFO_STREAM(get_logger(), "Resetting!");
     timestep_ = 0;
   }
@@ -146,10 +136,14 @@ private:
       visualization_msgs::msg::Marker m;
       m.header.stamp = this->get_clock()->now();
       m.header.frame_id = "nusim/world";
-      m.id = i;       // so each has a unique ID
+      m.id = i;         // so each has a unique ID
       m.type = 3;       // cylinder
-      m.action = 0;       // add/modify
-      m.color = ob_color;
+      m.action = 0;     // add/modify
+      // Set color as red
+      m.color.r = 1.0;
+      m.color.g = 0.0;
+      m.color.b = 0.0;
+      m.color.a = 1.0;
       // Set Radius
       m.scale.x = obr;
       m.scale.y = obr;
@@ -180,7 +174,6 @@ private:
   std::vector<double> obx, oby;
   double obr;
   int n_cylinders;
-  std_msgs::msg::ColorRGBA ob_color;
 };
 
 int main(int argc, char * argv[])
