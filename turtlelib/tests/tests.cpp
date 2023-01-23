@@ -1,5 +1,14 @@
 #include "turtlelib/rigid2d.hpp"
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+
+TEST_CASE( "Empty Constructor", "[transform]" ) { // Hughes, Katie
+    turtlelib::Transform2D Ttest;
+    REQUIRE( Ttest.rotation() == 0.0);
+    REQUIRE( Ttest.translation().x == 0.0);
+    REQUIRE( Ttest.translation().y == 0.0);
+}
+
 
 TEST_CASE( "Translation Only Constructor", "[transform]" ) { // Hughes, Katie
     float my_x = 2;
@@ -36,7 +45,6 @@ TEST_CASE( "Inverse", "[transform]" ) { // Hughes, Katie
     turtlelib::Transform2D Ttest(turtlelib::Vector2D{my_x,my_y}, my_ang);
     turtlelib::Transform2D Ttest_inv = Ttest.inv();
     REQUIRE( (Ttest.inv()).rotation() == -my_ang);
-    REQUIRE( turtlelib::almost_equal(Ttest_inv.translation().x, -1.0, 1.0e-5) );
-    REQUIRE( turtlelib::almost_equal(Ttest_inv.translation().y,  0.0, 1.0e-5) );
-    // REQUIRE( Ttest_inv.translation().y == 0.0 );
+    REQUIRE_THAT( Ttest_inv.translation().x, Catch::Matchers::WithinAbs(-1.0, 1e-5));
+    REQUIRE_THAT( Ttest_inv.translation().y, Catch::Matchers::WithinAbs( 0.0, 1e-5));
 }
