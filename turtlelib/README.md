@@ -34,10 +34,10 @@ Additionally, Vector2D is mainly used as a way of grouping data. There is no nee
 
 4. Why are some of the constructors in Transform2D explicit (refer to a specific C++ core guideline in your answer)?
 
-C.46: By default, declare single-argument constructors explicit as to avoid unintended conversions. For example, we have two constructors for Transform2D that take in one argument (one takes in a Vector2D and the other takes in a double). The explicit keyword in front of these is to ensure that they get used with the correct type.
+This relates to core guildeline C.46: By default, declare single-argument constructors explicit as to avoid unintended conversions. For example, we have two constructors for Transform2D that take in one argument (one takes in a Vector2D and the other takes in a double). The explicit keyword in front of these is to ensure that they get used with the correct type.
 
 
 5. Why is Transform2D::inv() declared const while Transform2D::operator*=() is not?
    - Refer to [[https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#con-constants-and-immutability][C++ Core Guidelines (Constants and Immutability)]] in your answer
 
-inv() is const because it does not modify the underlying Transform2D. Instead, it returns a new Transform2D object. The *= operator is not const as it modifies the underlying Transform2D by applying another Transform2D to it. Because of this difference, the *= operator also returns the initial Transform2D object.
+inv() is const because it does not modify the underlying Transform2D. Instead, it returns a new Transform2D object. The *= operator is not const as it modifies the underlying Transform2D by applying another Transform2D to it. The input Transform2D is passed in by reference. Because of this difference, the *= operator also returns the initial Transform2D object. This is related to core guideline Con.4: Use const to define objects with values that do not change after construction.
