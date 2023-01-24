@@ -1,3 +1,27 @@
+/// \file
+/// \brief Simulates a turtlebot.
+///
+/// PARAMETERS:
+///     parameter_name (parameter_type): description of the parameter
+///     rate (double): frequency of the timer, in Hz
+///     x0 (double): starting x location of the turtlebot (m)
+///     y0 (double): starting y location of the turtlebot (m)
+///     theta0 (double): starting theta location of the turtlebot (rad)
+///     obstacles/x (double[]): list of x coordinates of cylindrical obstacles (m)
+///     obstacles/y (double[]): list of r coordinates of cylindrical obstacles (m)
+///     obstacles/r (double): radius of cylindrical obstacles (m)
+/// PUBLISHES:
+///     ~/timestep (std_msgs::msg::Uint64): current timestep of simulation
+///     ~/obstacles (visualization_msgs::msg::MarkerArray): marker objects representing cylinders
+/// SUBSCRIBES:
+///     none
+/// SERVERS:
+///     ~/reset (std_srvs::srv::Empty): resets the simulation to the initial state
+///     ~/teleport (nusim::srv::Teleport): teleports the turtle to a given x, y, theta value
+/// CLIENTS:
+///     none
+
+
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -15,9 +39,6 @@
 #include "visualization_msgs/msg/marker_array.hpp"
 
 using namespace std::chrono_literals;
-
-/* This example creates a subclass of Node and uses std::bind() to register a
-* member function as a callback from the timer. */
 
 class Nusim : public rclcpp::Node
 {
@@ -80,6 +101,7 @@ public:
 private:
   void timer_callback()
   {
+    /// \brief Publish timestep, markers, and transform on each simulation timestep
     auto message = std_msgs::msg::UInt64();
     message.data = timestep_;
     //   RCLCPP_INFO_STREAM(get_logger(), "Timestep: " << message.data);
@@ -93,6 +115,10 @@ private:
     std::shared_ptr<std_srvs::srv::Empty::Request>,
     std::shared_ptr<std_srvs::srv::Empty::Response>)
   {
+    /// \brief Reset the simulation
+    ///
+    /// \param Request: The empty request
+    /// \param Response: The empty response
     RCLCPP_INFO_STREAM(get_logger(), "Resetting!");
     timestep_ = 0;
   }
@@ -101,6 +127,10 @@ private:
     std::shared_ptr<nusim::srv::Teleport::Request> req,
     std::shared_ptr<nusim::srv::Teleport::Response> res)
   {
+    /// \brief Teleport the turtle
+    ///
+    /// \param req: contains x, y, and theta to teleport the turtle to
+    /// \param res: boolean response (if teleport is successful)
     x0 = req->x;
     y0 = req->y;
     theta0 = req->theta;
@@ -110,6 +140,7 @@ private:
 
   void send_transform()
   {
+    /// \brief Broadcast the transform between the turtle's coordinates and world frame
     // from here: https://docs.ros.org/en/humble/Tutorials/Intermediate/Tf2/
     // Writing-A-Tf2-Broadcaster-Cpp.html
     geometry_msgs::msg::TransformStamped t;
@@ -131,6 +162,7 @@ private:
 
   void publish_markers()
   {
+    /// \brief Publish marker locations
     visualization_msgs::msg::MarkerArray ma;
     for (int i = 0; i < n_cylinders; i++) {
       visualization_msgs::msg::Marker m;
@@ -178,6 +210,7 @@ private:
 
 int main(int argc, char * argv[])
 {
+  /// \brief Spin the node
   rclcpp::init(argc, argv);
   rclcpp::spin(std::make_shared<Nusim>());
   rclcpp::shutdown();

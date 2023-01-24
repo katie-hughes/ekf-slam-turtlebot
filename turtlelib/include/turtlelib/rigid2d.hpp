@@ -126,7 +126,7 @@ namespace turtlelib
         /// \return the angular velocity, in radians/s
         double angular_velocity() const;
 
-        /// \brief the translational component of the transform
+        /// \brief the translational component of the twist
         /// \return the x,y translation
         Vector2D linear_velocity() const;
 
