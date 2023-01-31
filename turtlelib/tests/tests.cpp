@@ -125,6 +125,11 @@ TEST_CASE( "Normalize angle", "rigid2d") // Hughes, Katie
     REQUIRE(normalize_angle(0) == 0);
     REQUIRE(normalize_angle(PI) == PI);
     REQUIRE_THAT(normalize_angle(-1*PI), Catch::Matchers::WithinAbs(PI, 1e-5));
+
+    REQUIRE(normalize_angle(-0.25*PI) == -0.25*PI);
+    REQUIRE_THAT(normalize_angle(1.5*PI), Catch::Matchers::WithinAbs(-0.5*PI, 1e-5));
+    REQUIRE_THAT(normalize_angle(-2.5*PI), Catch::Matchers::WithinAbs(-0.5*PI, 1e-5));
+
     REQUIRE_THAT(normalize_angle(2*PI), Catch::Matchers::WithinAbs(0, 1e-5));
     REQUIRE_THAT(normalize_angle(-2*PI), Catch::Matchers::WithinAbs(0, 1e-5));
     REQUIRE_THAT(normalize_angle(4*PI), Catch::Matchers::WithinAbs(0, 1e-5));
