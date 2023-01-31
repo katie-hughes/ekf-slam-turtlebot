@@ -191,5 +191,21 @@ namespace turtlelib
         REQUIRE_THAT(angle(vec2, vec1), Catch::Matchers::WithinAbs(-0.5*PI, 1e-5));
     }
 
+    TEST_CASE("integrate_twist", "Twist2D")
+    {
+        Twist2D tw = Twist2D(Vector2D{1,2});
+        Transform2D Tbbprime = integrate_twist(tw);
+        REQUIRE_THAT(Tbbprime.translation().x, Catch::Matchers::WithinAbs(1.0, 1e-5));
+        REQUIRE_THAT(Tbbprime.translation().y, Catch::Matchers::WithinAbs(2.0, 1e-5));
+        REQUIRE_THAT(Tbbprime.rotation(), Catch::Matchers::WithinAbs(0.0, 1e-5));
+
+        tw = Twist2D(PI);
+        Tbbprime = integrate_twist(tw);
+        REQUIRE_THAT(Tbbprime.translation().x, Catch::Matchers::WithinAbs(0.0, 1e-5));
+        REQUIRE_THAT(Tbbprime.translation().y, Catch::Matchers::WithinAbs(0.0, 1e-5));
+        REQUIRE_THAT(Tbbprime.rotation(), Catch::Matchers::WithinAbs(PI, 1e-5));
+
+    }
+
 
 }

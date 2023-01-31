@@ -206,7 +206,6 @@ namespace turtlelib
     std::istream & operator>>(std::istream & is, Twist2D & tw);
 
 
-
     /// \brief a rigid body transformation in 2 dimensions
     class Transform2D
     {
@@ -285,6 +284,14 @@ namespace turtlelib
     /// \return the composition of the two transforms
     /// HINT: This function should be implemented in terms of *=
     Transform2D operator*(Transform2D lhs, const Transform2D & rhs);
+
+
+
+    /// \brief computes transform for a rigid body following a constant twist
+    // for a unit time (in the body frame)
+    /// \param tw - The twist to follow
+    /// \return the transform that follows the twist for unit time
+    Transform2D integrate_twist(Twist2D tw);
 
 
 

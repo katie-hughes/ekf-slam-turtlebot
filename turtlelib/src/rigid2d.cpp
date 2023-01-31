@@ -238,4 +238,23 @@ namespace turtlelib
         double new_vy = -linear.x*wz + v.x*sin(angular) - v.y*cos(angular);
         return Twist2D{wz, Vector2D{new_vx,new_vy}};
     }
+
+    Transform2D integrate_twist(Twist2D tw){
+        // two cases, if it has angular component or no.
+        if (tw.angular_velocity() == 0){
+            // tw.linear_velocity() gives a Vector2D
+            // components are x in m/s and y in m/s
+            // but this is over unit time, so m/s ~ m.
+            return Transform2D(tw.linear_velocity());
+        } else {
+            // Twist has angular component.
+            double xs = tw.linear_velocity().y/tw.angular_velocity();
+            double ys = -1*tw.linear_velocity().x/tw.angular_velocity();
+            Transform2D Tsb = Transform2D(Vector2D{xs,ys});
+            Transform2D Tssprime = Transform2D(tw.angular_velocity());
+            Transform2D Tsbprime = Tssprime*Tsb;
+            Transform2D Tbbprime = (Tsb.inv())*Tsbprime;
+            return Tbbprime;
+        }
+    }
 }
