@@ -31,6 +31,48 @@ namespace turtlelib
         return is;
     }
 
+    Vector2D & Vector2D::operator+=(const Vector2D & rhs){
+        x += rhs.x;
+        y += rhs.y;
+        return *this;
+    }
+
+    Vector2D & Vector2D::operator-=(const Vector2D & rhs){
+        x -= rhs.x;
+        y -= rhs.y;
+        return *this;
+    }
+
+    Vector2D & Vector2D::operator*=(const double & scalar){
+        x *= scalar;
+        y *= scalar;
+        return *this;
+    }
+
+    Vector2D operator+(Vector2D lhs, const Vector2D & rhs){
+        return lhs += rhs;
+    }
+
+    Vector2D operator-(Vector2D lhs, const Vector2D & rhs){
+        return lhs -= rhs;
+    }
+
+    Vector2D operator*(Vector2D vec, const double & scalar){
+        return vec*=scalar;
+    }
+
+    double dot(Vector2D v1, Vector2D v2){
+        return v1.x*v2.x + v1.y*v2.y;
+    }
+
+    double magnitude(Vector2D vec){
+        return sqrt(vec.x*vec.x + vec.y*vec.y);
+    }
+
+    double angle(Vector2D v1, Vector2D v2){
+        return atan2(v1.y, v1.x) - atan2(v2.y, v2.x);
+    }
+
     double normalize_angle(double rad){
         // this method has float issues if loop iterates more than just a few times...
         while (rad > PI){

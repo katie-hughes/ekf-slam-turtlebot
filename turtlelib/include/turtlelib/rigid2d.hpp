@@ -70,7 +70,57 @@ namespace turtlelib
 
         /// \brief the y coordinate
         double y = 0.0;
+        
+        /// \brief add a vector
+        /// \param rhs - the vector to add
+        /// \return a reference to the newly transformed vector
+        Vector2D & operator+=(const Vector2D & rhs);
+
+        /// \brief subtract a vector
+        /// \param rhs - the vector to subtract
+        /// \return a reference to the newly transformed vector
+        Vector2D & operator-=(const Vector2D & rhs);
+
+        /// \brief scale the vector by a constant.
+        /// \param scalar - the scaling factor
+        /// \return a reference to the newly transformed vector
+        Vector2D & operator*=(const double & scalar);
     };
+
+    /// \brief Add two vectors together.
+    /// \param lhs - the original vector
+    /// \param rhs - vector to add
+    /// \return the transformed vector
+    Vector2D operator+(Vector2D lhs, const Vector2D & rhs);
+
+    /// \brief Subtract one vector from another
+    /// \param lhs - the original vector
+    /// \param rhs - vector to subtract
+    /// \return the transformed vector
+    Vector2D operator-(Vector2D lhs, const Vector2D & rhs);
+
+    /// \brief multiply a vector by a scalar.
+    /// \param vec - the vector
+    /// \param scalar - the scaling factoe
+    /// \return the rescaled vector
+    Vector2D operator*(Vector2D vec, const double & scalar);
+
+    /// \brief Compute the dot product of two vectors
+    /// \param v1 - First vector
+    /// \param v2 - Second vector
+    /// \return the dot product
+    double dot(Vector2D v1, Vector2D v2);
+
+    /// \brief Compute the magnitude of a vector
+    /// \param vec - the vector
+    /// \return the magnitude
+    double magnitude(Vector2D vec);
+
+    /// \brief Get the angle between two vectors
+    /// \param v1 - First vector
+    /// \param v2 - Second vector
+    /// \return the angle in radians between v1 and v2
+    double angle(Vector2D v1, Vector2D v2);
 
     /// \brief normalize a 2 dimensional vector
     /// v - the vector to normalize
