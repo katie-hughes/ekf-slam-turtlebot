@@ -57,6 +57,11 @@ namespace turtlelib
 
     static_assert(almost_equal(deg2rad(rad2deg(2.1)), 2.1), "deg2rad failed");
 
+    /// \brief put an angle into the (-pi,pi] range.
+    /// rad - incoming angle in radians
+    /// \return Rescaled angle in radians
+    double normalize_angle(double rad);
+
     /// \brief A 2-Dimensional Vector
     struct Vector2D
     {

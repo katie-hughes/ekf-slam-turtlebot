@@ -31,6 +31,16 @@ namespace turtlelib
         return is;
     }
 
+    double normalize_angle(double rad){
+        while (rad > PI){
+            rad -= 2*PI;
+        }
+        while (rad <= -1.0*PI){
+            rad += 2*PI;
+        }
+        return rad;
+    }
+
     Vector2D normalize(Vector2D v){
         double norm = sqrt(v.x*v.x + v.y*v.y);
         v.x = v.x/norm;
