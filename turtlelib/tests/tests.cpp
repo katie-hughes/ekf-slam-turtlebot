@@ -167,4 +167,29 @@ namespace turtlelib
         REQUIRE_THAT(diff.y, Catch::Matchers::WithinAbs(6.0, 1e-5));
     }
 
+    TEST_CASE("dot", "Vector2D")
+    {
+        Vector2D vec1 = Vector2D{1, 2};
+        Vector2D vec2 = Vector2D{3, 4};
+        // 1*3 + 2*4 = 3 + 8 = 11
+        REQUIRE_THAT(dot(vec1, vec2), Catch::Matchers::WithinAbs(11.0, 1e-5));
+    }
+
+    TEST_CASE("magnitude", "Vector2D")
+    {
+        Vector2D vec1 = Vector2D{0, 2};
+        Vector2D vec2 = Vector2D{-1, 0};
+        REQUIRE_THAT(magnitude(vec1), Catch::Matchers::WithinAbs(2.0, 1e-5));
+        REQUIRE_THAT(magnitude(vec2), Catch::Matchers::WithinAbs(1.0, 1e-5));
+    }
+
+    TEST_CASE("angle", "Vector2D")
+    {
+        Vector2D vec1 = Vector2D{0, 2};
+        Vector2D vec2 = Vector2D{1, 0};
+        REQUIRE_THAT(angle(vec1, vec2), Catch::Matchers::WithinAbs(0.5*PI, 1e-5));
+        REQUIRE_THAT(angle(vec2, vec1), Catch::Matchers::WithinAbs(-0.5*PI, 1e-5));
+    }
+
+
 }
