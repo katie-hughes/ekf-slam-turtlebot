@@ -122,16 +122,17 @@ TEST_CASE( "Stream extraction operator >>", "[transform]" ) // Ava, Zahedi
 
 TEST_CASE( "Normalize angle", "rigid2d") // Hughes, Katie
 {
-    double r1 = 0;
-    double r2 = PI;
-    double r3 = -1.0*PI;
-    double r4 = 2*PI;
-    double r5 = -2*PI;
-    REQUIRE(normalize_angle(r1) == r1);
-    REQUIRE(normalize_angle(r2) == r2);
-    REQUIRE_THAT(normalize_angle(r3), Catch::Matchers::WithinAbs(PI, 1e-5));
-    REQUIRE_THAT(normalize_angle(r4), Catch::Matchers::WithinAbs(0, 1e-5));
-    REQUIRE_THAT(normalize_angle(r5), Catch::Matchers::WithinAbs(0, 1e-5));
+    REQUIRE(normalize_angle(0) == 0);
+    REQUIRE(normalize_angle(PI) == PI);
+    REQUIRE_THAT(normalize_angle(-1*PI), Catch::Matchers::WithinAbs(PI, 1e-5));
+    REQUIRE_THAT(normalize_angle(2*PI), Catch::Matchers::WithinAbs(0, 1e-5));
+    REQUIRE_THAT(normalize_angle(-2*PI), Catch::Matchers::WithinAbs(0, 1e-5));
+    REQUIRE_THAT(normalize_angle(4*PI), Catch::Matchers::WithinAbs(0, 1e-5));
+    REQUIRE_THAT(normalize_angle(-4*PI), Catch::Matchers::WithinAbs(0, 1e-5));
+    // REQUIRE_THAT(normalize_angle(101*PI), Catch::Matchers::WithinAbs(PI, 1e-5));
+    // REQUIRE_THAT(normalize_angle(-101*PI), Catch::Matchers::WithinAbs(PI, 1e-5));
+    REQUIRE_THAT(normalize_angle(5*PI), Catch::Matchers::WithinAbs(PI, 1e-5));
+    REQUIRE_THAT(normalize_angle(-5*PI), Catch::Matchers::WithinAbs(PI, 1e-5));
 }
 
 

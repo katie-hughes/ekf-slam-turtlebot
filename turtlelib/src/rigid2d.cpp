@@ -32,10 +32,11 @@ namespace turtlelib
     }
 
     double normalize_angle(double rad){
+        // this method has float issues if loop iterates more than just a few times...
         while (rad > PI){
             rad -= 2*PI;
         }
-        while (rad <= -1.0*PI){
+        while (rad <= -1*PI){
             rad += 2*PI;
         }
         return rad;
