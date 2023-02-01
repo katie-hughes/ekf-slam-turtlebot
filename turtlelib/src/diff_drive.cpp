@@ -59,7 +59,8 @@ namespace turtlelib
     }
 
     WheelState DiffDrive::ik(Twist2D tw){
-        /// TODO
-        return WheelState{0.0,0.0};
+        double phi_l = (1./radius)*(tw.linear_velocity().x - track*tw.angular_velocity());
+        double phi_r = (1./radius)*(tw.linear_velocity().x + track*tw.angular_velocity());
+        return WheelState{phi_l,phi_r};
     }
 }
