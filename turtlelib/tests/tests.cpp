@@ -1,4 +1,5 @@
 #include "turtlelib/rigid2d.hpp"
+#include "turtlelib/diff_drive.hpp"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <string>
@@ -211,6 +212,41 @@ namespace turtlelib
         REQUIRE_THAT(Tbbprime.translation().x, Catch::Matchers::WithinAbs(-3.229863264722, 1e-5));
         REQUIRE_THAT(Tbbprime.translation().y, Catch::Matchers::WithinAbs(-1.05645265317421, 1e-5));
         REQUIRE_THAT(Tbbprime.rotation(), Catch::Matchers::WithinAbs(-1.24, 1e-5));
+    }
+
+
+    TEST_CASE("ik: Drive forward", "DiffDrive"){
+        double track = 1.0;
+        double rad = 0.5;
+        DiffDrive dd(track, rad);
+        REQUIRE(dd.get_x() == 0);
+        REQUIRE(dd.get_y() == 0);
+        REQUIRE(dd.get_phi() == 0);
+        REQUIRE(dd.get_wheels().l == 0);
+        REQUIRE(dd.get_wheels().r == 0);
+        dd.fk(1.0,1.0);
+        REQUIRE_THAT(dd.get_x(), Catch::Matchers::WithinAbs(rad, 1e-5));
+        REQUIRE_THAT(dd.get_y(), Catch::Matchers::WithinAbs(0.0, 1e-5));
+        REQUIRE_THAT(dd.get_phi(), Catch::Matchers::WithinAbs(0.0, 1e-5));
+        // REQUIRE(1 == 0);
+    }
+
+    TEST_CASE("ik: Rotate Only", "DiffDrive"){
+        double track = 1.0;
+        double rad = 0.5;
+        DiffDrive dd(track, rad);
+        REQUIRE(dd.get_x() == 0);
+        REQUIRE(dd.get_y() == 0);
+        REQUIRE(dd.get_phi() == 0);
+        REQUIRE(dd.get_wheels().l == 0);
+        REQUIRE(dd.get_wheels().r == 0);
+        dd.fk(0.0,1.0);
+        REQUIRE_THAT(dd.get_x(), Catch::Matchers::WithinAbs(0.0, 1e-5));
+        REQUIRE_THAT(dd.get_y(), Catch::Matchers::WithinAbs(0.0, 1e-5));
+        REQUIRE_THAT(dd.get_phi(), Catch::Matchers::WithinAbs(rad/2, 1e-5));
+        // REQUIRE(1 == 0);
+        /// track{0.16},
+        /// radius{0.033}
     }
 
 
