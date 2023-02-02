@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath> 
 #include <string>
+#include <stdexcept>
 #include "turtlelib/diff_drive.hpp"
 
 namespace turtlelib
@@ -59,8 +60,12 @@ namespace turtlelib
     }
 
     WheelState DiffDrive::ik(Twist2D tw){
-        double phi_l = (1./radius)*(tw.linear_velocity().x - track*tw.angular_velocity());
-        double phi_r = (1./radius)*(tw.linear_velocity().x + track*tw.angular_velocity());
-        return WheelState{phi_l,phi_r};
+        if (almost_equal(tw.linear_velocity().y, 0)){
+            double phi_l = (1./radius)*(tw.linear_velocity().x - track*tw.angular_velocity());
+            double phi_r = (1./radius)*(tw.linear_velocity().x + track*tw.angular_velocity());
+            return WheelState{phi_l,phi_r};
+        } else {
+            throw std::logic_error("Y component of control twist must be 0!");
+        }
     }
 }
