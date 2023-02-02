@@ -284,4 +284,38 @@ namespace turtlelib
         Twist2D tw = Twist2D{PI, Vector2D{0.0, 1.0}};
         CHECK_THROWS(dd.ik(tw));
     }
+
+    TEST_CASE("Test a Few Transforms in a Row", "DiffDrive"){
+        double track = 1.0;
+        double rad = 1.0;
+        DiffDrive dd(track, rad);
+        REQUIRE(dd.get_x() == 0);
+        REQUIRE(dd.get_y() == 0);
+        REQUIRE(dd.get_phi() == 0);
+        REQUIRE(dd.get_wheels().l == 0);
+        REQUIRE(dd.get_wheels().r == 0);
+        // define desired twist: first move 1 unit forward in x direction
+        Twist2D tw = Twist2D{0, Vector2D{1.0, 0.0}};
+        WheelState ws = dd.ik(tw);
+        dd.fk(ws.l,ws.r);
+        REQUIRE_THAT(dd.get_x(), Catch::Matchers::WithinAbs(1.0, 1e-5));
+        REQUIRE_THAT(dd.get_y(), Catch::Matchers::WithinAbs(0.0, 1e-5));
+        REQUIRE_THAT(dd.get_phi(), Catch::Matchers::WithinAbs(0.0, 1e-5));
+
+        // then rotate pi/2
+        tw = Twist2D{0.5*PI, Vector2D{0.0, 0.0}};
+        ws = dd.ik(tw);
+        dd.fk(ws.l,ws.r);
+        REQUIRE_THAT(dd.get_x(), Catch::Matchers::WithinAbs(1.0, 1e-5));
+        REQUIRE_THAT(dd.get_y(), Catch::Matchers::WithinAbs(0.0, 1e-5));
+        REQUIRE_THAT(dd.get_phi(), Catch::Matchers::WithinAbs(0.5*PI, 1e-5));
+
+        // Drive forward one again. should go to y = 1
+        tw = Twist2D{0.0, Vector2D{1.0, 0.0}};
+        ws = dd.ik(tw);
+        dd.fk(ws.l,ws.r);
+        REQUIRE_THAT(dd.get_x(), Catch::Matchers::WithinAbs(1.0, 1e-5));
+        REQUIRE_THAT(dd.get_y(), Catch::Matchers::WithinAbs(1.0, 1e-5));
+        REQUIRE_THAT(dd.get_phi(), Catch::Matchers::WithinAbs(0.5*PI, 1e-5));
+    }
 }

@@ -49,12 +49,12 @@ namespace turtlelib
         // taken from MR textbook, eq 13.15
         double dl = new_left - w.l;
         double dr = new_right - w.r;
-        double dphi = (-radius/(2*track))*dl + (radius/(2*track))*dr;
-        double dx = 0.5*radius*cos(q.rotation())*dl + 0.5*radius*cos(q.rotation())*dr;
-        double dy = 0.5*radius*sin(q.rotation())*dl + 0.5*radius*sin(q.rotation())*dr;
+        double dphi = (-radius/(2*track))*new_left + (radius/(2*track))*new_right;
+        double dx = 0.5*radius*cos(q.rotation())*(new_left + new_right);
+        double dy = 0.5*radius*sin(q.rotation())*(new_left + new_right);
         // update position of the wheels
-        w.l += new_left;
-        w.r += new_right;
+        w.l = new_left;
+        w.r = new_right;
         // update configuration vector in world frame
         q = Transform2D(Vector2D{q.translation().x + dx,
                                  q.translation().y + dy},
