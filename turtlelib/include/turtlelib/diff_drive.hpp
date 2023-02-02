@@ -10,14 +10,16 @@
 namespace turtlelib
 {
 
+    /// @brief Keeps track of current wheel angles of a diff drive robot.
     struct WheelState
     {   
-        /// @brief the state of the left wheel
+        /// @brief the state of the left wheel, in radians
         double l = 0.0;
-        /// @brief the state of the right wheel
+        /// @brief the state of the right wheel, in radians
         double r = 0.0;
     };
 
+    /// @brief Maintain and update the state of a diff drive robot
     class DiffDrive
     {
         /// @brief current angles of the wheels in radians
@@ -35,6 +37,8 @@ namespace turtlelib
 
         /// @brief Create instance where origin is not 0.
         /// @param config - starting location in world frame.
+        /// @param wheel_track distance from center of robot to wheel joint (m)
+        /// @param wheel_radius radius of wheel (m)
         DiffDrive(Transform2D config, double wheel_track, double wheel_radius);
 
         /// @brief the current configuration of the robot in the world frame
