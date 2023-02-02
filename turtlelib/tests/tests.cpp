@@ -245,7 +245,7 @@ namespace turtlelib
         REQUIRE(dd.get_phi() == 0);
         REQUIRE(dd.get_wheels().l == 0);
         REQUIRE(dd.get_wheels().r == 0);
-        // define desired twist: move straight one unit in x direction
+        // define desired twist: Rotate to PI
         Twist2D tw = Twist2D{PI, Vector2D{0.0, 0.0}};
         WheelState ws = dd.ik(tw);
         REQUIRE_THAT(ws.l, Catch::Matchers::WithinAbs(-2.0*PI, 1e-5));
@@ -254,9 +254,6 @@ namespace turtlelib
         REQUIRE_THAT(dd.get_x(), Catch::Matchers::WithinAbs(0.0, 1e-5));
         REQUIRE_THAT(dd.get_y(), Catch::Matchers::WithinAbs(0.0, 1e-5));
         REQUIRE_THAT(dd.get_phi(), Catch::Matchers::WithinAbs(PI, 1e-5));
-        // REQUIRE(1 == 0);
-        /// track{0.16},
-        /// radius{0.033}
     }
 
 
