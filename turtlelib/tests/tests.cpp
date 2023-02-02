@@ -240,10 +240,10 @@ namespace turtlelib
         REQUIRE(dd.get_phi() == 0);
         REQUIRE(dd.get_wheels().l == 0);
         REQUIRE(dd.get_wheels().r == 0);
-        dd.fk(0.0,1.0);
+        dd.fk(-1.0,1.0);
         REQUIRE_THAT(dd.get_x(), Catch::Matchers::WithinAbs(0.0, 1e-5));
         REQUIRE_THAT(dd.get_y(), Catch::Matchers::WithinAbs(0.0, 1e-5));
-        REQUIRE_THAT(dd.get_phi(), Catch::Matchers::WithinAbs(rad/2, 1e-5));
+        REQUIRE_THAT(dd.get_phi(), Catch::Matchers::WithinAbs(rad, 1e-5));
         // REQUIRE(1 == 0);
         /// track{0.16},
         /// radius{0.033}
