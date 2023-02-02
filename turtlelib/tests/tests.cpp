@@ -215,9 +215,9 @@ namespace turtlelib
     }
 
 
-    TEST_CASE("ik: Drive forward", "DiffDrive"){
+    TEST_CASE("Drive forward", "DiffDrive"){
         double track = 1.0;
-        double rad = 0.5;
+        double rad = 1.0;
         DiffDrive dd(track, rad);
         REQUIRE(dd.get_x() == 0);
         REQUIRE(dd.get_y() == 0);
@@ -227,8 +227,8 @@ namespace turtlelib
         // define desired twist: move straight one unit in x direction
         Twist2D tw = Twist2D{0, Vector2D{1.0, 0.0}};
         WheelState ws = dd.ik(tw);
-        REQUIRE_THAT(ws.l, Catch::Matchers::WithinAbs(2.0, 1e-5));
-        REQUIRE_THAT(ws.r, Catch::Matchers::WithinAbs(2.0, 1e-5));
+        REQUIRE_THAT(ws.l, Catch::Matchers::WithinAbs(rad, 1e-5));
+        REQUIRE_THAT(ws.r, Catch::Matchers::WithinAbs(rad, 1e-5));
         dd.fk(ws.l,ws.r);
         REQUIRE_THAT(dd.get_x(), Catch::Matchers::WithinAbs(1.0, 1e-5));
         REQUIRE_THAT(dd.get_y(), Catch::Matchers::WithinAbs(0.0, 1e-5));
@@ -236,9 +236,9 @@ namespace turtlelib
         // REQUIRE(1 == 0);
     }
 
-    TEST_CASE("ik: Rotate Only", "DiffDrive"){
+    TEST_CASE("Rotate Only", "DiffDrive"){
         double track = 1.0;
-        double rad = 0.5;
+        double rad = 1.0;
         DiffDrive dd(track, rad);
         REQUIRE(dd.get_x() == 0);
         REQUIRE(dd.get_y() == 0);
@@ -248,13 +248,20 @@ namespace turtlelib
         // define desired twist: Rotate to PI
         Twist2D tw = Twist2D{PI, Vector2D{0.0, 0.0}};
         WheelState ws = dd.ik(tw);
-        REQUIRE_THAT(ws.l, Catch::Matchers::WithinAbs(-2.0*PI, 1e-5));
-        REQUIRE_THAT(ws.r, Catch::Matchers::WithinAbs(2.0*PI, 1e-5));
+        REQUIRE_THAT(ws.l, Catch::Matchers::WithinAbs(-1*rad*PI, 1e-5));
+        REQUIRE_THAT(ws.r, Catch::Matchers::WithinAbs(rad*PI, 1e-5));
         dd.fk(ws.l,ws.r);
         REQUIRE_THAT(dd.get_x(), Catch::Matchers::WithinAbs(0.0, 1e-5));
         REQUIRE_THAT(dd.get_y(), Catch::Matchers::WithinAbs(0.0, 1e-5));
         REQUIRE_THAT(dd.get_phi(), Catch::Matchers::WithinAbs(PI, 1e-5));
     }
 
-
+    TEST_CASE("Test Exeption", "DiffDrive"){
+        double track = 1.0;
+        double rad = 1.0;
+        DiffDrive dd(track, rad);
+        // Give it an impossible twist
+        Twist2D tw = Twist2D{PI, Vector2D{0.0, 1.0}};
+        CHECK_THROWS(dd.ik(tw));
+    }
 }
