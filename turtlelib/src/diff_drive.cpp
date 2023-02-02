@@ -46,14 +46,16 @@ namespace turtlelib
     }
 
     void DiffDrive::fk(double new_left, double new_right){
-        // taken from MR textbook, pg 524
+        // taken from MR textbook, eq 13.15
         double dl = new_left - w.l;
         double dr = new_right - w.r;
         double dphi = (-radius/(2*track))*dl + (radius/(2*track))*dr;
         double dx = 0.5*radius*cos(q.rotation())*dl + 0.5*radius*cos(q.rotation())*dr;
         double dy = 0.5*radius*sin(q.rotation())*dl + 0.5*radius*sin(q.rotation())*dr;
-        w.l = new_left;
-        w.r = new_right;
+        // update position of the wheels
+        w.l += new_left;
+        w.r += new_right;
+        // update configuration vector in world frame
         q = Transform2D(Vector2D{q.translation().x + dx,
                                  q.translation().y + dy},
                         q.rotation() + dphi);
@@ -61,8 +63,10 @@ namespace turtlelib
 
     WheelState DiffDrive::ik(Twist2D tw){
         if (almost_equal(tw.linear_velocity().y, 0)){
+            // equation 7 and 8 in doc/Kinematics.pdf
             double phi_l = (1./radius)*(tw.linear_velocity().x - track*tw.angular_velocity());
             double phi_r = (1./radius)*(tw.linear_velocity().x + track*tw.angular_velocity());
+            // don't update anything, just return the required wheel controls.
             return WheelState{phi_l,phi_r};
         } else {
             throw std::logic_error("Y component of control twist must be 0!");
