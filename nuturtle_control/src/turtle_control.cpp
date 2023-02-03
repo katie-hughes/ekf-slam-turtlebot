@@ -27,12 +27,15 @@ class TurtleControl : public rclcpp::Node
       // https://docs.ros2.org/foxy/api/rclcpp/classrclcpp_1_1Node.html#a095ea977b26e7464d9371efea5f36c42
       this->declare_parameter("wheel_radius",0.0);
       this->declare_parameter("track_width",0.0);
+      this->declare_parameter("encoder_ticks_per_rad",0.0);
 
       wheel_radius = this->get_parameter("wheel_radius").as_double();
       track_width = this->get_parameter("track_width").as_double();
+      encoder_ticks = this->get_parameter("encoder_ticks_per_rad").as_double();
 
       RCLCPP_INFO_STREAM(get_logger(), "Wheel Radius: "<<wheel_radius);
-      RCLCPP_INFO_STREAM(get_logger(), "Track Widht: "<<track_width);
+      RCLCPP_INFO_STREAM(get_logger(), "Track Width: "<<track_width);
+      RCLCPP_INFO_STREAM(get_logger(), "Encoder Ticks: "<<encoder_ticks);
 
       // slightly hacky workaround to get new values in
       turtlelib::DiffDrive temp(track_width, wheel_radius);
@@ -47,6 +50,8 @@ class TurtleControl : public rclcpp::Node
 
       sensor_sub_ = create_subscription<nuturtlebot_msgs::msg::SensorData>(
         "sensor_data", 10, std::bind(&TurtleControl::sensor_cb, this, std::placeholders::_1));
+
+      js.name = {"wheel_left_joint", "wheel_right_joint"};
 
       timer_ = create_wall_timer(
       500ms, std::bind(&TurtleControl::timer_callback, this));
@@ -78,8 +83,13 @@ class TurtleControl : public rclcpp::Node
 
     void sensor_cb(const nuturtlebot_msgs::msg::SensorData & sensor_data)
     {
-      (void) sensor_data;
       RCLCPP_INFO_STREAM(get_logger(), "Sensor Data Received");
+      std::vector<double> joint_position(2);
+      joint_position[0] = sensor_data.left_encoder;
+      joint_position[1] = sensor_data.right_encoder;
+      js.position =  joint_position;
+      js.header.stamp = this->get_clock()->now();
+      js_pub_->publish(js);
     }
 
     rclcpp::TimerBase::SharedPtr timer_;
@@ -88,9 +98,11 @@ class TurtleControl : public rclcpp::Node
 
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_sub_;
     rclcpp::Subscription<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_sub_;
-    double wheel_radius, track_width;
+    double wheel_radius, track_width, encoder_ticks;
     // initialize with garbage values. overwrite later
     turtlelib::DiffDrive robot{0.0, 0.0};
+    // initialize joint states message template to reuse
+    sensor_msgs::msg::JointState js;
 };
 
 int main(int argc, char * argv[])
