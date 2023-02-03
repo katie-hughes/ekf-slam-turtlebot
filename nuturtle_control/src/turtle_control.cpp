@@ -60,9 +60,7 @@ class TurtleControl : public rclcpp::Node
   private:
     void timer_callback()
     {
-      // auto cmd_vel = geometry_msgs::msg::Twist();
       RCLCPP_INFO_STREAM(get_logger(), "Timer Tick");
-      // publisher_->publish(cmd_vel);
     }
 
     void cmd_vel_cb(const geometry_msgs::msg::Twist & twist)
@@ -75,7 +73,7 @@ class TurtleControl : public rclcpp::Node
       turtlelib::Twist2D Vb(Vb_w,turtlelib::Vector2D{Vb_x,Vb_y});
       turtlelib::WheelState ws = robot.ik(Vb);
       nuturtlebot_msgs::msg::WheelCommands wc;
-      // TODO these should probably be related to timestep. 
+      // TODO these should probably be related to timestep? 
       wc.left_velocity = ws.l;
       wc.right_velocity = ws.r;
       wheel_pub_->publish(wc);
@@ -88,8 +86,23 @@ class TurtleControl : public rclcpp::Node
       joint_position[0] = sensor_data.left_encoder;
       joint_position[1] = sensor_data.right_encoder;
       js.position =  joint_position;
+      std::vector<double> joint_velocity(2);
       js.header.stamp = this->get_clock()->now();
+      if(!first_js){
+        double current_s = js.header.stamp.sec + 1e-9*js.header.stamp.nanosec;
+        double last_s = last_js.header.stamp.sec + 1e-9*last_js.header.stamp.nanosec;
+        double dt = current_s - last_s;
+        RCLCPP_INFO_STREAM(get_logger(), "Dt:"<<dt);
+        double v_left = (js.position[0]-last_js.position[0])/dt;
+        double v_right = (js.position[1]-last_js.position[1])/dt;
+        joint_velocity[0] = v_left;
+        joint_velocity[1] = v_right;
+        js.velocity = joint_velocity;
+      }else{
+        first_js = false;
+      }
       js_pub_->publish(js);
+      last_js = js;
     }
 
     rclcpp::TimerBase::SharedPtr timer_;
@@ -102,7 +115,8 @@ class TurtleControl : public rclcpp::Node
     // initialize with garbage values. overwrite later
     turtlelib::DiffDrive robot{0.0, 0.0};
     // initialize joint states message template to reuse
-    sensor_msgs::msg::JointState js;
+    sensor_msgs::msg::JointState js, last_js;
+    bool first_js = true;
 };
 
 int main(int argc, char * argv[])
