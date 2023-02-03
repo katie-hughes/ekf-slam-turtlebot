@@ -6,6 +6,9 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "nuturtlebot_msgs/msg/wheel_commands.hpp"
+
+
 #include "turtlelib/diff_drive.hpp"
 
 using namespace std::chrono_literals;
@@ -30,8 +33,9 @@ class TurtleControl : public rclcpp::Node
       RCLCPP_INFO_STREAM(get_logger(), "Wheel Radius: "<<wheel_radius);
       RCLCPP_INFO_STREAM(get_logger(), "Track Widht: "<<track_width);
 
-      // turtlelib::DiffDrive robot;
-      turtlelib::DiffDrive robot(track_width, wheel_radius);
+      // slightly hacky workaround to get new values in
+      turtlelib::DiffDrive temp(track_width, wheel_radius);
+      robot = temp;
 
       publisher_ = create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
       timer_ = create_wall_timer(
@@ -48,6 +52,8 @@ class TurtleControl : public rclcpp::Node
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
     double wheel_radius, track_width;
+    // initialize with garbage values. overwrite later
+    turtlelib::DiffDrive robot{0.0, 0.0};
 };
 
 int main(int argc, char * argv[])

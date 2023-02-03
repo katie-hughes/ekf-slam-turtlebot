@@ -17,6 +17,8 @@ find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(nuturtlebot_msgs REQUIRED)
+
 find_package(turtlelib REQUIRED)
 
 add_executable(turtle_control src/turtle_control.cpp)
@@ -27,7 +29,8 @@ ament_target_dependencies(turtle_control
   tf2
   tf2_ros
   geometry_msgs
-  visualization_msgs)
+  visualization_msgs
+  nuturtlebot_msgs)
 
 target_link_libraries(turtle_control turtlelib::turtlelib "${cpp_typesupport_target}")
 
