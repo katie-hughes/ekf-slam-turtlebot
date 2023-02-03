@@ -30,7 +30,8 @@ class TurtleControl : public rclcpp::Node
       RCLCPP_INFO_STREAM(get_logger(), "Wheel Radius: "<<wheel_radius);
       RCLCPP_INFO_STREAM(get_logger(), "Track Widht: "<<track_width);
 
-      turtlelib::DiffDrive robot(wheel_track, wheel_radius);
+      // turtlelib::DiffDrive robot;
+      turtlelib::DiffDrive robot(track_width, wheel_radius);
 
       publisher_ = create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
       timer_ = create_wall_timer(
