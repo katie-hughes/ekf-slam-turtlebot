@@ -62,8 +62,18 @@ class TurtleControl : public rclcpp::Node
 
     void cmd_vel_cb(const geometry_msgs::msg::Twist & twist)
     {
-      (void) twist;
       RCLCPP_INFO_STREAM(get_logger(), "Twist Received");
+      // assume twist is in the body frame. Convert into turtlelib object.
+      double Vb_w = twist.angular.z;
+      double Vb_x = twist.linear.x;
+      double Vb_y = twist.linear.y;
+      turtlelib::Twist2D Vb(Vb_w,turtlelib::Vector2D{Vb_x,Vb_y});
+      turtlelib::WheelState ws = robot.ik(Vb);
+      nuturtlebot_msgs::msg::WheelCommands wc;
+      // TODO these should probably be related to timestep. 
+      wc.left_velocity = ws.l;
+      wc.right_velocity = ws.r;
+      wheel_pub_->publish(wc);
     }
 
     void sensor_cb(const nuturtlebot_msgs::msg::SensorData & sensor_data)
