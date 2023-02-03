@@ -65,7 +65,7 @@ install(DIRECTORY include/turtlelib DESTINATION include)
 # The CMake Exported Target can be used to access this project 
 # from other CMake projects, after installation
 # The targets will be installed to default locations
-install(TARGETS frame_main turtlelib EXPORT project_name-targets)
+install(TARGETS frame_main turtlelib EXPORT turtlelib-targets)
 
 # The project_name-targets now also needs to be exported.
 # This call will generate a file called project_name-config.cmake
@@ -74,7 +74,7 @@ install(TARGETS frame_main turtlelib EXPORT project_name-targets)
 # find_package(project_name) from another cmake project
 # A user can then target_link_libraries(target project_name::library)
 # to use your library
-install(EXPORT project_name-targets
-        FILE project_name-config.cmake
-        NAMESPACE project_name::
+install(EXPORT turtlelib-targets
+        FILE turtlelib-config.cmake
+        NAMESPACE turtlelib::
         DESTINATION lib/cmake/${PROJECT_NAME})

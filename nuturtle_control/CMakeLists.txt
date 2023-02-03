@@ -17,7 +17,7 @@ find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
-
+find_package(turtlelib REQUIRED)
 
 add_executable(turtle_control src/turtle_control.cpp)
 ament_target_dependencies(turtle_control
@@ -29,7 +29,7 @@ ament_target_dependencies(turtle_control
   geometry_msgs
   visualization_msgs)
 
-target_link_libraries(turtle_control "${cpp_typesupport_target}")
+target_link_libraries(turtle_control turtlelib::turtlelib "${cpp_typesupport_target}")
 
 install(TARGETS
   turtle_control
@@ -47,5 +47,10 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+)
 
 ament_package()
