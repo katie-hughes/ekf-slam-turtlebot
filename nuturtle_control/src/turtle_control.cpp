@@ -7,7 +7,8 @@
 #include "std_msgs/msg/string.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "nuturtlebot_msgs/msg/wheel_commands.hpp"
-
+#include "nuturtlebot_msgs/msg/sensor_data.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
 
 #include "turtlelib/diff_drive.hpp"
 
@@ -37,7 +38,16 @@ class TurtleControl : public rclcpp::Node
       turtlelib::DiffDrive temp(track_width, wheel_radius);
       robot = temp;
 
-      publisher_ = create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
+      // publisher_ = create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
+      wheel_pub_ = create_publisher<nuturtlebot_msgs::msg::WheelCommands>("wheel_cmd", 10);
+      js_pub_ = create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
+      
+      cmd_vel_sub_ = create_subscription<geometry_msgs::msg::Twist>(
+        "cmd_vel", 10, std::bind(&TurtleControl::cmd_vel_cb, this, std::placeholders::_1));
+
+      sensor_sub_ = create_subscription<nuturtlebot_msgs::msg::SensorData>(
+        "sensor_data", 10, std::bind(&TurtleControl::sensor_cb, this, std::placeholders::_1));
+
       timer_ = create_wall_timer(
       500ms, std::bind(&TurtleControl::timer_callback, this));
     }
@@ -45,12 +55,29 @@ class TurtleControl : public rclcpp::Node
   private:
     void timer_callback()
     {
-      auto cmd_vel = geometry_msgs::msg::Twist();
-      RCLCPP_INFO_STREAM(get_logger(), "Publishing twist");
-      publisher_->publish(cmd_vel);
+      // auto cmd_vel = geometry_msgs::msg::Twist();
+      RCLCPP_INFO_STREAM(get_logger(), "Timer Tick");
+      // publisher_->publish(cmd_vel);
     }
+
+    void cmd_vel_cb(const geometry_msgs::msg::Twist & twist)
+    {
+      (void) twist;
+      RCLCPP_INFO_STREAM(get_logger(), "Twist Received");
+    }
+
+    void sensor_cb(const nuturtlebot_msgs::msg::SensorData & sensor_data)
+    {
+      (void) sensor_data;
+      RCLCPP_INFO_STREAM(get_logger(), "Sensor Data Received");
+    }
+
     rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
+    rclcpp::Publisher<nuturtlebot_msgs::msg::WheelCommands>::SharedPtr wheel_pub_;
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr js_pub_;
+
+    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_sub_;
+    rclcpp::Subscription<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_sub_;
     double wheel_radius, track_width;
     // initialize with garbage values. overwrite later
     turtlelib::DiffDrive robot{0.0, 0.0};
