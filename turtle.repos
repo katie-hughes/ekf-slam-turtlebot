@@ -1,0 +1,9 @@
+repositories:
+  nuturtlebot_msgs:
+    type: git
+    url: git@github.com:ME495-Navigation/nuturtlebot_msgs.git
+    version: humble
+  project:
+    type: git
+    url: git@github.com:ME495-Navigation/nuturtle-katie-hughes.git
+    version: main
