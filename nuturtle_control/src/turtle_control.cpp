@@ -53,15 +53,15 @@ class TurtleControl : public rclcpp::Node
 
       js.name = {"wheel_left_joint", "wheel_right_joint"};
 
-      timer_ = create_wall_timer(
-      500ms, std::bind(&TurtleControl::timer_callback, this));
+      // timer_ = create_wall_timer(
+      // 500ms, std::bind(&TurtleControl::timer_callback, this));
     }
 
   private:
-    void timer_callback()
-    {
-      RCLCPP_INFO_STREAM(get_logger(), "Timer Tick");
-    }
+    // void timer_callback()
+    // {
+    //   RCLCPP_INFO_STREAM(get_logger(), "Timer Tick");
+    // }
 
     void cmd_vel_cb(const geometry_msgs::msg::Twist & twist)
     {
@@ -105,7 +105,7 @@ class TurtleControl : public rclcpp::Node
       last_js = js;
     }
 
-    rclcpp::TimerBase::SharedPtr timer_;
+    // rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<nuturtlebot_msgs::msg::WheelCommands>::SharedPtr wheel_pub_;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr js_pub_;
 
