@@ -83,8 +83,8 @@ class TurtleControl : public rclcpp::Node
     {
       RCLCPP_INFO_STREAM(get_logger(), "Sensor Data Received");
       std::vector<double> joint_position(2);
-      joint_position[0] = sensor_data.left_encoder;
-      joint_position[1] = sensor_data.right_encoder;
+      joint_position[0] = sensor_data.left_encoder/encoder_ticks;
+      joint_position[1] = sensor_data.right_encoder/encoder_ticks;
       js.position =  joint_position;
       std::vector<double> joint_velocity(2);
       js.header.stamp = this->get_clock()->now();
