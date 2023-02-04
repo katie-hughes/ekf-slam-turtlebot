@@ -27,7 +27,7 @@ class Odometry : public rclcpp::Node
 {
   public:
     Odometry()
-    : Node("turtle_control")
+    : Node("odometry")
     {
       // this->declare_parameter("body_id","base_footprint");
       this->declare_parameter("body_id",body_id);

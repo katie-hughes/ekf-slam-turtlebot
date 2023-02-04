@@ -44,6 +44,20 @@ class TurtleControl : public rclcpp::Node
         throw std::logic_error("Invalid encoder_ticks_per_rad!");
       }
 
+      this->declare_parameter("motor_cmd_per_rad_sec",-1.0);
+      motor_cmd_per_rad_sec = this->get_parameter("motor_cmd_per_rad_sec").as_double();
+      RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_per_rad_sec: "<<motor_cmd_per_rad_sec);
+      if (motor_cmd_per_rad_sec<0.0){
+        throw std::logic_error("Invalid motor_cmd_per_rad_sec!");
+      }
+
+      this->declare_parameter("motor_cmd_max",-1);
+      motor_cmd_max = this->get_parameter("motor_cmd_max").as_int();
+      RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_max: "<<motor_cmd_max);
+      if (motor_cmd_max<0.0){
+        throw std::logic_error("Invalid motor_cmd_max!");
+      }
+
       // slightly hacky workaround to get new values in
       turtlelib::DiffDrive temp(track_width, wheel_radius);
       robot = temp;
@@ -79,10 +93,23 @@ class TurtleControl : public rclcpp::Node
       turtlelib::Twist2D Vb(Vb_w,turtlelib::Vector2D{Vb_x,Vb_y});
       turtlelib::WheelState ws = robot.ik(Vb);
       nuturtlebot_msgs::msg::WheelCommands wc;
-      // TODO these should probably be related to timestep? 
-      wc.left_velocity = ws.l;
-      wc.right_velocity = ws.r;
-      wheel_pub_->publish(wc);
+      RCLCPP_INFO_STREAM(get_logger(), "Wheel States "<<ws.l<<" and "<<ws.r);
+      double t_now = this->get_clock()->now().nanoseconds(); 
+      if (!first_cmdvel){
+        double dt = t_now - t_last;
+        wc.left_velocity = (ws.l/dt)*(1.0/motor_cmd_per_rad_sec);
+        wc.right_velocity = (ws.r/dt)*(1.0/motor_cmd_per_rad_sec);
+        // adjust if over the motor command max
+        if (wc.left_velocity  < -1*motor_cmd_max){wc.left_velocity =  -1*motor_cmd_max;}
+        if (wc.left_velocity  >    motor_cmd_max){wc.left_velocity =     motor_cmd_max;}
+        if (wc.right_velocity < -1*motor_cmd_max){wc.right_velocity = -1*motor_cmd_max;}
+        if (wc.right_velocity >    motor_cmd_max){wc.right_velocity =    motor_cmd_max;}
+        RCLCPP_INFO_STREAM(get_logger(), "Sending "<<wc.left_velocity<<" and "<<wc.right_velocity);
+        wheel_pub_->publish(wc);
+      }else{
+        first_cmdvel = false;
+      }
+      t_last = t_now;
     }
 
     void sensor_cb(const nuturtlebot_msgs::msg::SensorData & sensor_data)
@@ -117,12 +144,15 @@ class TurtleControl : public rclcpp::Node
 
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_sub_;
     rclcpp::Subscription<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_sub_;
-    double wheel_radius, track_width, encoder_ticks;
+    double wheel_radius, track_width, encoder_ticks, motor_cmd_per_rad_sec;
+    int motor_cmd_max;
     // initialize with garbage values. overwrite later
     turtlelib::DiffDrive robot{0.0, 0.0};
     // initialize joint states message template to reuse
     sensor_msgs::msg::JointState js, last_js;
     bool first_js = true;
+    bool first_cmdvel = true;
+    double t_last;
 };
 
 int main(int argc, char * argv[])
