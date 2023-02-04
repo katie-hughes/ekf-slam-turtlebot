@@ -23,8 +23,6 @@ class TurtleControl : public rclcpp::Node
     TurtleControl()
     : Node("turtle_control")
     {
-      // TODO Figure out how to have these as uninitialized ;-;
-      // https://docs.ros2.org/foxy/api/rclcpp/classrclcpp_1_1Node.html#a095ea977b26e7464d9371efea5f36c42
       this->declare_parameter("wheel_radius",-1.0);
       wheel_radius = this->get_parameter("wheel_radius").as_double();
       RCLCPP_INFO_STREAM(get_logger(), "Wheel Radius: "<<wheel_radius);
@@ -50,7 +48,6 @@ class TurtleControl : public rclcpp::Node
       turtlelib::DiffDrive temp(track_width, wheel_radius);
       robot = temp;
 
-      // publisher_ = create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
       wheel_pub_ = create_publisher<nuturtlebot_msgs::msg::WheelCommands>("wheel_cmd", 10);
       js_pub_ = create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
       

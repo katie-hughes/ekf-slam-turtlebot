@@ -12,6 +12,8 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "std_srvs/srv/empty.hpp"
 #include "nuturtle_control/srv/initial_pose.hpp"
+#include "tf2_ros/transform_broadcaster.h"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 
 #include "turtlelib/diff_drive.hpp"
 
@@ -26,8 +28,8 @@ class Odometry : public rclcpp::Node
     Odometry()
     : Node("turtle_control")
     {
-      this->declare_parameter("body_id","base_footprint");
-      // this->declare_parameter("body_id",body_id);
+      // this->declare_parameter("body_id","base_footprint");
+      this->declare_parameter("body_id",body_id);
       body_id = this->get_parameter("body_id").as_string();
       RCLCPP_INFO_STREAM(get_logger(), "Body ID: "<<body_id);
       if (body_id.empty()){
@@ -39,16 +41,16 @@ class Odometry : public rclcpp::Node
       odom_id = this->get_parameter("odom_id").as_string();
       RCLCPP_INFO_STREAM(get_logger(), "Odom ID: "<<odom_id);
 
-      this->declare_parameter("wheel_left","wheel_left_joint");
-      // this->declare_parameter("wheel_left",wheel_left);
+      // this->declare_parameter("wheel_left","wheel_left_joint");
+      this->declare_parameter("wheel_left",wheel_left);
       wheel_left = this->get_parameter("wheel_left").as_string();
       RCLCPP_INFO_STREAM(get_logger(), "Wheel Left: "<<wheel_left);
       if (wheel_left.empty()){
          throw std::logic_error("Invalid wheel_left!");
       }
 
-      this->declare_parameter("wheel_right","wheel_right_joint");
-      // this->declare_parameter("wheel_right",wheel_right);
+      // this->declare_parameter("wheel_right","wheel_right_joint");
+      this->declare_parameter("wheel_right",wheel_right);
       wheel_right = this->get_parameter("wheel_right").as_string();
       RCLCPP_INFO_STREAM(get_logger(), "Wheel Right: "<<wheel_right);
       if (wheel_right.empty()){
@@ -69,12 +71,13 @@ class Odometry : public rclcpp::Node
         throw std::logic_error("Invalid track_width!");
       }
 
+      // initialize the odometry object that I will publish with frames
+      current_odom.header.frame_id = odom_id;
+      current_odom.child_frame_id = body_id;
+
       // slightly hacky workaround to get new values in
       turtlelib::DiffDrive temp(track_width, wheel_radius);
       robot = temp;
-
-      // udpate header fields of the curr_odom object. 
-      // ie .header.stamp, .header.frame_id, .child_frame_id
 
       odom_pub_ = create_publisher<nav_msgs::msg::Odometry>("odom", 10);
       
@@ -87,6 +90,8 @@ class Odometry : public rclcpp::Node
       initial_pose_srv_ = this->create_service<nuturtle_control::srv::InitialPose>(
         "initial_pose",
         std::bind(&Odometry::initial_pose, this, std::placeholders::_1, std::placeholders::_2));
+
+      tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
     }
 
   private:
@@ -143,6 +148,8 @@ class Odometry : public rclcpp::Node
 
     rclcpp::Service<nuturtle_control::srv::InitialPose>::SharedPtr initial_pose_srv_;
 
+    std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+
     // initialize with garbage values, overwrite later
     turtlelib::DiffDrive robot{0.0, 0.0};
     double wheel_radius, track_width;
@@ -150,6 +157,7 @@ class Odometry : public rclcpp::Node
     bool first_iteration = true;
     nav_msgs::msg::Odometry current_odom;
     std::string body_id, odom_id, wheel_left, wheel_right;
+    geometry_msgs::msg::TransformStamped Todom_base;
 };
 
 int main(int argc, char * argv[])
