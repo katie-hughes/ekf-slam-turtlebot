@@ -22,6 +22,16 @@ find_package(nav_msgs REQUIRED)
 
 find_package(turtlelib REQUIRED)
 
+
+find_package(rosidl_default_generators REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}_srv
+  "srv/InitialPose.srv" LIBRARY_NAME ${PROJECT_NAME}
+)
+
+rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME}_srv "rosidl_typesupport_cpp")
+
+
 add_executable(turtle_control src/turtle_control.cpp)
 ament_target_dependencies(turtle_control
   rclcpp

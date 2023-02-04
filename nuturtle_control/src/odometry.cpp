@@ -11,6 +11,7 @@
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "std_srvs/srv/empty.hpp"
+#include "nuturtle_control/srv/initial_pose.hpp"
 
 #include "turtlelib/diff_drive.hpp"
 
@@ -44,10 +45,6 @@ class Odometry : public rclcpp::Node
       // turtlelib::DiffDrive temp(track_width, wheel_radius);
       // robot = temp;
 
-      // publisher_ = create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
-      // wheel_pub_ = create_publisher<nuturtlebot_msgs::msg::WheelCommands>("wheel_cmd", 10);
-      // js_pub_ = create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
-
       odom_pub_ = create_publisher<nav_msgs::msg::Odometry>("odom", 10);
       
       js_sub_ = create_subscription<sensor_msgs::msg::JointState>(
@@ -56,7 +53,7 @@ class Odometry : public rclcpp::Node
       timer_ = create_wall_timer(
         500ms, std::bind(&Odometry::timer_callback, this));
 
-      initial_pose_srv_ = this->create_service<std_srvs::srv::Empty>(
+      initial_pose_srv_ = this->create_service<nuturtle_control::srv::InitialPose>(
         "initial_pose",
         std::bind(&Odometry::initial_pose, this, std::placeholders::_1, std::placeholders::_2));
     }
@@ -74,13 +71,13 @@ class Odometry : public rclcpp::Node
     }
 
     void initial_pose(
-      std::shared_ptr<std_srvs::srv::Empty::Request>,
-      std::shared_ptr<std_srvs::srv::Empty::Response>)
+      std::shared_ptr<nuturtle_control::srv::InitialPose::Request>,
+      std::shared_ptr<nuturtle_control::srv::InitialPose::Response>)
     {
       /// \brief Reset the simulation
       ///
-      /// \param Request: The empty request
-      /// \param Response: The empty response
+      /// \param Request: x, y, and theta of desired position
+      /// \param Response: boolean, if relocation is successful
       RCLCPP_INFO_STREAM(get_logger(), "Service Call!");
     }
 
@@ -89,8 +86,7 @@ class Odometry : public rclcpp::Node
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr js_sub_;
 
-    // rclcpp::Service<std_srvs::srv::Empty>::SharedPtr initial_pose_srv_;
-    rclcpp::Service<std_srvs::srv::Empty>::SharedPtr initial_pose_srv_;
+    rclcpp::Service<nuturtle_control::srv::InitialPose>::SharedPtr initial_pose_srv_;
 
 };
 
