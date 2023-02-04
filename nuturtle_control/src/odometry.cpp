@@ -13,6 +13,7 @@
 #include "std_srvs/srv/empty.hpp"
 #include "nuturtle_control/srv/initial_pose.hpp"
 #include "tf2_ros/transform_broadcaster.h"
+#include "tf2/LinearMath/Quaternion.h"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 
 #include "turtlelib/diff_drive.hpp"
@@ -75,6 +76,10 @@ class Odometry : public rclcpp::Node
       current_odom.header.frame_id = odom_id;
       current_odom.child_frame_id = body_id;
 
+      // do the same for tf object
+      T_odom_base.header.frame_id = odom_id;
+      T_odom_base.child_frame_id = body_id;
+
       // slightly hacky workaround to get new values in
       turtlelib::DiffDrive temp(track_width, wheel_radius);
       robot = temp;
@@ -98,18 +103,34 @@ class Odometry : public rclcpp::Node
     void timer_callback()
     {
       RCLCPP_INFO_STREAM(get_logger(), "Current Pose: "<<robot.get_config());
+      // get angle as a quaternion form
+      tf2::Quaternion q;
+      q.setRPY(0, 0, robot.get_phi());
       // publish odometry message based on current config.
       current_odom.header.stamp = this->get_clock()->now();
       current_odom.pose.pose.position.x = robot.get_x();
       current_odom.pose.pose.position.y = robot.get_y();
-      // then there is also a quaternion i need to edit...
+      current_odom.pose.pose.orientation.x = q.x();
+      current_odom.pose.pose.orientation.y = q.y();
+      current_odom.pose.pose.orientation.z = q.z();
+      current_odom.pose.pose.orientation.w = q.w();
       odom_pub_->publish(current_odom);
+      // do a tf broadcast too
+      T_odom_base.header.stamp = this->get_clock()->now();
+      T_odom_base.transform.translation.x = robot.get_x();
+      T_odom_base.transform.translation.y = robot.get_y();
+      T_odom_base.transform.rotation.x = q.x();
+      T_odom_base.transform.rotation.y = q.y();
+      T_odom_base.transform.rotation.z = q.z();
+      T_odom_base.transform.rotation.w = q.w();
+      tf_broadcaster_->sendTransform(T_odom_base);
     }
 
     void js_cb(const sensor_msgs::msg::JointState & js)
     {
       RCLCPP_INFO_STREAM(get_logger(), "JS Received");
       if (!first_iteration){
+        // TODO should read these based on wheel_ids. Not hardcoded as 0s and 1s
         double dl = js.position[0] - last_js.position[0];
         double dr = js.position[1] - last_js.position[1];
         RCLCPP_INFO_STREAM(get_logger(), "dl: "<<dl);
@@ -157,7 +178,7 @@ class Odometry : public rclcpp::Node
     bool first_iteration = true;
     nav_msgs::msg::Odometry current_odom;
     std::string body_id, odom_id, wheel_left, wheel_right;
-    geometry_msgs::msg::TransformStamped Todom_base;
+    geometry_msgs::msg::TransformStamped T_odom_base;
 };
 
 int main(int argc, char * argv[])
