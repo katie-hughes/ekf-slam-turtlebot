@@ -2,7 +2,13 @@
   <arg name="cmd_src" default="none"/>
   <arg name="robot" default="none"/>
   <arg name="use_rviz" default="none"/>
-  <node pkg="nuturtle_control" exec="turtle_control">
+
+  <!-- <node pkg="nuturtle_control" exec="turtle_control">
+    <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+  </node> -->
+
+  <node pkg="nuturtle_control" exec="odometry">
     <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
   </node>
+
 </launch>
