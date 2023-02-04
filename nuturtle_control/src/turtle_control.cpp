@@ -25,17 +25,26 @@ class TurtleControl : public rclcpp::Node
     {
       // TODO Figure out how to have these as uninitialized ;-;
       // https://docs.ros2.org/foxy/api/rclcpp/classrclcpp_1_1Node.html#a095ea977b26e7464d9371efea5f36c42
-      this->declare_parameter("wheel_radius",0.0);
-      this->declare_parameter("track_width",0.0);
-      this->declare_parameter("encoder_ticks_per_rad",0.0);
-
+      this->declare_parameter("wheel_radius",-1.0);
       wheel_radius = this->get_parameter("wheel_radius").as_double();
-      track_width = this->get_parameter("track_width").as_double();
-      encoder_ticks = this->get_parameter("encoder_ticks_per_rad").as_double();
-
       RCLCPP_INFO_STREAM(get_logger(), "Wheel Radius: "<<wheel_radius);
+      if (wheel_radius<0.0){
+        throw std::logic_error("Invalid wheel_radius!");
+      }
+
+      this->declare_parameter("track_width",-1.0);
+      track_width = this->get_parameter("track_width").as_double();
       RCLCPP_INFO_STREAM(get_logger(), "Track Width: "<<track_width);
+      if (track_width<0.0){
+        throw std::logic_error("Invalid track_width!");
+      }
+
+      this->declare_parameter("encoder_ticks_per_rad",-1.0);
+      encoder_ticks = this->get_parameter("encoder_ticks_per_rad").as_double();
       RCLCPP_INFO_STREAM(get_logger(), "Encoder Ticks: "<<encoder_ticks);
+      if (wheel_radius<0.0){
+        throw std::logic_error("Invalid encoder_ticks_per_rad!");
+      }
 
       // slightly hacky workaround to get new values in
       turtlelib::DiffDrive temp(track_width, wheel_radius);
