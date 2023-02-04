@@ -48,7 +48,7 @@ class Odometry : public rclcpp::Node
       odom_pub_ = create_publisher<nav_msgs::msg::Odometry>("odom", 10);
       
       js_sub_ = create_subscription<sensor_msgs::msg::JointState>(
-        "joint_states", 10, std::bind(&Odometry::odom_cb, this, std::placeholders::_1));
+        "joint_states", 10, std::bind(&Odometry::js_cb, this, std::placeholders::_1));
 
       timer_ = create_wall_timer(
         500ms, std::bind(&Odometry::timer_callback, this));
@@ -61,24 +61,27 @@ class Odometry : public rclcpp::Node
   private:
     void timer_callback()
     {
-      RCLCPP_INFO_STREAM(get_logger(), "Timer Tick");
+      RCLCPP_INFO_STREAM(get_logger(), "Current Pose: "<<current_pose);
     }
 
-    void odom_cb(const sensor_msgs::msg::JointState & js)
+    void js_cb(const sensor_msgs::msg::JointState & js)
     {
       (void) js;
       RCLCPP_INFO_STREAM(get_logger(), "JS Received");
     }
 
     void initial_pose(
-      std::shared_ptr<nuturtle_control::srv::InitialPose::Request>,
-      std::shared_ptr<nuturtle_control::srv::InitialPose::Response>)
+      std::shared_ptr<nuturtle_control::srv::InitialPose::Request> req,
+      std::shared_ptr<nuturtle_control::srv::InitialPose::Response> res)
     {
       /// \brief Reset the simulation
       ///
       /// \param Request: x, y, and theta of desired position
       /// \param Response: boolean, if relocation is successful
       RCLCPP_INFO_STREAM(get_logger(), "Service Call!");
+      turtlelib::Transform2D new_pose(turtlelib::Vector2D{req->x, req->y},req->theta);
+      current_pose = new_pose;
+      res->success = true;
     }
 
     rclcpp::TimerBase::SharedPtr timer_;
@@ -87,6 +90,8 @@ class Odometry : public rclcpp::Node
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr js_sub_;
 
     rclcpp::Service<nuturtle_control::srv::InitialPose>::SharedPtr initial_pose_srv_;
+
+    turtlelib::Transform2D current_pose;
 
 };
 
