@@ -37,6 +37,11 @@
 
   <!-- TODO: make 2 for red or blue (nusim or not) -->
   <node pkg="rviz2" exec="rviz2" namespace="global"
-        args="-d $(find-pkg-share nuturtle_control)/config/control.rviz"/>
+        if="$(eval '\'$(var robot)\' == \'nusim\'')"
+        args="-d $(find-pkg-share nuturtle_control)/config/control_rb.rviz"/>
+
+  <node pkg="rviz2" exec="rviz2" namespace="global"
+        if="$(eval '\'$(var robot)\' != \'nusim\'')"
+        args="-d $(find-pkg-share nuturtle_control)/config/control_b.rviz"/>
 
 </launch>
