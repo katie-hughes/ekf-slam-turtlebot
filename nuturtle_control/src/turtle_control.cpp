@@ -96,7 +96,7 @@ class TurtleControl : public rclcpp::Node
       RCLCPP_INFO_STREAM(get_logger(), "Wheel States "<<ws.l<<" and "<<ws.r);
       double t_now = this->get_clock()->now().nanoseconds(); 
       if (!first_cmdvel){
-        double dt = t_now - t_last;
+        double dt = (t_now - t_last)*1e-9; // now this is in units of seconds
         wc.left_velocity = (ws.l/dt)*(1.0/motor_cmd_per_rad_sec);
         wc.right_velocity = (ws.r/dt)*(1.0/motor_cmd_per_rad_sec);
         // adjust if over the motor command max
