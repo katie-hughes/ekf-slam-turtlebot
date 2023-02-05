@@ -90,7 +90,7 @@ class Odometry : public rclcpp::Node
         "joint_states", 10, std::bind(&Odometry::js_cb, this, std::placeholders::_1));
 
       timer_ = create_wall_timer(
-        500ms, std::bind(&Odometry::timer_callback, this));
+        10ms, std::bind(&Odometry::timer_callback, this));
 
       initial_pose_srv_ = this->create_service<nuturtle_control::srv::InitialPose>(
         "initial_pose",

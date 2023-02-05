@@ -22,7 +22,6 @@
 
   <node pkg="nusim" exec="nusim"
         if="$(eval '\'$(var robot)\' == \'nusim\'')">
-    <param from="$(find-pkg-share nusim)/config/basic_world.yaml"/>
     <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
   </node>
 
