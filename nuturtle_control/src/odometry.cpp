@@ -138,6 +138,9 @@ class Odometry : public rclcpp::Node
         double current_s = js.header.stamp.sec + 1e-9*js.header.stamp.nanosec;
         double last_s = last_js.header.stamp.sec + 1e-9*last_js.header.stamp.nanosec;
         double dt = current_s - last_s;
+        // TRY THIS LOL 
+        dt = 1;
+        // END TRY THIS
         RCLCPP_INFO_STREAM(get_logger(), "dt: "<<dt);
         // apply forward kinematics
         robot.fk(dl/dt, dr/dt);
