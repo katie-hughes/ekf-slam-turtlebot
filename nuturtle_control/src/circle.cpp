@@ -33,7 +33,7 @@ class Circle : public rclcpp::Node
       this->declare_parameter("frequency",100);
       int frequency_hz = this->get_parameter("frequency").as_int();
       RCLCPP_INFO_STREAM(get_logger(), "Publish frequency is "<<frequency_hz<<" Hz");
-      std::chrono::milliseconds rate = (std::chrono::milliseconds) ((int)(1000. / frequency_hz));
+      auto rate = (std::chrono::milliseconds) ((int)(1000. / frequency_hz));
 
       twist_pub_ = create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
       

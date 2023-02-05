@@ -51,7 +51,7 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        "": true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -82,20 +82,6 @@ Visualization Manager:
           Value: true
         odom:
           Value: true
-        red/base_footprint:
-          Value: true
-        red/base_link:
-          Value: true
-        red/base_scan:
-          Value: true
-        red/caster_back_link:
-          Value: true
-        red/imu_link:
-          Value: true
-        red/wheel_left_link:
-          Value: true
-        red/wheel_right_link:
-          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -116,79 +102,8 @@ Visualization Manager:
                   {}
                 blue/wheel_right_link:
                   {}
-          red/base_footprint:
-            red/base_link:
-              red/base_scan:
-                {}
-              red/caster_back_link:
-                {}
-              red/imu_link:
-                {}
-              red/wheel_left_link:
-                {}
-              red/wheel_right_link:
-                {}
       Update Interval: 0
       Value: true
-    - Alpha: 1
-      Class: rviz_default_plugins/RobotModel
-      Collision Enabled: false
-      Description File: ""
-      Description Source: Topic
-      Description Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /red/robot_description
-      Enabled: true
-      Links:
-        All Links Enabled: true
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
-        base_footprint:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        base_scan:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        caster_back_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wheel_left_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wheel_right_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-      Mass Properties:
-        Inertia: false
-        Mass: false
-      Name: RedRobotModel
-      TF Prefix: red
-      Update Interval: 0
-      Value: true
-      Visual Enabled: true
     - Alpha: 1
       Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
@@ -294,7 +209,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 4.32810640335083
+      Distance: 3.0640158653259277
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -309,10 +224,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6803979873657227
+      Pitch: 0.3453981876373291
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.5103974342346191
+      Yaw: 1.1753977537155151
     Saved: ~
 Window Geometry:
   Displays:
