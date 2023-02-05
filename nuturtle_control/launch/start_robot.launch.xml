@@ -7,6 +7,7 @@
 
   <node pkg="nuturtle_control" exec="turtle_control">
     <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+    <remap from="wheel_cmd" to="red/wheel_cmd">
   </node>
 
   <node pkg="nuturtle_control" exec="odometry">
