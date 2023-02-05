@@ -37,6 +37,10 @@
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "visualization_msgs/msg/marker.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
+#include "nuturtlebot_msgs/msg/wheel_commands.hpp"
+#include "nuturtlebot_msgs/msg/sensor_data.hpp"
+
+#include "turtlelib/diff_drive.hpp"
 
 using namespace std::chrono_literals;
 
@@ -46,23 +50,54 @@ public:
   Nusim()
   : Node("nusim"), timestep_(0)
   {
-    this->declare_parameter("rate", 200.);
-    this->declare_parameter("x0", 0.);
-    this->declare_parameter("y0", 0.);
-    this->declare_parameter("theta0", 0.);
+    declare_parameter("rate", 200.);
+
+    declare_parameter("x0", 0.);
+    x0 = get_parameter("x0").as_double();
+
+    declare_parameter("y0", 0.);
+    y0 = get_parameter("y0").as_double();
+
+    declare_parameter("theta0", 0.);
+    theta0 = get_parameter("theta0").as_double();
 
     // shoudl default to empty list. I feel like this is a very hacky solution?
-    this->declare_parameter("obstacles/x", obx);
-    this->declare_parameter("obstacles/y", oby);
-    this->declare_parameter("obstacles/r", obr);
+    declare_parameter("obstacles/x", obx);
+    obx = get_parameter("obstacles/x").as_double_array();
 
-    x0 = this->get_parameter("x0").as_double();
-    y0 = this->get_parameter("y0").as_double();
-    theta0 = this->get_parameter("theta0").as_double();
+    declare_parameter("obstacles/y", oby);
+    oby = get_parameter("obstacles/y").as_double_array();
 
-    obx = this->get_parameter("obstacles/x").as_double_array();
-    oby = this->get_parameter("obstacles/y").as_double_array();
-    obr = this->get_parameter("obstacles/r").as_double();
+    declare_parameter("obstacles/r", obr);
+    obr = get_parameter("obstacles/r").as_double();
+
+    // params relating to physical robot.
+    // Shouldn't be required (ie if you are running nusim launch on its own)
+    // but need to be there if it's being used for control.
+    this->declare_parameter("wheel_radius",-1.0);
+    wheel_radius = this->get_parameter("wheel_radius").as_double();
+    RCLCPP_INFO_STREAM(get_logger(), "Wheel Radius: "<<wheel_radius);
+
+    this->declare_parameter("track_width",-1.0);
+    track_width = this->get_parameter("track_width").as_double();
+    RCLCPP_INFO_STREAM(get_logger(), "Track Width: "<<track_width);
+
+    this->declare_parameter("encoder_ticks_per_rad",-1.0);
+    encoder_ticks = this->get_parameter("encoder_ticks_per_rad").as_double();
+    RCLCPP_INFO_STREAM(get_logger(), "Encoder Ticks: "<<encoder_ticks);
+
+    this->declare_parameter("motor_cmd_per_rad_sec",-1.0);
+    motor_cmd_per_rad_sec = this->get_parameter("motor_cmd_per_rad_sec").as_double();
+    RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_per_rad_sec: "<<motor_cmd_per_rad_sec);
+
+    this->declare_parameter("motor_cmd_max",-1);
+    motor_cmd_max = this->get_parameter("motor_cmd_max").as_int();
+    RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_max: "<<motor_cmd_max);
+
+    // slightly hacky workaround to get new values in
+    turtlelib::Transform2D start_pose(turtlelib::Vector2D{x0, y0}, theta0);
+    turtlelib::DiffDrive temp(start_pose, track_width, wheel_radius);
+    robot = temp;
 
     if (obx.size() == oby.size()) {
       // this is a valid input
@@ -73,23 +108,28 @@ public:
       n_cylinders = 0;
     }
 
-    auto rate_param = this->get_parameter("rate").as_double();
+    auto rate_param = get_parameter("rate").as_double();
     RCLCPP_INFO_STREAM(get_logger(), "Rate is " << ((int)(1000. / rate_param)) << "ms");
     std::chrono::milliseconds rate = (std::chrono::milliseconds) ((int)(1000. / rate_param));
 
-    timestep_pub_ = this->create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
+    timestep_pub_ = create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
 
-    marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("~/obstacles", 10);
+    marker_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("~/obstacles", 10);
 
-    timer_ = this->create_wall_timer(
+    sensor_pub_ = create_publisher<nuturtlebot_msgs::msg::SensorData>("red/sensor_data", 10);
+
+    wheel_sub_ = create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
+        "red/wheel_cmd", 10, std::bind(&Nusim::wheel_cb, this, std::placeholders::_1));
+
+    timer_ = create_wall_timer(
       rate,
       std::bind(&Nusim::timer_callback, this));
 
-    reset_ = this->create_service<std_srvs::srv::Empty>(
+    reset_ = create_service<std_srvs::srv::Empty>(
       "~/reset",
       std::bind(&Nusim::reset, this, std::placeholders::_1, std::placeholders::_2));
 
-    teleport_ = this->create_service<nusim::srv::Teleport>(
+    teleport_ = create_service<nusim::srv::Teleport>(
       "~/teleport",
       std::bind(&Nusim::teleport, this, std::placeholders::_1, std::placeholders::_2));
 
@@ -147,11 +187,11 @@ private:
     t.header.stamp = this->get_clock()->now();
     t.header.frame_id = "nusim/world";
     t.child_frame_id = "red/base_footprint";
-    t.transform.translation.x = x0;
-    t.transform.translation.y = y0;
+    t.transform.translation.x = robot.get_x();
+    t.transform.translation.y = robot.get_y();
     t.transform.translation.z = 0.0;
     tf2::Quaternion q;
-    q.setRPY(0, 0, theta0);
+    q.setRPY(0, 0, robot.get_phi());
     t.transform.rotation.x = q.x();
     t.transform.rotation.y = q.y();
     t.transform.rotation.z = q.z();
@@ -190,10 +230,32 @@ private:
     marker_pub_->publish(ma);
   }
 
+  void wheel_cb(const nuturtlebot_msgs::msg::WheelCommands & wc)
+    {
+      int left_velocity = wc.left_velocity;
+      int right_velocity = wc.right_velocity;
+      RCLCPP_INFO_STREAM(get_logger(), "Wheel Vels:"<<left_velocity<<" and "<<right_velocity);
+      // convert wheel commands to sensor data
+      double ws_left = left_velocity*motor_cmd_per_rad_sec;
+      double ws_right = right_velocity*motor_cmd_per_rad_sec;
+      // udpate robot position with fk
+      // this will update in tfs as the broadcaster reads from diff drive object
+      robot.fk(ws_left, ws_right);
+      // publish new sensor data
+      current_sensor.stamp = this->get_clock()->now();
+      // i am suspicious that it is this simple, but let's try it
+      current_sensor.left_encoder += ws_left*encoder_ticks;
+      current_sensor.right_encoder += ws_right*encoder_ticks;
+      sensor_pub_->publish(current_sensor);
+    }
+
   rclcpp::TimerBase::SharedPtr timer_;
 
   rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr timestep_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
+  rclcpp::Publisher<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_pub_;
+
+  rclcpp::Subscription<nuturtlebot_msgs::msg::WheelCommands>::SharedPtr wheel_sub_;
 
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_;
   rclcpp::Service<nusim::srv::Teleport>::SharedPtr teleport_;
@@ -206,6 +268,12 @@ private:
   std::vector<double> obx, oby;
   double obr;
   int n_cylinders;
+  // for my params
+  double wheel_radius, track_width, encoder_ticks, motor_cmd_per_rad_sec;
+  int motor_cmd_max;
+  nuturtlebot_msgs::msg::SensorData current_sensor;
+  // initialize with garbage values, overwrite later
+  turtlelib::DiffDrive robot{0.0, 0.0};
 };
 
 int main(int argc, char * argv[])

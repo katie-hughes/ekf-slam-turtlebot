@@ -97,8 +97,13 @@ class TurtleControl : public rclcpp::Node
       double t_now = this->get_clock()->now().nanoseconds(); 
       if (!first_cmdvel){
         double dt = (t_now - t_last)*1e-9; // now this is in units of seconds
+        // TRYING THIS:
+        dt = 1;
+        // DELETE THIS IF DOESN"T WORK
+        RCLCPP_INFO_STREAM(get_logger(), "dt "<<dt);
         wc.left_velocity = (ws.l/dt)*(1.0/motor_cmd_per_rad_sec);
         wc.right_velocity = (ws.r/dt)*(1.0/motor_cmd_per_rad_sec);
+        RCLCPP_INFO_STREAM(get_logger(), "Before: "<<wc.left_velocity<<" and "<<wc.right_velocity);
         // adjust if over the motor command max
         if (wc.left_velocity  < -1*motor_cmd_max){wc.left_velocity =  -1*motor_cmd_max;}
         if (wc.left_velocity  >    motor_cmd_max){wc.left_velocity =     motor_cmd_max;}

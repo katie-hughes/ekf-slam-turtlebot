@@ -1,5 +1,5 @@
 <launch>
-  <arg name="cmd_src" default="none"/>
+  <arg name="cmd_src" default="circle"/>
   <arg name="robot" default="nusim"/>
   <arg name="use_rviz" default="true"/>
 
@@ -21,6 +21,7 @@
   <node pkg="nusim" exec="nusim"
         if="$(eval '\'$(var robot)\' == \'nusim\'')">
     <param from="$(find-pkg-share nusim)/config/basic_world.yaml"/>
+    <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
   </node>
 
   <!-- circle node launched if cmd_src=circle -->
@@ -52,7 +53,7 @@
     <arg name="use_rviz" value="false"/>
   </include>
 
-  <!-- launch static transform pub -->
+  <!-- launch static transform pub: odom located at world frame -->
 
   <node pkg="tf2_ros"
         exec="static_transform_publisher"
@@ -60,12 +61,17 @@
 
   <!-- Launch RVIZ -->
 
-  <node pkg="rviz2" exec="rviz2" namespace="global"
-        if="$(eval '\'$(var robot)\' == \'nusim\' and \'$(var use_rviz)\' == \'true\'')"
-        args="-d $(find-pkg-share nuturtle_control)/config/control_rb.rviz"/>
+<!-- if="$(eval '\'$(var robot)\' == \'nusim\' and \'$(var use_rviz)\' == \'true\'')" -->
 
   <node pkg="rviz2" exec="rviz2" namespace="global"
-        if="$(eval '\'$(var robot)\' != \'nusim\' and \'$(var use_rviz)\' == \'true\'')"
+        if="$(eval '\'$(var robot)\' == \'nusim\'')"
+        args="-d $(find-pkg-share nuturtle_control)/config/control_rb.rviz"/>
+
+
+<!-- if="$(eval '\'$(var robot)\' != \'nusim\' and \'$(var use_rviz)\' == \'true\'')" -->
+
+  <node pkg="rviz2" exec="rviz2" namespace="global"
+        if="$(eval '\'$(var robot)\' != \'nusim\'')"
         args="-d $(find-pkg-share nuturtle_control)/config/control_b.rviz"/>
 
 </launch>

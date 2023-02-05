@@ -17,6 +17,9 @@ find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(nuturtlebot_msgs REQUIRED)
+
+find_package(turtlelib REQUIRED)
 
 find_package(rosidl_default_generators REQUIRED)
 
@@ -35,9 +38,10 @@ ament_target_dependencies(
   tf2
   tf2_ros
   geometry_msgs
-  visualization_msgs)
+  visualization_msgs
+  nuturtlebot_msgs)
 
-target_link_libraries(nusim "${cpp_typesupport_target}")
+target_link_libraries(nusim turtlelib::turtlelib "${cpp_typesupport_target}")
 
 install(TARGETS
   nusim
