@@ -298,7 +298,7 @@ private:
         // RCLCPP_INFO_STREAM(get_logger(), "Wheel Vels:"<<left_velocity<<" and "<<right_velocity);
         // convert wheel commands to sensor data
         double dt = (timestep_-last_timestep_)/rate_hz;
-        RCLCPP_INFO_STREAM(get_logger(), "dt: "<<dt);
+        // RCLCPP_INFO_STREAM(get_logger(), "dt: "<<dt);
         double ws_left = left_velocity*motor_cmd_per_rad_sec*dt;
         double ws_right = right_velocity*motor_cmd_per_rad_sec*dt;
         // udpate robot position with fk
