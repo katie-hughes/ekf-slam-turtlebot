@@ -74,25 +74,25 @@ public:
     // params relating to physical robot.
     // Shouldn't be required (ie if you are running nusim launch on its own)
     // but need to be there if it's being used for control.
-    declare_parameter("wheel_radius",-1.0);
+    declare_parameter("wheel_radius", -1.0);
     wheel_radius = get_parameter("wheel_radius").as_double();
-    RCLCPP_INFO_STREAM(get_logger(), "Wheel Radius: "<<wheel_radius);
+    RCLCPP_INFO_STREAM(get_logger(), "Wheel Radius: " << wheel_radius);
 
-    declare_parameter("track_width",-1.0);
+    declare_parameter("track_width", -1.0);
     track_width = get_parameter("track_width").as_double();
-    RCLCPP_INFO_STREAM(get_logger(), "Track Width: "<<track_width);
+    RCLCPP_INFO_STREAM(get_logger(), "Track Width: " << track_width);
 
-    declare_parameter("encoder_ticks_per_rad",-1.0);
+    declare_parameter("encoder_ticks_per_rad", -1.0);
     encoder_ticks = get_parameter("encoder_ticks_per_rad").as_double();
-    RCLCPP_INFO_STREAM(get_logger(), "Encoder Ticks: "<<encoder_ticks);
+    RCLCPP_INFO_STREAM(get_logger(), "Encoder Ticks: " << encoder_ticks);
 
-    declare_parameter("motor_cmd_per_rad_sec",-1.0);
+    declare_parameter("motor_cmd_per_rad_sec", -1.0);
     motor_cmd_per_rad_sec = get_parameter("motor_cmd_per_rad_sec").as_double();
-    RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_per_rad_sec: "<<motor_cmd_per_rad_sec);
+    RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_per_rad_sec: " << motor_cmd_per_rad_sec);
 
-    declare_parameter("motor_cmd_max",-1);
+    declare_parameter("motor_cmd_max", -1);
     motor_cmd_max = get_parameter("motor_cmd_max").as_int();
-    RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_max: "<<motor_cmd_max);
+    RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_max: " << motor_cmd_max);
 
     declare_parameter("~x_length", 10.0);
     x_length = get_parameter("~x_length").as_double();
@@ -127,7 +127,7 @@ public:
     sensor_pub_ = create_publisher<nuturtlebot_msgs::msg::SensorData>("red/sensor_data", 10);
 
     wheel_sub_ = create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
-        "red/wheel_cmd", 10, std::bind(&Nusim::wheel_cb, this, std::placeholders::_1));
+      "red/wheel_cmd", 10, std::bind(&Nusim::wheel_cb, this, std::placeholders::_1));
 
     timer_ = create_wall_timer(
       rate,
@@ -256,7 +256,7 @@ private:
     ma.markers.push_back(m3);
     ma.markers.push_back(m4);
 
-    for(int i=0; i<4; i++){
+    for (int i = 0; i < 4; i++) {
       ma.markers.at(i).header.stamp = this->get_clock()->now();
       ma.markers.at(i).header.frame_id = "nusim/world";
       ma.markers.at(i).id = i;
@@ -277,47 +277,47 @@ private:
     }
 
     ma.markers.at(0).scale.y = y_length;
-    ma.markers.at(0).pose.position.x = 0.5*x_length;
+    ma.markers.at(0).pose.position.x = 0.5 * x_length;
 
     ma.markers.at(1).scale.x = x_length;
-    ma.markers.at(1).pose.position.y = 0.5*y_length;
+    ma.markers.at(1).pose.position.y = 0.5 * y_length;
 
     ma.markers.at(2).scale.y = y_length;
-    ma.markers.at(2).pose.position.x = -0.5*x_length;
+    ma.markers.at(2).pose.position.x = -0.5 * x_length;
 
     ma.markers.at(3).scale.x = x_length;
-    ma.markers.at(3).pose.position.y = -0.5*y_length;
+    ma.markers.at(3).pose.position.y = -0.5 * y_length;
 
     walls_pub_->publish(ma);
   }
 
   void wheel_cb(const nuturtlebot_msgs::msg::WheelCommands & wc)
-    {
-      if(!first_wc){
-        int left_velocity = wc.left_velocity; // multiply by timestep*period
-        int right_velocity = wc.right_velocity;
-        // RCLCPP_INFO_STREAM(get_logger(), "Wheel Vels:"<<left_velocity<<" and "<<right_velocity);
-        // convert wheel commands to sensor data
-        double dt = (timestep_-last_timestep_)/rate_hz;
-        // RCLCPP_INFO_STREAM(get_logger(), "dt: "<<dt);
-        double ws_left = left_velocity*motor_cmd_per_rad_sec*dt;
-        double ws_right = right_velocity*motor_cmd_per_rad_sec*dt;
-        // udpate robot position with fk
-        // this will update in tfs as the broadcaster reads from diff drive object
-        robot.fk(ws_left, ws_right);
-        RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: "<<robot.get_config());
-        // update sensor data
-        // i am suspicious that it is this simple, but let's try it
-        current_sensor.stamp = this->get_clock()->now();
-        current_sensor.left_encoder += ws_left*encoder_ticks;
-        current_sensor.right_encoder += ws_right*encoder_ticks;
-        sensor_pub_->publish(current_sensor);
-      }else{
-        first_wc = false;
-      }
-      last_timestep_ = timestep_;
-      
+  {
+    if (!first_wc) {
+      int left_velocity = wc.left_velocity;   // multiply by timestep*period
+      int right_velocity = wc.right_velocity;
+      // RCLCPP_INFO_STREAM(get_logger(), "Wheel Vels:"<<left_velocity<<" and "<<right_velocity);
+      // convert wheel commands to sensor data
+      double dt = (timestep_ - last_timestep_) / rate_hz;
+      // RCLCPP_INFO_STREAM(get_logger(), "dt: "<<dt);
+      double ws_left = left_velocity * motor_cmd_per_rad_sec * dt;
+      double ws_right = right_velocity * motor_cmd_per_rad_sec * dt;
+      // udpate robot position with fk
+      // this will update in tfs as the broadcaster reads from diff drive object
+      robot.fk(ws_left, ws_right);
+      RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: " << robot.get_config());
+      // update sensor data
+      // i am suspicious that it is this simple, but let's try it
+      current_sensor.stamp = this->get_clock()->now();
+      current_sensor.left_encoder += ws_left * encoder_ticks;
+      current_sensor.right_encoder += ws_right * encoder_ticks;
+      sensor_pub_->publish(current_sensor);
+    } else {
+      first_wc = false;
     }
+    last_timestep_ = timestep_;
+
+  }
 
   rclcpp::TimerBase::SharedPtr timer_;
 
