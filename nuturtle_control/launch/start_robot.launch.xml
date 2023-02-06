@@ -64,7 +64,8 @@
            if="$(eval '\'$(var robot)\' == \'nusim\'')">
     <arg name="color" value="red"/>
     <arg name="use_rviz" value="false"/>
-    <arg name="use_jsp" value="false"/>
+    <!-- don't want to update joint states of red by hand -->
+    <arg name="use_jsp" value="true"/>
   </include>
 
   <!-- launch static transform pub: odom located at world frame -->
