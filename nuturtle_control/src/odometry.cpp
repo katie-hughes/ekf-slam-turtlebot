@@ -30,43 +30,43 @@ class Odometry : public rclcpp::Node
     : Node("odometry")
     {
       // this->declare_parameter("body_id","base_footprint");
-      this->declare_parameter("body_id",body_id);
-      body_id = this->get_parameter("body_id").as_string();
+      declare_parameter("body_id",body_id);
+      body_id = get_parameter("body_id").as_string();
       RCLCPP_INFO_STREAM(get_logger(), "Body ID: "<<body_id);
       if (body_id.empty()){
          throw std::logic_error("Invalid body_id!");
       }
 
       // default = odom
-      this->declare_parameter("odom_id","odom");
-      odom_id = this->get_parameter("odom_id").as_string();
+      declare_parameter("odom_id","odom");
+      odom_id = get_parameter("odom_id").as_string();
       RCLCPP_INFO_STREAM(get_logger(), "Odom ID: "<<odom_id);
 
       // this->declare_parameter("wheel_left","wheel_left_joint");
-      this->declare_parameter("wheel_left",wheel_left);
-      wheel_left = this->get_parameter("wheel_left").as_string();
+      declare_parameter("wheel_left",wheel_left);
+      wheel_left = get_parameter("wheel_left").as_string();
       RCLCPP_INFO_STREAM(get_logger(), "Wheel Left: "<<wheel_left);
       if (wheel_left.empty()){
          throw std::logic_error("Invalid wheel_left!");
       }
 
       // this->declare_parameter("wheel_right","wheel_right_joint");
-      this->declare_parameter("wheel_right",wheel_right);
-      wheel_right = this->get_parameter("wheel_right").as_string();
+      declare_parameter("wheel_right",wheel_right);
+      wheel_right = get_parameter("wheel_right").as_string();
       RCLCPP_INFO_STREAM(get_logger(), "Wheel Right: "<<wheel_right);
       if (wheel_right.empty()){
          throw std::logic_error("Invalid wheel_right!");
       }
 
-      this->declare_parameter("wheel_radius",-1.0);
-      wheel_radius = this->get_parameter("wheel_radius").as_double();
+      declare_parameter("wheel_radius",-1.0);
+      wheel_radius = get_parameter("wheel_radius").as_double();
       RCLCPP_INFO_STREAM(get_logger(), "Wheel Radius: "<<wheel_radius);
       if (wheel_radius<0.0){
         throw std::logic_error("Invalid wheel_radius!");
       }
 
-      this->declare_parameter("track_width",-1.0);
-      track_width = this->get_parameter("track_width").as_double();
+      declare_parameter("track_width",-1.0);
+      track_width = get_parameter("track_width").as_double();
       RCLCPP_INFO_STREAM(get_logger(), "Track Width: "<<track_width);
       if (wheel_radius<0.0){
         throw std::logic_error("Invalid track_width!");
@@ -89,7 +89,7 @@ class Odometry : public rclcpp::Node
       js_sub_ = create_subscription<sensor_msgs::msg::JointState>(
         "joint_states", 10, std::bind(&Odometry::js_cb, this, std::placeholders::_1));
 
-      initial_pose_srv_ = this->create_service<nuturtle_control::srv::InitialPose>(
+      initial_pose_srv_ = create_service<nuturtle_control::srv::InitialPose>(
         "initial_pose",
         std::bind(&Odometry::initial_pose, this, std::placeholders::_1, std::placeholders::_2));
 

@@ -5,10 +5,20 @@
 
   <!-- turtle_control and odometry nodes are always launched! -->
 
-  <node pkg="nuturtle_control" exec="turtle_control">
+  <node pkg="nuturtle_control" exec="turtle_control"
+        if="$(eval '\'$(var robot)\' == \'nusim\'')">
     <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
     <remap from="wheel_cmd" to="red/wheel_cmd"/>
     <remap from="sensor_data" to="red/sensor_data"/>
+    <remap from="joint_states" to="blue/joint_states"/>
+  </node>
+
+  <!-- Don't do remapping if nusim is not running! -->
+
+  <node pkg="nuturtle_control" exec="turtle_control"
+        if="$(eval '\'$(var robot)\' != \'nusim\'')">
+    <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+    <remap from="joint_states" to="blue/joint_states"/>
   </node>
 
   <node pkg="nuturtle_control" exec="odometry">
@@ -16,6 +26,7 @@
     <param name="body_id" value="blue/base_footprint"/>
     <param name="wheel_left" value="wheel_left_joint"/>
     <param name="wheel_right" value="wheel_right_joint"/>
+    <remap from="joint_states" to="blue/joint_states"/>
   </node>
 
   <!-- nusim node launched if robot=nusim -->
@@ -44,6 +55,7 @@
   <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py">
     <arg name="color" value="blue"/>
     <arg name="use_rviz" value="false"/>
+    <arg name="use_jsp" value="false"/>
   </include>
 
   <!-- Load red robot only if nusim is also running -->
@@ -52,6 +64,7 @@
            if="$(eval '\'$(var robot)\' == \'nusim\'')">
     <arg name="color" value="red"/>
     <arg name="use_rviz" value="false"/>
+    <arg name="use_jsp" value="false"/>
   </include>
 
   <!-- launch static transform pub: odom located at world frame -->

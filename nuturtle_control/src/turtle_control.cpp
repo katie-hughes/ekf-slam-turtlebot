@@ -20,36 +20,36 @@ class TurtleControl : public rclcpp::Node
     TurtleControl()
     : Node("turtle_control")
     {
-      this->declare_parameter("wheel_radius",-1.0);
-      wheel_radius = this->get_parameter("wheel_radius").as_double();
+      declare_parameter("wheel_radius",-1.0);
+      wheel_radius = get_parameter("wheel_radius").as_double();
       RCLCPP_INFO_STREAM(get_logger(), "Wheel Radius: "<<wheel_radius);
       if (wheel_radius<0.0){
         throw std::logic_error("Invalid wheel_radius!");
       }
 
-      this->declare_parameter("track_width",-1.0);
-      track_width = this->get_parameter("track_width").as_double();
+      declare_parameter("track_width",-1.0);
+      track_width = get_parameter("track_width").as_double();
       RCLCPP_INFO_STREAM(get_logger(), "Track Width: "<<track_width);
       if (track_width<0.0){
         throw std::logic_error("Invalid track_width!");
       }
 
-      this->declare_parameter("encoder_ticks_per_rad",-1.0);
-      encoder_ticks = this->get_parameter("encoder_ticks_per_rad").as_double();
+      declare_parameter("encoder_ticks_per_rad",-1.0);
+      encoder_ticks = get_parameter("encoder_ticks_per_rad").as_double();
       RCLCPP_INFO_STREAM(get_logger(), "Encoder Ticks: "<<encoder_ticks);
       if (wheel_radius<0.0){
         throw std::logic_error("Invalid encoder_ticks_per_rad!");
       }
 
-      this->declare_parameter("motor_cmd_per_rad_sec",-1.0);
-      motor_cmd_per_rad_sec = this->get_parameter("motor_cmd_per_rad_sec").as_double();
+      declare_parameter("motor_cmd_per_rad_sec",-1.0);
+      motor_cmd_per_rad_sec = get_parameter("motor_cmd_per_rad_sec").as_double();
       RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_per_rad_sec: "<<motor_cmd_per_rad_sec);
       if (motor_cmd_per_rad_sec<0.0){
         throw std::logic_error("Invalid motor_cmd_per_rad_sec!");
       }
 
-      this->declare_parameter("motor_cmd_max",-1);
-      motor_cmd_max = this->get_parameter("motor_cmd_max").as_int();
+      declare_parameter("motor_cmd_max",-1);
+      motor_cmd_max = get_parameter("motor_cmd_max").as_int();
       RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_max: "<<motor_cmd_max);
       if (motor_cmd_max<0.0){
         throw std::logic_error("Invalid motor_cmd_max!");

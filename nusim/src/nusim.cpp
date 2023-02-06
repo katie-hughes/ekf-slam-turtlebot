@@ -74,24 +74,24 @@ public:
     // params relating to physical robot.
     // Shouldn't be required (ie if you are running nusim launch on its own)
     // but need to be there if it's being used for control.
-    this->declare_parameter("wheel_radius",-1.0);
-    wheel_radius = this->get_parameter("wheel_radius").as_double();
+    declare_parameter("wheel_radius",-1.0);
+    wheel_radius = get_parameter("wheel_radius").as_double();
     RCLCPP_INFO_STREAM(get_logger(), "Wheel Radius: "<<wheel_radius);
 
-    this->declare_parameter("track_width",-1.0);
-    track_width = this->get_parameter("track_width").as_double();
+    declare_parameter("track_width",-1.0);
+    track_width = get_parameter("track_width").as_double();
     RCLCPP_INFO_STREAM(get_logger(), "Track Width: "<<track_width);
 
-    this->declare_parameter("encoder_ticks_per_rad",-1.0);
-    encoder_ticks = this->get_parameter("encoder_ticks_per_rad").as_double();
+    declare_parameter("encoder_ticks_per_rad",-1.0);
+    encoder_ticks = get_parameter("encoder_ticks_per_rad").as_double();
     RCLCPP_INFO_STREAM(get_logger(), "Encoder Ticks: "<<encoder_ticks);
 
-    this->declare_parameter("motor_cmd_per_rad_sec",-1.0);
-    motor_cmd_per_rad_sec = this->get_parameter("motor_cmd_per_rad_sec").as_double();
+    declare_parameter("motor_cmd_per_rad_sec",-1.0);
+    motor_cmd_per_rad_sec = get_parameter("motor_cmd_per_rad_sec").as_double();
     RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_per_rad_sec: "<<motor_cmd_per_rad_sec);
 
-    this->declare_parameter("motor_cmd_max",-1);
-    motor_cmd_max = this->get_parameter("motor_cmd_max").as_int();
+    declare_parameter("motor_cmd_max",-1);
+    motor_cmd_max = get_parameter("motor_cmd_max").as_int();
     RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_max: "<<motor_cmd_max);
 
     // slightly hacky workaround to get new values in
