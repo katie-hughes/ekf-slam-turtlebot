@@ -94,10 +94,10 @@ public:
     motor_cmd_max = get_parameter("motor_cmd_max").as_int();
     RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_max: "<<motor_cmd_max);
 
-    declare_parameter("~x_length", 1.0);
+    declare_parameter("~x_length", 10.0);
     x_length = get_parameter("~x_length").as_double();
 
-    declare_parameter("~y_length", 2.0);
+    declare_parameter("~y_length", 10.0);
     y_length = get_parameter("~y_length").as_double();
 
     // slightly hacky workaround to get new values in
@@ -266,28 +266,24 @@ private:
       ma.markers.at(i).color.b = 1.0;
       ma.markers.at(i).color.a = 1.0;
       // they are all same z height
+      ma.markers.at(i).scale.x = 0.0;
+      ma.markers.at(i).scale.y = 0.0;
       ma.markers.at(i).scale.z = 0.25;
+      ma.markers.at(i).pose.position.x = 0.0;
+      ma.markers.at(i).pose.position.y = 0.0;
       ma.markers.at(i).pose.position.z = 0.125;
     }
 
-    ma.markers.at(0).scale.x = 0.0;
     ma.markers.at(0).scale.y = y_length;
     ma.markers.at(0).pose.position.x = 0.5*x_length;
-    ma.markers.at(0).pose.position.y = 0.0;
 
     ma.markers.at(1).scale.x = x_length;
-    ma.markers.at(1).scale.y = 0.0;
-    ma.markers.at(1).pose.position.x = 0.0;
     ma.markers.at(1).pose.position.y = 0.5*y_length;
 
-    ma.markers.at(2).scale.x = 0.0;
     ma.markers.at(2).scale.y = y_length;
     ma.markers.at(2).pose.position.x = -0.5*x_length;
-    ma.markers.at(2).pose.position.y = 0.0;
 
     ma.markers.at(3).scale.x = x_length;
-    ma.markers.at(3).scale.y = 0.0;
-    ma.markers.at(3).pose.position.x = 0.0;
     ma.markers.at(3).pose.position.y = -0.5*y_length;
 
     walls_pub_->publish(ma);
