@@ -154,6 +154,7 @@ private:
     message.data = timestep_;
     //   RCLCPP_INFO_STREAM(get_logger(), "Timestep: " << message.data);
     timestep_pub_->publish(message);
+    // current_sensor.stamp = this->get_clock()->now();
     sensor_pub_->publish(current_sensor);
     // send robot transform
     send_transform();
@@ -305,11 +306,12 @@ private:
         // this will update in tfs as the broadcaster reads from diff drive object
         robot.fk(ws_left, ws_right);
         RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: "<<robot.get_config());
-        // publish new sensor data
-        current_sensor.stamp = this->get_clock()->now();
+        // update sensor data
         // i am suspicious that it is this simple, but let's try it
+        current_sensor.stamp = this->get_clock()->now();
         current_sensor.left_encoder += ws_left*encoder_ticks;
         current_sensor.right_encoder += ws_right*encoder_ticks;
+        sensor_pub_->publish(current_sensor);
       }else{
         first_wc = false;
       }
