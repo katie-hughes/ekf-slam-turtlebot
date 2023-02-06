@@ -155,6 +155,7 @@ private:
     //   RCLCPP_INFO_STREAM(get_logger(), "Timestep: " << message.data);
     timestep_pub_->publish(message);
     sensor_pub_->publish(current_sensor);
+    // send robot transform
     send_transform();
     publish_obstacles();
     publish_walls();
@@ -293,13 +294,14 @@ private:
     {
       int left_velocity = wc.left_velocity;
       int right_velocity = wc.right_velocity;
-      RCLCPP_INFO_STREAM(get_logger(), "Wheel Vels:"<<left_velocity<<" and "<<right_velocity);
+      // RCLCPP_INFO_STREAM(get_logger(), "Wheel Vels:"<<left_velocity<<" and "<<right_velocity);
       // convert wheel commands to sensor data
       double ws_left = left_velocity*motor_cmd_per_rad_sec;
       double ws_right = right_velocity*motor_cmd_per_rad_sec;
       // udpate robot position with fk
       // this will update in tfs as the broadcaster reads from diff drive object
       robot.fk(ws_left, ws_right);
+      RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: "<<robot.get_config());
       // publish new sensor data
       current_sensor.stamp = this->get_clock()->now();
       // i am suspicious that it is this simple, but let's try it

@@ -100,19 +100,29 @@ class Odometry : public rclcpp::Node
     void js_cb(const sensor_msgs::msg::JointState & js)
     {
       // RCLCPP_INFO_STREAM(get_logger(), "JS Received");
+      // always do a tf broadcast
+      // get angle as a quaternion form
+      tf2::Quaternion q;
+      q.setRPY(0, 0, robot.get_phi());
+      T_odom_base.header.stamp = this->get_clock()->now();
+      T_odom_base.transform.translation.x = robot.get_x();
+      T_odom_base.transform.translation.y = robot.get_y();
+      T_odom_base.transform.rotation.x = q.x();
+      T_odom_base.transform.rotation.y = q.y();
+      T_odom_base.transform.rotation.z = q.z();
+      T_odom_base.transform.rotation.w = q.w();
+      tf_broadcaster_->sendTransform(T_odom_base);
       if (!first_iteration){
         // TODO should read these based on wheel_ids. Not hardcoded as 0s and 1s
         double dl = js.position[0] - last_js.position[0];
         double dr = js.position[1] - last_js.position[1];
+        // should this just be .velocity??????????????????????????????????????????
         // RCLCPP_INFO_STREAM(get_logger(), "dl: "<<dl);
         // RCLCPP_INFO_STREAM(get_logger(), "dr: "<<dr);
         // apply forward kinematics
         robot.fk(dl, dr);
         // publish the location
-        RCLCPP_INFO_STREAM(get_logger(), "Current Pose: "<<robot.get_config());
-        // get angle as a quaternion form
-        tf2::Quaternion q;
-        q.setRPY(0, 0, robot.get_phi());
+        RCLCPP_INFO_STREAM(get_logger(), "Odom Pose: "<<robot.get_config());
         // publish odometry message based on current config.
         current_odom.header.stamp = this->get_clock()->now();
         current_odom.pose.pose.position.x = robot.get_x();
@@ -121,16 +131,8 @@ class Odometry : public rclcpp::Node
         current_odom.pose.pose.orientation.y = q.y();
         current_odom.pose.pose.orientation.z = q.z();
         current_odom.pose.pose.orientation.w = q.w();
+        // TODO add twist
         odom_pub_->publish(current_odom);
-        // do a tf broadcast too
-        T_odom_base.header.stamp = this->get_clock()->now();
-        T_odom_base.transform.translation.x = robot.get_x();
-        T_odom_base.transform.translation.y = robot.get_y();
-        T_odom_base.transform.rotation.x = q.x();
-        T_odom_base.transform.rotation.y = q.y();
-        T_odom_base.transform.rotation.z = q.z();
-        T_odom_base.transform.rotation.w = q.w();
-        tf_broadcaster_->sendTransform(T_odom_base);
       } else {
         first_iteration = false;
       }

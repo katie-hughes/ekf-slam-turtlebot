@@ -82,7 +82,7 @@ class TurtleControl : public rclcpp::Node
       turtlelib::Twist2D Vb(Vb_w,turtlelib::Vector2D{Vb_x,Vb_y});
       turtlelib::WheelState ws = robot.ik(Vb);
       nuturtlebot_msgs::msg::WheelCommands wc;
-      RCLCPP_INFO_STREAM(get_logger(), "IK Wheel States "<<ws.l<<" and "<<ws.r);      
+      // RCLCPP_INFO_STREAM(get_logger(), "IK Wheel States "<<ws.l<<" and "<<ws.r);      
       wc.left_velocity = ws.l/motor_cmd_per_rad_sec;
       wc.right_velocity = ws.r/motor_cmd_per_rad_sec;
       // adjust if over the motor command max
@@ -90,7 +90,7 @@ class TurtleControl : public rclcpp::Node
       if (wc.left_velocity  >    motor_cmd_max){wc.left_velocity =     motor_cmd_max;}
       if (wc.right_velocity < -1*motor_cmd_max){wc.right_velocity = -1*motor_cmd_max;}
       if (wc.right_velocity >    motor_cmd_max){wc.right_velocity =    motor_cmd_max;}
-      RCLCPP_INFO_STREAM(get_logger(), "Sending "<<wc.left_velocity<<" and "<<wc.right_velocity);
+      // RCLCPP_INFO_STREAM(get_logger(), "Sending "<<wc.left_velocity<<" and "<<wc.right_velocity);
       wheel_pub_->publish(wc);
     }
 
