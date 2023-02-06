@@ -114,9 +114,9 @@ public:
       n_cylinders = 0;
     }
 
-    auto rate_param = get_parameter("rate").as_double();
-    RCLCPP_INFO_STREAM(get_logger(), "Rate is " << ((int)(1000. / rate_param)) << "ms");
-    std::chrono::milliseconds rate = (std::chrono::milliseconds) ((int)(1000. / rate_param));
+    rate_hz = get_parameter("rate").as_double();
+    RCLCPP_INFO_STREAM(get_logger(), "Rate is " << ((int)(1000. / rate_hz)) << "ms");
+    std::chrono::milliseconds rate = (std::chrono::milliseconds) ((int)(1000. / rate_hz));
 
     timestep_pub_ = create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
 
@@ -296,8 +296,8 @@ private:
       int right_velocity = wc.right_velocity;
       // RCLCPP_INFO_STREAM(get_logger(), "Wheel Vels:"<<left_velocity<<" and "<<right_velocity);
       // convert wheel commands to sensor data
-      double ws_left = left_velocity*motor_cmd_per_rad_sec;
-      double ws_right = right_velocity*motor_cmd_per_rad_sec;
+      double ws_left = left_velocity*motor_cmd_per_rad_sec*(1.0/rate_hz); // * 1.0/rate_hz??
+      double ws_right = right_velocity*motor_cmd_per_rad_sec*(1.0/rate_hz);
       // udpate robot position with fk
       // this will update in tfs as the broadcaster reads from diff drive object
       robot.fk(ws_left, ws_right);
@@ -324,7 +324,7 @@ private:
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
   size_t timestep_;
-  double x0, y0, theta0;
+  double x0, y0, theta0, rate_hz;
   // Initializations for the markers
   std::vector<double> obx, oby;
   double obr;
