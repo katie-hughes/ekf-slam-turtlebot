@@ -94,6 +94,9 @@ public:
     motor_cmd_max = get_parameter("motor_cmd_max").as_int();
     RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_max: "<<motor_cmd_max);
 
+    declare_parameter("x_length", -1.0);
+    declare_parameter("y_length", -1.0);
+
     // slightly hacky workaround to get new values in
     auto start_pose = turtlelib::Transform2D(turtlelib::Vector2D{x0, y0}, theta0);
     turtlelib::DiffDrive temp(start_pose, track_width, wheel_radius);
