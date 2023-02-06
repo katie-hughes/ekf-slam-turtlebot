@@ -23,7 +23,7 @@
     <remap from="joint_states" to="blue/joint_states"/>
   </node>
 
-  <!-- Don't do remapping if nusim is not running! -->
+  <!-- Don't do remapping if nusim is not running! (red robot doesn't exist then) -->
 
   <node pkg="nuturtle_control" exec="turtle_control"
         if="$(eval '\'$(var robot)\' != \'nusim\'')">
@@ -52,6 +52,12 @@
 
   <node pkg="nuturtle_control" exec="circle"
         if="$(eval '\'$(var cmd_src)\' == \'circle\'')">
+  </node>
+
+  <!-- launch this if localhost -->
+
+  <node pkg="numsr_turtlebot" exec="numsr_turtlebot"
+        if="$(eval '\'$(var robot)\' == \'localhost\'')">
   </node>
 
   <!-- teleop keyboard node launched if cmd_src=teleop. NOT valid on localhost -->

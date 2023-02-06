@@ -27,6 +27,9 @@ add_executable(frame_main src/frame_main.cpp)
 target_link_libraries(frame_main turtlelib)
 
 
+if(NOT CMAKE_CROSSCOMPILING)
+
+# stuff you don't want to be done when cross compiling
 # CMake also has the ability to generate doxygen documentation
 find_package(Doxygen)
 set(DOXYGEN_USE_MDFILE_AS_MAINPAGE README.md) # Use the readme in your doxygen docs
@@ -42,6 +45,7 @@ target_link_libraries(turtlelib_test turtlelib Catch2::Catch2WithMain)
 
 add_test(NAME Test_of_Turtlelib COMMAND turtlelib_test)
 
+endif()
 
 
 # Use target_include_directories so that #include"mylibrary/header.hpp" works
