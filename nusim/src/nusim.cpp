@@ -292,7 +292,7 @@ private:
 
   void wheel_cb(const nuturtlebot_msgs::msg::WheelCommands & wc)
     {
-      int left_velocity = wc.left_velocity;
+      int left_velocity = wc.left_velocity; // multiply by timestep*period
       int right_velocity = wc.right_velocity;
       // RCLCPP_INFO_STREAM(get_logger(), "Wheel Vels:"<<left_velocity<<" and "<<right_velocity);
       // convert wheel commands to sensor data
