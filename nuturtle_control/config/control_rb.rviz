@@ -4,7 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /TF1/Status1
+        - /MarkerArray2/Status1
       Splitter Ratio: 0.6894586682319641
     Tree Height: 712
   - Class: rviz_common/Selection
@@ -285,6 +285,18 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /odom
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /nusim/walls
       Value: true
   Enabled: true
   Global Options:

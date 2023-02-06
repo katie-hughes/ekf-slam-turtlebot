@@ -42,7 +42,7 @@
         if="$(eval '\'$(var cmd_src)\' == \'circle\'')">
   </node>
 
-  <!-- teleop keyboard node launched if cmd_src=teleop -->
+  <!-- teleop keyboard node launched if cmd_src=teleop. NOT valid on localhost -->
 
   <node pkg="teleop_twist_keyboard" exec="teleop_twist_keyboard"
         if="$(eval '\'$(var cmd_src)\' == \'teleop\'')"

@@ -94,8 +94,11 @@ public:
     motor_cmd_max = get_parameter("motor_cmd_max").as_int();
     RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_max: "<<motor_cmd_max);
 
-    declare_parameter("x_length", -1.0);
-    declare_parameter("y_length", -1.0);
+    declare_parameter("~x_length", 1.0);
+    x_length = get_parameter("~x_length").as_double();
+
+    declare_parameter("~y_length", 2.0);
+    y_length = get_parameter("~y_length").as_double();
 
     // slightly hacky workaround to get new values in
     auto start_pose = turtlelib::Transform2D(turtlelib::Vector2D{x0, y0}, theta0);
@@ -117,7 +120,9 @@ public:
 
     timestep_pub_ = create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
 
-    marker_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("~/obstacles", 10);
+    obs_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("~/obstacles", 10);
+
+    walls_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("~/walls", 10);
 
     sensor_pub_ = create_publisher<nuturtlebot_msgs::msg::SensorData>("red/sensor_data", 10);
 
@@ -151,7 +156,8 @@ private:
     timestep_pub_->publish(message);
     sensor_pub_->publish(current_sensor);
     send_transform();
-    publish_markers();
+    publish_obstacles();
+    publish_walls();
     timestep_++;
   }
 
@@ -207,9 +213,9 @@ private:
     tf_broadcaster_->sendTransform(t);
   }
 
-  void publish_markers()
+  void publish_obstacles()
   {
-    /// \brief Publish marker locations
+    /// \brief Publish obstacle marker locations
     visualization_msgs::msg::MarkerArray ma;
     for (int i = 0; i < n_cylinders; i++) {
       visualization_msgs::msg::Marker m;
@@ -234,7 +240,57 @@ private:
       ma.markers.push_back(m);
     }
     // RCLCPP_INFO_STREAM(get_logger(), "Publishing Marker Array");
-    marker_pub_->publish(ma);
+    obs_pub_->publish(ma);
+  }
+
+  void publish_walls()
+  {
+    /// \brief Publish wall marker locations
+    visualization_msgs::msg::MarkerArray ma;
+
+    visualization_msgs::msg::Marker m1, m2, m3, m4;
+    ma.markers.push_back(m1);
+    ma.markers.push_back(m2);
+    ma.markers.push_back(m3);
+    ma.markers.push_back(m4);
+
+    for(int i=0; i<4; i++){
+      ma.markers.at(i).header.stamp = this->get_clock()->now();
+      ma.markers.at(i).header.frame_id = "nusim/world";
+      ma.markers.at(i).id = i;
+      ma.markers.at(i).type = 1;
+      ma.markers.at(i).action = 0;
+      // set color
+      ma.markers.at(i).color.r = 1.0;
+      ma.markers.at(i).color.g = 1.0;
+      ma.markers.at(i).color.b = 1.0;
+      ma.markers.at(i).color.a = 1.0;
+      // they are all same z height
+      ma.markers.at(i).scale.z = 0.25;
+      ma.markers.at(i).pose.position.z = 0.125;
+    }
+
+    ma.markers.at(0).scale.x = 0.0;
+    ma.markers.at(0).scale.y = y_length;
+    ma.markers.at(0).pose.position.x = 0.5*x_length;
+    ma.markers.at(0).pose.position.y = 0.0;
+
+    ma.markers.at(1).scale.x = x_length;
+    ma.markers.at(1).scale.y = 0.0;
+    ma.markers.at(1).pose.position.x = 0.0;
+    ma.markers.at(1).pose.position.y = 0.5*y_length;
+
+    ma.markers.at(2).scale.x = 0.0;
+    ma.markers.at(2).scale.y = y_length;
+    ma.markers.at(2).pose.position.x = -0.5*x_length;
+    ma.markers.at(2).pose.position.y = 0.0;
+
+    ma.markers.at(3).scale.x = x_length;
+    ma.markers.at(3).scale.y = 0.0;
+    ma.markers.at(3).pose.position.x = 0.0;
+    ma.markers.at(3).pose.position.y = -0.5*y_length;
+
+    walls_pub_->publish(ma);
   }
 
   void wheel_cb(const nuturtlebot_msgs::msg::WheelCommands & wc)
@@ -258,7 +314,8 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
 
   rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr timestep_pub_;
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr obs_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr walls_pub_;
   rclcpp::Publisher<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_pub_;
 
   rclcpp::Subscription<nuturtlebot_msgs::msg::WheelCommands>::SharedPtr wheel_sub_;
@@ -280,6 +337,7 @@ private:
   nuturtlebot_msgs::msg::SensorData current_sensor;
   // initialize with garbage values, overwrite later
   turtlelib::DiffDrive robot{0.0, 0.0};
+  double x_length, y_length;
 };
 
 int main(int argc, char * argv[])
