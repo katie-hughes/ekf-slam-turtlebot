@@ -95,7 +95,7 @@ public:
     RCLCPP_INFO_STREAM(get_logger(), "motor_cmd_max: "<<motor_cmd_max);
 
     // slightly hacky workaround to get new values in
-    turtlelib::Transform2D start_pose(turtlelib::Vector2D{x0, y0}, theta0);
+    auto start_pose = turtlelib::Transform2D(turtlelib::Vector2D{x0, y0}, theta0);
     turtlelib::DiffDrive temp(start_pose, track_width, wheel_radius);
     robot = temp;
 
@@ -146,6 +146,7 @@ private:
     message.data = timestep_;
     //   RCLCPP_INFO_STREAM(get_logger(), "Timestep: " << message.data);
     timestep_pub_->publish(message);
+    sensor_pub_->publish(current_sensor);
     send_transform();
     publish_markers();
     timestep_++;
@@ -161,6 +162,9 @@ private:
     /// \param Response: The empty response
     RCLCPP_INFO_STREAM(get_logger(), "Resetting!");
     timestep_ = 0;
+    auto start_pose = turtlelib::Transform2D(turtlelib::Vector2D{x0, y0}, theta0);
+    turtlelib::DiffDrive temp(start_pose, track_width, wheel_radius);
+    robot = temp;
   }
 
   void teleport(
@@ -246,7 +250,6 @@ private:
       // i am suspicious that it is this simple, but let's try it
       current_sensor.left_encoder += ws_left*encoder_ticks;
       current_sensor.right_encoder += ws_right*encoder_ticks;
-      sensor_pub_->publish(current_sensor);
     }
 
   rclcpp::TimerBase::SharedPtr timer_;

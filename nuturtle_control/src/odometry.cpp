@@ -89,9 +89,6 @@ class Odometry : public rclcpp::Node
       js_sub_ = create_subscription<sensor_msgs::msg::JointState>(
         "joint_states", 10, std::bind(&Odometry::js_cb, this, std::placeholders::_1));
 
-      timer_ = create_wall_timer(
-        10ms, std::bind(&Odometry::timer_callback, this));
-
       initial_pose_srv_ = this->create_service<nuturtle_control::srv::InitialPose>(
         "initial_pose",
         std::bind(&Odometry::initial_pose, this, std::placeholders::_1, std::placeholders::_2));
@@ -100,50 +97,40 @@ class Odometry : public rclcpp::Node
     }
 
   private:
-    void timer_callback()
-    {
-      RCLCPP_INFO_STREAM(get_logger(), "Current Pose: "<<robot.get_config());
-      // get angle as a quaternion form
-      tf2::Quaternion q;
-      q.setRPY(0, 0, robot.get_phi());
-      // publish odometry message based on current config.
-      current_odom.header.stamp = this->get_clock()->now();
-      current_odom.pose.pose.position.x = robot.get_x();
-      current_odom.pose.pose.position.y = robot.get_y();
-      current_odom.pose.pose.orientation.x = q.x();
-      current_odom.pose.pose.orientation.y = q.y();
-      current_odom.pose.pose.orientation.z = q.z();
-      current_odom.pose.pose.orientation.w = q.w();
-      odom_pub_->publish(current_odom);
-      // do a tf broadcast too
-      T_odom_base.header.stamp = this->get_clock()->now();
-      T_odom_base.transform.translation.x = robot.get_x();
-      T_odom_base.transform.translation.y = robot.get_y();
-      T_odom_base.transform.rotation.x = q.x();
-      T_odom_base.transform.rotation.y = q.y();
-      T_odom_base.transform.rotation.z = q.z();
-      T_odom_base.transform.rotation.w = q.w();
-      tf_broadcaster_->sendTransform(T_odom_base);
-    }
-
     void js_cb(const sensor_msgs::msg::JointState & js)
     {
-      RCLCPP_INFO_STREAM(get_logger(), "JS Received");
+      // RCLCPP_INFO_STREAM(get_logger(), "JS Received");
       if (!first_iteration){
         // TODO should read these based on wheel_ids. Not hardcoded as 0s and 1s
         double dl = js.position[0] - last_js.position[0];
         double dr = js.position[1] - last_js.position[1];
-        RCLCPP_INFO_STREAM(get_logger(), "dl: "<<dl);
-        RCLCPP_INFO_STREAM(get_logger(), "dr: "<<dr);
-        double current_s = js.header.stamp.sec + 1e-9*js.header.stamp.nanosec;
-        double last_s = last_js.header.stamp.sec + 1e-9*last_js.header.stamp.nanosec;
-        double dt = current_s - last_s;
-        // TRY THIS LOL 
-        dt = 1;
-        // END TRY THIS
-        RCLCPP_INFO_STREAM(get_logger(), "dt: "<<dt);
+        // RCLCPP_INFO_STREAM(get_logger(), "dl: "<<dl);
+        // RCLCPP_INFO_STREAM(get_logger(), "dr: "<<dr);
         // apply forward kinematics
-        robot.fk(dl/dt, dr/dt);
+        robot.fk(dl, dr);
+        // publish the location
+        RCLCPP_INFO_STREAM(get_logger(), "Current Pose: "<<robot.get_config());
+        // get angle as a quaternion form
+        tf2::Quaternion q;
+        q.setRPY(0, 0, robot.get_phi());
+        // publish odometry message based on current config.
+        current_odom.header.stamp = this->get_clock()->now();
+        current_odom.pose.pose.position.x = robot.get_x();
+        current_odom.pose.pose.position.y = robot.get_y();
+        current_odom.pose.pose.orientation.x = q.x();
+        current_odom.pose.pose.orientation.y = q.y();
+        current_odom.pose.pose.orientation.z = q.z();
+        current_odom.pose.pose.orientation.w = q.w();
+        odom_pub_->publish(current_odom);
+        // do a tf broadcast too
+        T_odom_base.header.stamp = this->get_clock()->now();
+        T_odom_base.transform.translation.x = robot.get_x();
+        T_odom_base.transform.translation.y = robot.get_y();
+        T_odom_base.transform.rotation.x = q.x();
+        T_odom_base.transform.rotation.y = q.y();
+        T_odom_base.transform.rotation.z = q.z();
+        T_odom_base.transform.rotation.w = q.w();
+        tf_broadcaster_->sendTransform(T_odom_base);
       } else {
         first_iteration = false;
       }
@@ -158,14 +145,12 @@ class Odometry : public rclcpp::Node
       ///
       /// \param Request: x, y, and theta of desired position
       /// \param Response: boolean, if relocation is successful
-      RCLCPP_INFO_STREAM(get_logger(), "Service Call!");
+      RCLCPP_INFO_STREAM(get_logger(), "Reset initial pose!");
       turtlelib::Transform2D new_pose(turtlelib::Vector2D{req->x, req->y},req->theta);
       turtlelib::DiffDrive new_robot(new_pose, track_width, wheel_radius);
       robot = new_robot;
       res->success = true;
     }
-
-    rclcpp::TimerBase::SharedPtr timer_;
 
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr js_sub_;

@@ -14,9 +14,6 @@
 
 using namespace std::chrono_literals;
 
-/* This example creates a subclass of Node and uses std::bind() to register a
-* member function as a callback from the timer. */
-
 class TurtleControl : public rclcpp::Node
 {
   public:
@@ -72,20 +69,12 @@ class TurtleControl : public rclcpp::Node
         "sensor_data", 10, std::bind(&TurtleControl::sensor_cb, this, std::placeholders::_1));
 
       js.name = {"wheel_left_joint", "wheel_right_joint"};
-
-      // timer_ = create_wall_timer(
-      // 500ms, std::bind(&TurtleControl::timer_callback, this));
     }
 
   private:
-    // void timer_callback()
-    // {
-    //   RCLCPP_INFO_STREAM(get_logger(), "Timer Tick");
-    // }
 
     void cmd_vel_cb(const geometry_msgs::msg::Twist & twist)
     {
-      RCLCPP_INFO_STREAM(get_logger(), "Twist Received");
       // assume twist is in the body frame. Convert into turtlelib object.
       double Vb_w = twist.angular.z;
       double Vb_x = twist.linear.x;
@@ -93,33 +82,20 @@ class TurtleControl : public rclcpp::Node
       turtlelib::Twist2D Vb(Vb_w,turtlelib::Vector2D{Vb_x,Vb_y});
       turtlelib::WheelState ws = robot.ik(Vb);
       nuturtlebot_msgs::msg::WheelCommands wc;
-      RCLCPP_INFO_STREAM(get_logger(), "Wheel States "<<ws.l<<" and "<<ws.r);
-      double t_now = this->get_clock()->now().nanoseconds(); 
-      if (!first_cmdvel){
-        double dt = (t_now - t_last)*1e-9; // now this is in units of seconds
-        // TRYING THIS:
-        dt = 1;
-        // DELETE THIS IF DOESN"T WORK
-        RCLCPP_INFO_STREAM(get_logger(), "dt "<<dt);
-        wc.left_velocity = (ws.l/dt)*(1.0/motor_cmd_per_rad_sec);
-        wc.right_velocity = (ws.r/dt)*(1.0/motor_cmd_per_rad_sec);
-        RCLCPP_INFO_STREAM(get_logger(), "Before: "<<wc.left_velocity<<" and "<<wc.right_velocity);
-        // adjust if over the motor command max
-        if (wc.left_velocity  < -1*motor_cmd_max){wc.left_velocity =  -1*motor_cmd_max;}
-        if (wc.left_velocity  >    motor_cmd_max){wc.left_velocity =     motor_cmd_max;}
-        if (wc.right_velocity < -1*motor_cmd_max){wc.right_velocity = -1*motor_cmd_max;}
-        if (wc.right_velocity >    motor_cmd_max){wc.right_velocity =    motor_cmd_max;}
-        RCLCPP_INFO_STREAM(get_logger(), "Sending "<<wc.left_velocity<<" and "<<wc.right_velocity);
-        wheel_pub_->publish(wc);
-      }else{
-        first_cmdvel = false;
-      }
-      t_last = t_now;
+      RCLCPP_INFO_STREAM(get_logger(), "IK Wheel States "<<ws.l<<" and "<<ws.r);      
+      wc.left_velocity = ws.l/motor_cmd_per_rad_sec;
+      wc.right_velocity = ws.r/motor_cmd_per_rad_sec;
+      // adjust if over the motor command max
+      if (wc.left_velocity  < -1*motor_cmd_max){wc.left_velocity =  -1*motor_cmd_max;}
+      if (wc.left_velocity  >    motor_cmd_max){wc.left_velocity =     motor_cmd_max;}
+      if (wc.right_velocity < -1*motor_cmd_max){wc.right_velocity = -1*motor_cmd_max;}
+      if (wc.right_velocity >    motor_cmd_max){wc.right_velocity =    motor_cmd_max;}
+      RCLCPP_INFO_STREAM(get_logger(), "Sending "<<wc.left_velocity<<" and "<<wc.right_velocity);
+      wheel_pub_->publish(wc);
     }
 
     void sensor_cb(const nuturtlebot_msgs::msg::SensorData & sensor_data)
     {
-      RCLCPP_INFO_STREAM(get_logger(), "Sensor Data Received");
       std::vector<double> joint_position(2);
       joint_position[0] = sensor_data.left_encoder/encoder_ticks;
       joint_position[1] = sensor_data.right_encoder/encoder_ticks;
@@ -130,7 +106,6 @@ class TurtleControl : public rclcpp::Node
         double current_s = js.header.stamp.sec + 1e-9*js.header.stamp.nanosec;
         double last_s = last_js.header.stamp.sec + 1e-9*last_js.header.stamp.nanosec;
         double dt = current_s - last_s;
-        RCLCPP_INFO_STREAM(get_logger(), "Dt:"<<dt);
         double v_left = (js.position[0]-last_js.position[0])/dt;
         double v_right = (js.position[1]-last_js.position[1])/dt;
         joint_velocity[0] = v_left;
@@ -156,8 +131,6 @@ class TurtleControl : public rclcpp::Node
     // initialize joint states message template to reuse
     sensor_msgs::msg::JointState js, last_js;
     bool first_js = true;
-    bool first_cmdvel = true;
-    double t_last;
 };
 
 int main(int argc, char * argv[])

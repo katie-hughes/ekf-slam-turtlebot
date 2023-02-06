@@ -53,10 +53,12 @@ namespace turtlelib
         // update position of the wheels
         w.l += new_left;
         w.r += new_right;
+        double new_phi = q.rotation() + dphi;
+        new_phi = normalize_angle(new_phi);
         // update configuration vector in world frame
         q = Transform2D(Vector2D{q.translation().x + dx,
                                  q.translation().y + dy},
-                        q.rotation() + dphi);
+                        new_phi);
     }
 
     WheelState DiffDrive::ik(Twist2D tw){
