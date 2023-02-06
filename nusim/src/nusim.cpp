@@ -114,9 +114,9 @@ public:
       n_cylinders = 0;
     }
 
-    auto rate_param = get_parameter("rate").as_double();
-    RCLCPP_INFO_STREAM(get_logger(), "Rate is " << ((int)(1000. / rate_param)) << "ms");
-    std::chrono::milliseconds rate = (std::chrono::milliseconds) ((int)(1000. / rate_param));
+    rate_hz = get_parameter("rate").as_double();
+    RCLCPP_INFO_STREAM(get_logger(), "Rate is " << ((int)(1000. / rate_hz)) << "ms");
+    std::chrono::milliseconds rate = (std::chrono::milliseconds) ((int)(1000. / rate_hz));
 
     timestep_pub_ = create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
 
@@ -292,21 +292,29 @@ private:
 
   void wheel_cb(const nuturtlebot_msgs::msg::WheelCommands & wc)
     {
-      int left_velocity = wc.left_velocity; // multiply by timestep*period
-      int right_velocity = wc.right_velocity;
-      // RCLCPP_INFO_STREAM(get_logger(), "Wheel Vels:"<<left_velocity<<" and "<<right_velocity);
-      // convert wheel commands to sensor data
-      double ws_left = left_velocity*motor_cmd_per_rad_sec;
-      double ws_right = right_velocity*motor_cmd_per_rad_sec;
-      // udpate robot position with fk
-      // this will update in tfs as the broadcaster reads from diff drive object
-      robot.fk(ws_left, ws_right);
-      RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: "<<robot.get_config());
-      // publish new sensor data
-      current_sensor.stamp = this->get_clock()->now();
-      // i am suspicious that it is this simple, but let's try it
-      current_sensor.left_encoder += ws_left*encoder_ticks;
-      current_sensor.right_encoder += ws_right*encoder_ticks;
+      if(!first_wc){
+        int left_velocity = wc.left_velocity; // multiply by timestep*period
+        int right_velocity = wc.right_velocity;
+        // RCLCPP_INFO_STREAM(get_logger(), "Wheel Vels:"<<left_velocity<<" and "<<right_velocity);
+        // convert wheel commands to sensor data
+        double dt = (timestep_-last_timestep_)/rate_hz;
+        RCLCPP_INFO_STREAM(get_logger(), "dt: "<<dt);
+        double ws_left = left_velocity*motor_cmd_per_rad_sec*dt;
+        double ws_right = right_velocity*motor_cmd_per_rad_sec*dt;
+        // udpate robot position with fk
+        // this will update in tfs as the broadcaster reads from diff drive object
+        robot.fk(ws_left, ws_right);
+        RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: "<<robot.get_config());
+        // publish new sensor data
+        current_sensor.stamp = this->get_clock()->now();
+        // i am suspicious that it is this simple, but let's try it
+        current_sensor.left_encoder += ws_left*encoder_ticks;
+        current_sensor.right_encoder += ws_right*encoder_ticks;
+      }else{
+        first_wc = false;
+      }
+      last_timestep_ = timestep_;
+      
     }
 
   rclcpp::TimerBase::SharedPtr timer_;
@@ -324,7 +332,8 @@ private:
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
   size_t timestep_;
-  double x0, y0, theta0;
+  size_t last_timestep_;
+  double x0, y0, theta0, rate_hz;
   // Initializations for the markers
   std::vector<double> obx, oby;
   double obr;
@@ -336,6 +345,7 @@ private:
   // initialize with garbage values, overwrite later
   turtlelib::DiffDrive robot{0.0, 0.0};
   double x_length, y_length;
+  bool first_wc = true;
 };
 
 int main(int argc, char * argv[])
