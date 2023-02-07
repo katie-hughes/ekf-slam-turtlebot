@@ -114,9 +114,8 @@ private:
     tf_broadcaster_->sendTransform(T_odom_base);
     if (!first_iteration) {
       // TODO should read these based on wheel_ids. Not hardcoded as 0s and 1s
-      double dl = js.position[0] - last_js.position[0];
-      double dr = js.position[1] - last_js.position[1];
-      // should this just be .velocity??????????????????????????????????????????
+      double dl = js.position.at(0) - last_js.position.at(0);
+      double dr = js.position.at(1) - last_js.position.at(1);
       // RCLCPP_INFO_STREAM(get_logger(), "dl: "<<dl);
       // RCLCPP_INFO_STREAM(get_logger(), "dr: "<<dr);
       // apply forward kinematics

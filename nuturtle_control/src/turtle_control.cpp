@@ -105,10 +105,10 @@ private:
       double current_s = js.header.stamp.sec + 1e-9 * js.header.stamp.nanosec;
       double last_s = last_js.header.stamp.sec + 1e-9 * last_js.header.stamp.nanosec;
       double dt = current_s - last_s;
-      double v_left = (js.position[0] - last_js.position[0]) / dt;
-      double v_right = (js.position[1] - last_js.position[1]) / dt;
-      joint_velocity[0] = v_left;
-      joint_velocity[1] = v_right;
+      double v_left = (js.position.at(0) - last_js.position.at(0)) / dt;
+      double v_right = (js.position.at(1) - last_js.position.at(1)) / dt;
+      joint_velocity.at(0) = v_left;
+      joint_velocity.at(1) = v_right;
       js.velocity = joint_velocity;
     } else {
       first_js = false;
