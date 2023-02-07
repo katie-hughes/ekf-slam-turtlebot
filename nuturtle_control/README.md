@@ -9,4 +9,7 @@ Author: Katie Hughes
 
 
 After this, the following is the offset between odom and blue/base_footprint:
-![Odom Offset](https://user-images.githubusercontent.com/53623710/217126193-e09cc861-d081-41c9-a076-79dcc2e536b5.png)
+```
+Position: 0.2949, y = -0.024052, z = 0
+Orientation: x = 0, y = 00, z = 0.2438, w = 0.96982
+```
