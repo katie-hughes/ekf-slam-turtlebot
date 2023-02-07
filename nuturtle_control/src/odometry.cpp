@@ -101,17 +101,17 @@ private:
   {
     if (!first_iteration) {
       // TODO should read these based on wheel_ids. Not hardcoded as 0s and 1s
-      double dl = js.position.at(0) - last_js.position.at(0);
-      double dr = js.position.at(1) - last_js.position.at(1);
+      const auto dl = js.position.at(0) - last_js.position.at(0);
+      const auto dr = js.position.at(1) - last_js.position.at(1);
       // RCLCPP_INFO_STREAM(get_logger(), "dl: "<<dl);
       // RCLCPP_INFO_STREAM(get_logger(), "dr: "<<dr);
-      double current_s = js.header.stamp.sec + 1e-9 * js.header.stamp.nanosec;
-      double last_s = last_js.header.stamp.sec + 1e-9 * last_js.header.stamp.nanosec;
-      double dt = current_s - last_s;
+      const auto current_s = js.header.stamp.sec + 1e-9 * js.header.stamp.nanosec;
+      const auto last_s = last_js.header.stamp.sec + 1e-9 * last_js.header.stamp.nanosec;
+      const auto dt = current_s - last_s;
       // apply forward kinematics. Save these params to calculate odom velocity
-      auto prev_x = robot.get_x();
-      auto prev_y = robot.get_y();
-      auto prev_phi = robot.get_phi();
+      const auto prev_x = robot.get_x();
+      const auto prev_y = robot.get_y();
+      const auto prev_phi = robot.get_phi();
       robot.fk(dl, dr);
       // publish the location
       // RCLCPP_INFO_STREAM(get_logger(), "Odom Pose: " << robot.get_config());

@@ -70,10 +70,10 @@ private:
     ///
     /// \param Request: velocity and radius of desired circular path
     /// \param Response: boolean, if setting is successful
-    double radius = req->radius;
+    const auto radius = req->radius;
     if (radius > 0) {
       RCLCPP_INFO_STREAM(get_logger(), "Driving in a Circle!");
-      double velocity = req->velocity;
+      const auto velocity = req->velocity;
       current_twist.linear.x = velocity;
       current_twist.angular.z = velocity / radius;
       publish_twist = true;
