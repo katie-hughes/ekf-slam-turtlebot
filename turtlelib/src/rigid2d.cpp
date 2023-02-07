@@ -85,7 +85,7 @@ namespace turtlelib
     }
 
     Vector2D normalize(Vector2D v){
-        double norm = sqrt(v.x*v.x + v.y*v.y);
+        const auto norm = sqrt(v.x*v.x + v.y*v.y);
         v.x = v.x/norm;
         v.y = v.y/norm;
         return v;
@@ -113,22 +113,22 @@ namespace turtlelib
 
     Vector2D Transform2D::operator()(Vector2D v) const{
         // To do something like va = Tab(vb)
-        double new_x = linear.x + v.x*cos(angular) - v.y*sin(angular);
-        double new_y = linear.y + v.x*sin(angular) + v.y*cos(angular);
+        const auto new_x = linear.x + v.x*cos(angular) - v.y*sin(angular);
+        const auto new_y = linear.y + v.x*sin(angular) + v.y*cos(angular);
         return Vector2D{new_x, new_y};
     }
 
     Transform2D Transform2D::inv() const{
-        double new_angular = -angular;
-        double new_x = -linear.x*cos(angular) - linear.y*sin(angular);
-        double new_y =  linear.x*sin(angular) - linear.y*cos(angular);
+        const auto new_angular = -angular;
+        const auto new_x = -linear.x*cos(angular) - linear.y*sin(angular);
+        const auto new_y =  linear.x*sin(angular) - linear.y*cos(angular);
         return Transform2D{Vector2D{new_x, new_y}, new_angular};
     }
 
     Transform2D & Transform2D::operator*=(const Transform2D & rhs){
-        double new_angular = angular + rhs.angular;
-        double new_x = rhs.linear.x*cos(angular) - rhs.linear.y*sin(angular) + linear.x;
-        double new_y = rhs.linear.x*sin(angular) + rhs.linear.y*cos(angular) + linear.y;
+        const auto new_angular = angular + rhs.angular;
+        const auto new_x = rhs.linear.x*cos(angular) - rhs.linear.y*sin(angular) + linear.x;
+        const auto new_y = rhs.linear.x*sin(angular) + rhs.linear.y*cos(angular) + linear.y;
 
         angular = new_angular;
         linear.x = new_x;
@@ -232,10 +232,10 @@ namespace turtlelib
 
     Twist2D Transform2D::operator()(Twist2D tw) const{
         // To do something like Va = Tab(Vb)
-        double wz = tw.angular_velocity();
-        Vector2D v = tw.linear_velocity();
-        double new_vx =  linear.y*wz + v.x*cos(angular) - v.y*sin(angular);
-        double new_vy = -linear.x*wz + v.x*sin(angular) - v.y*cos(angular);
+        const auto wz = tw.angular_velocity();
+        const auto v = tw.linear_velocity();
+        const auto new_vx =  linear.y*wz + v.x*cos(angular) - v.y*sin(angular);
+        const auto new_vy = -linear.x*wz + v.x*sin(angular) - v.y*cos(angular);
         return Twist2D{wz, Vector2D{new_vx,new_vy}};
     }
 
@@ -248,12 +248,12 @@ namespace turtlelib
             return Transform2D(tw.linear_velocity());
         } else {
             // Twist has angular component.
-            double xs = tw.linear_velocity().y/tw.angular_velocity();
-            double ys = -1*tw.linear_velocity().x/tw.angular_velocity();
-            Transform2D Tsb = Transform2D(Vector2D{xs,ys});
-            Transform2D Tssprime = Transform2D(tw.angular_velocity());
-            Transform2D Tsbprime = Tssprime*Tsb;
-            Transform2D Tbbprime = (Tsb.inv())*Tsbprime;
+            const auto xs = tw.linear_velocity().y/tw.angular_velocity();
+            const auto ys = -1*tw.linear_velocity().x/tw.angular_velocity();
+            const auto Tsb = Transform2D(Vector2D{xs,ys});
+            const auto Tssprime = Transform2D(tw.angular_velocity());
+            const auto Tsbprime = Tssprime*Tsb;
+            const auto Tbbprime = (Tsb.inv())*Tsbprime;
             return Tbbprime;
         }
     }

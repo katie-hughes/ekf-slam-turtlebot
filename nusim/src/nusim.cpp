@@ -62,13 +62,13 @@ public:
     theta0 = get_parameter("theta0").as_double();
 
     // shoudl default to empty list. I feel like this is a very hacky solution?
-    declare_parameter("obstacles/x", obx);
+    declare_parameter("obstacles/x", std::vector<double>{});
     obx = get_parameter("obstacles/x").as_double_array();
 
-    declare_parameter("obstacles/y", oby);
+    declare_parameter("obstacles/y", std::vector<double>{});
     oby = get_parameter("obstacles/y").as_double_array();
 
-    declare_parameter("obstacles/r", obr);
+    declare_parameter("obstacles/r", 0.0);
     obr = get_parameter("obstacles/r").as_double();
 
     // params relating to physical robot.
@@ -231,7 +231,7 @@ private:
   {
     /// \brief Publish obstacle marker locations
     visualization_msgs::msg::MarkerArray ma;
-    for (int i = 0; i < n_cylinders; i++) {
+    for (size_t i = 0; i < n_cylinders; i++) {
       visualization_msgs::msg::Marker m;
       m.header.stamp = this->get_clock()->now();
       m.header.frame_id = "nusim/world";
@@ -330,7 +330,7 @@ private:
   // Initializations for the markers
   std::vector<double> obx, oby;
   double obr;
-  int n_cylinders;
+  size_t n_cylinders;
   // for my params
   double wheel_radius, track_width, encoder_ticks, motor_cmd_per_rad_sec;
   int motor_cmd_max;
