@@ -247,8 +247,8 @@ private:
       m.scale.x = obr;
       m.scale.y = obr;
       m.scale.z = 0.25;
-      m.pose.position.x = obx[i];
-      m.pose.position.y = oby[i];
+      m.pose.position.x = obx.at(i);
+      m.pose.position.y = oby.at(i);
       m.pose.position.z = 0.125;
       // Add to marker array
       ma.markers.push_back(m);
