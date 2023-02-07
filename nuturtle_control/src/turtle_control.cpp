@@ -100,7 +100,7 @@ private:
     joint_position.at(1) = (double) sensor_data.right_encoder / encoder_ticks;
     js.position = joint_position;
     std::vector<double> joint_velocity(2);
-    js.header.stamp = this->get_clock()->now();
+    js.header.stamp = sensor_data.stamp; // this->get_clock()->now();
     if (!first_js) {
       double current_s = js.header.stamp.sec + 1e-9 * js.header.stamp.nanosec;
       double last_s = last_js.header.stamp.sec + 1e-9 * last_js.header.stamp.nanosec;
