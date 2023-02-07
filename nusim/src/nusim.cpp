@@ -160,12 +160,16 @@ private:
     // udpate robot position with fk
     // this will update in tfs as the broadcaster reads from diff drive object
     robot.fk(ws_left, ws_right);
-    // RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: " << robot.get_config());
+    RCLCPP_INFO_STREAM(get_logger(), "Nusim FK: " << ws_left << " and " << ws_right);
+    RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: " << robot.get_config());
     // update sensor data
     // i am suspicious that it is this simple, but let's try it
+    // try calculating stamp with timestep_????
     current_sensor.stamp = this->get_clock()->now();
-    current_sensor.left_encoder += ws_left * encoder_ticks;
-    current_sensor.right_encoder += ws_right * encoder_ticks;
+    left_encoder_save += ws_left * encoder_ticks;
+    right_encoder_save += ws_right * encoder_ticks;
+    current_sensor.left_encoder = left_encoder_save;
+    current_sensor.right_encoder = right_encoder_save;
     // sensor_pub_->publish(current_sensor);
     sensor_pub_->publish(current_sensor);
     // send robot transform
@@ -308,6 +312,7 @@ private:
     // just store left and right velocity and do this update in the timer
     left_velocity = wc.left_velocity;   // multiply by timestep*period
     right_velocity = wc.right_velocity;
+    // RCLCPP_INFO_STREAM(get_logger(), "Receiving "<<wc.left_velocity<<" and "<<wc.right_velocity);
   }
 
   rclcpp::TimerBase::SharedPtr timer_;
@@ -339,8 +344,10 @@ private:
   turtlelib::DiffDrive robot{0.0, 0.0};
   double x_length, y_length;
   bool first_wc = true;
-  int left_velocity = 0;
-  int right_velocity = 0;
+  int32_t left_velocity = 0;
+  int32_t right_velocity = 0;
+  double left_encoder_save = 0.0;
+  double right_encoder_save = 0.0;
 };
 
 int main(int argc, char * argv[])

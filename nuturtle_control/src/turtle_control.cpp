@@ -82,8 +82,8 @@ private:
     turtlelib::WheelState ws = robot.ik(Vb);
     nuturtlebot_msgs::msg::WheelCommands wc;
     // RCLCPP_INFO_STREAM(get_logger(), "IK Wheel States "<<ws.l<<" and "<<ws.r);
-    wc.left_velocity = ws.l / motor_cmd_per_rad_sec;
-    wc.right_velocity = ws.r / motor_cmd_per_rad_sec;
+    wc.left_velocity = (int) (ws.l / motor_cmd_per_rad_sec);
+    wc.right_velocity = (int) (ws.r / motor_cmd_per_rad_sec);
     // adjust if over the motor command max
     if (wc.left_velocity < -1 * motor_cmd_max) {wc.left_velocity = -1 * motor_cmd_max;}
     if (wc.left_velocity > motor_cmd_max) {wc.left_velocity = motor_cmd_max;}
@@ -96,8 +96,9 @@ private:
   void sensor_cb(const nuturtlebot_msgs::msg::SensorData & sensor_data)
   {
     std::vector<double> joint_position(2);
-    joint_position.at(0) = (double) sensor_data.left_encoder / encoder_ticks;
-    joint_position.at(1) = (double) sensor_data.right_encoder / encoder_ticks;
+    joint_position.at(0) = static_cast<double>(sensor_data.left_encoder) / encoder_ticks;
+    joint_position.at(1) = static_cast<double>(sensor_data.right_encoder) / encoder_ticks;
+    // RCLCPP_INFO_STREAM(get_logger(), "Joint Pos: " << joint_position.at(0) << " and " << joint_position.at(1));
     js.position = joint_position;
     std::vector<double> joint_velocity(2);
     js.header.stamp = sensor_data.stamp; // this->get_clock()->now();
