@@ -155,8 +155,8 @@ private:
     //   RCLCPP_INFO_STREAM(get_logger(), "Timestep: " << message.data);
     timestep_pub_->publish(message);
     // udpate wheel states
-    double ws_left = left_velocity * motor_cmd_per_rad_sec * (1.0/rate_hz);
-    double ws_right = right_velocity * motor_cmd_per_rad_sec * (1.0/rate_hz);
+    double ws_left = left_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz);
+    double ws_right = right_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz);
     // udpate robot position with fk
     // this will update in tfs as the broadcaster reads from diff drive object
     robot.fk(ws_left, ws_right);
@@ -166,7 +166,7 @@ private:
     current_sensor.stamp = this->get_clock()->now();
     current_sensor.left_encoder += ws_left * encoder_ticks;
     current_sensor.right_encoder += ws_right * encoder_ticks;
-      // sensor_pub_->publish(current_sensor);
+    // sensor_pub_->publish(current_sensor);
     sensor_pub_->publish(current_sensor);
     // send robot transform
     send_transform();
