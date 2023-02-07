@@ -158,6 +158,7 @@ namespace turtlelib
     /// \brief a twist
     class Twist2D
     {
+    private:
         double angular {};
         Vector2D linear {};
     public:
@@ -209,6 +210,7 @@ namespace turtlelib
     /// \brief a rigid body transformation in 2 dimensions
     class Transform2D
     {
+    private:
         Vector2D linear {};
         double angular {};
     public:

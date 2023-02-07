@@ -22,6 +22,7 @@ namespace turtlelib
     /// @brief Maintain and update the state of a diff drive robot
     class DiffDrive
     {
+    private:
         /// @brief current angles of the wheels in radians
         WheelState w;
         /// @brief current configuration of the robot in world frame
