@@ -99,17 +99,19 @@ public:
 private:
   void js_cb(const sensor_msgs::msg::JointState & js)
   {
-    // RCLCPP_INFO_STREAM(get_logger(), "JS Received");
-    // always do a tf broadcast
-    // get angle as a quaternion form
-
     if (!first_iteration) {
       // TODO should read these based on wheel_ids. Not hardcoded as 0s and 1s
       double dl = js.position.at(0) - last_js.position.at(0);
       double dr = js.position.at(1) - last_js.position.at(1);
       // RCLCPP_INFO_STREAM(get_logger(), "dl: "<<dl);
       // RCLCPP_INFO_STREAM(get_logger(), "dr: "<<dr);
-      // apply forward kinematics
+      double current_s = js.header.stamp.sec + 1e-9 * js.header.stamp.nanosec;
+      double last_s = last_js.header.stamp.sec + 1e-9 * last_js.header.stamp.nanosec;
+      double dt = current_s - last_s;
+      // apply forward kinematics. Save these params to calculate odom velocity
+      auto prev_x = robot.get_x();
+      auto prev_y = robot.get_y();
+      auto prev_phi = robot.get_phi();
       robot.fk(dl, dr);
       // publish the location
       // RCLCPP_INFO_STREAM(get_logger(), "Odom Pose: " << robot.get_config());
@@ -123,7 +125,10 @@ private:
       current_odom.pose.pose.orientation.y = q.y();
       current_odom.pose.pose.orientation.z = q.z();
       current_odom.pose.pose.orientation.w = q.w();
-      // TODO add twist
+      // Add twist
+      current_odom.twist.twist.linear.x = (robot.get_x() - prev_x) / dt;
+      current_odom.twist.twist.linear.y = (robot.get_y() - prev_y) / dt;
+      current_odom.twist.twist.angular.z = (robot.get_phi() - prev_phi) / dt;
       odom_pub_->publish(current_odom);
       // update publisher
       T_odom_base.header.stamp = js.header.stamp;
