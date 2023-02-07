@@ -1,6 +1,10 @@
 # nuturtle_control
 Author: Katie Hughes
 
+## Description
+
+TODO
+
 
 ## Testing on the Physical Turtlebot
 
@@ -19,7 +23,7 @@ Attached are videos of the real robot and the simulation following the circle, a
 https://user-images.githubusercontent.com/53623710/217356011-f5fc95c1-a762-4d5b-8f22-dd024d270db4.MOV
 
 
-After this, the following is the offset between odom and blue/base_footprint. The odometry calculations are pretty close to zero, with some small offsets on the order of a few cm. 
+After this, the following is the offset between odom and blue/base_footprint (excluding covariance fields for readability). The odometry calculations are pretty close to zero, with some small offsets on the order of a few cm. 
 ```
 header:
   stamp:
@@ -38,43 +42,6 @@ pose:
       y: 0.0
       z: 0.19670268415657285
       w: 0.9804631834217945
-  covariance:
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
 twist:
   twist:
     linear:
@@ -85,43 +52,6 @@ twist:
       x: 0.0
       y: 0.0
       z: 0.0
-  covariance:
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
 ---
 
 ```
