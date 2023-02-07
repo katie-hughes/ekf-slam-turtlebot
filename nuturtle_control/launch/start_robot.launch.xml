@@ -62,7 +62,7 @@
 
   <!-- teleop keyboard node launched if cmd_src=teleop. NOT valid on localhost -->
 
-  <node pkg="teleop_twist_keyboard" exec="teleop_twist_keyboard"
+  <node pkg="turtlebot3_teleop" exec="teleop_keyboard"
         if="$(eval '\'$(var robot)\' != \'localhost\' and \'$(var cmd_src)\' == \'teleop\'')"
         launch-prefix="xterm -e" >
   </node>

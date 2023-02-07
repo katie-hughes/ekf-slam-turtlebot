@@ -113,9 +113,9 @@ private:
       const auto prev_y = robot.get_y();
       const auto prev_phi = robot.get_phi();
       robot.fk(dl, dr);
-      RCLCPP_INFO_STREAM(get_logger(), "Odom FK: " << dl << " and " << dr);
+      // RCLCPP_INFO_STREAM(get_logger(), "Odom FK: " << dl << " and " << dr);
       // publish the location
-      RCLCPP_INFO_STREAM(get_logger(), "Odom Pose: " << robot.get_config());
+      // RCLCPP_INFO_STREAM(get_logger(), "Odom Pose: " << robot.get_config());
       // publish odometry message based on current config.
       tf2::Quaternion q;
       q.setRPY(0, 0, robot.get_phi());

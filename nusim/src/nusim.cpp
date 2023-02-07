@@ -61,7 +61,6 @@ public:
     declare_parameter("theta0", 0.);
     theta0 = get_parameter("theta0").as_double();
 
-    // shoudl default to empty list. I feel like this is a very hacky solution?
     declare_parameter("obstacles/x", std::vector<double>{});
     obx = get_parameter("obstacles/x").as_double_array();
 
@@ -147,9 +146,10 @@ public:
   }
 
 private:
+  /// @brief Publish timestep, markers, and transform on each simulation timestep
+  /// also update the location of the robot with forward kinematics
   void timer_callback()
   {
-    /// \brief Publish timestep, markers, and transform on each simulation timestep
     auto message = std_msgs::msg::UInt64();
     message.data = timestep_;
     //   RCLCPP_INFO_STREAM(get_logger(), "Timestep: " << message.data);
@@ -160,8 +160,8 @@ private:
     // udpate robot position with fk
     // this will update in tfs as the broadcaster reads from diff drive object
     robot.fk(ws_left, ws_right);
-    RCLCPP_INFO_STREAM(get_logger(), "Nusim FK: " << ws_left << " and " << ws_right);
-    RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: " << robot.get_config());
+    // RCLCPP_INFO_STREAM(get_logger(), "Nusim FK: " << ws_left << " and " << ws_right);
+    // RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: " << robot.get_config());
     // update sensor data
     // i am suspicious that it is this simple, but let's try it
     // try calculating stamp with timestep_????
@@ -179,14 +179,13 @@ private:
     timestep_++;
   }
 
+  /// @brief Reset the simulation
+  /// @param Request: The empty request
+  /// @param Response: The empty response
   void reset(
     std::shared_ptr<std_srvs::srv::Empty::Request>,
     std::shared_ptr<std_srvs::srv::Empty::Response>)
   {
-    /// \brief Reset the simulation
-    ///
-    /// \param Request: The empty request
-    /// \param Response: The empty response
     RCLCPP_INFO_STREAM(get_logger(), "Resetting!");
     timestep_ = 0;
     auto start_pose = turtlelib::Transform2D(turtlelib::Vector2D{x0, y0}, theta0);
@@ -194,14 +193,13 @@ private:
     robot = temp;
   }
 
+  /// @brief Teleport the turtle to a given location
+  /// @param req contains x, y, and theta to teleport the turtle to
+  /// @param res boolean response (if teleport is successful)
   void teleport(
     std::shared_ptr<nusim::srv::Teleport::Request> req,
     std::shared_ptr<nusim::srv::Teleport::Response> res)
   {
-    /// \brief Teleport the turtle
-    ///
-    /// \param req: contains x, y, and theta to teleport the turtle to
-    /// \param res: boolean response (if teleport is successful)
     x0 = req->x;
     y0 = req->y;
     theta0 = req->theta;
@@ -209,11 +207,11 @@ private:
     res->success = true;
   }
 
+  /// @brief Broadcast transform between turtle and world frame
+  // from here: https://docs.ros.org/en/humble/Tutorials/Intermediate/Tf2/
+  // Writing-A-Tf2-Broadcaster-Cpp.html
   void send_transform()
   {
-    /// \brief Broadcast the transform between the turtle's coordinates and world frame
-    // from here: https://docs.ros.org/en/humble/Tutorials/Intermediate/Tf2/
-    // Writing-A-Tf2-Broadcaster-Cpp.html
     geometry_msgs::msg::TransformStamped t;
     t.header.stamp = this->get_clock()->now();
     t.header.frame_id = "nusim/world";
@@ -231,9 +229,9 @@ private:
     tf_broadcaster_->sendTransform(t);
   }
 
+  /// @brief publish obstacle marker locations
   void publish_obstacles()
   {
-    /// \brief Publish obstacle marker locations
     visualization_msgs::msg::MarkerArray ma;
     for (size_t i = 0; i < n_cylinders; i++) {
       visualization_msgs::msg::Marker m;
@@ -261,9 +259,9 @@ private:
     obs_pub_->publish(ma);
   }
 
+  /// @brief Publish wall marker locations
   void publish_walls()
   {
-    /// \brief Publish wall marker locations
     visualization_msgs::msg::MarkerArray ma;
 
     visualization_msgs::msg::Marker m1, m2, m3, m4;
@@ -307,6 +305,8 @@ private:
     walls_pub_->publish(ma);
   }
 
+  /// @brief Callback function for receiving wheel commands message
+  /// @param wc wheel commands message
   void wheel_cb(const nuturtlebot_msgs::msg::WheelCommands & wc)
   {
     // just store left and right velocity and do this update in the timer
