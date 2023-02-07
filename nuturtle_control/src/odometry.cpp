@@ -102,16 +102,7 @@ private:
     // RCLCPP_INFO_STREAM(get_logger(), "JS Received");
     // always do a tf broadcast
     // get angle as a quaternion form
-    tf2::Quaternion q;
-    q.setRPY(0, 0, robot.get_phi());
-    T_odom_base.header.stamp = this->get_clock()->now();
-    T_odom_base.transform.translation.x = robot.get_x();
-    T_odom_base.transform.translation.y = robot.get_y();
-    T_odom_base.transform.rotation.x = q.x();
-    T_odom_base.transform.rotation.y = q.y();
-    T_odom_base.transform.rotation.z = q.z();
-    T_odom_base.transform.rotation.w = q.w();
-    tf_broadcaster_->sendTransform(T_odom_base);
+    
     if (!first_iteration) {
       // TODO should read these based on wheel_ids. Not hardcoded as 0s and 1s
       double dl = js.position.at(0) - last_js.position.at(0);
@@ -121,9 +112,11 @@ private:
       // apply forward kinematics
       robot.fk(dl, dr);
       // publish the location
-      RCLCPP_INFO_STREAM(get_logger(), "Odom Pose: " << robot.get_config());
+      // RCLCPP_INFO_STREAM(get_logger(), "Odom Pose: " << robot.get_config());
       // publish odometry message based on current config.
-      current_odom.header.stamp = this->get_clock()->now();
+      tf2::Quaternion q;
+      q.setRPY(0, 0, robot.get_phi());
+      current_odom.header.stamp = js.header.stamp;
       current_odom.pose.pose.position.x = robot.get_x();
       current_odom.pose.pose.position.y = robot.get_y();
       current_odom.pose.pose.orientation.x = q.x();
@@ -132,6 +125,15 @@ private:
       current_odom.pose.pose.orientation.w = q.w();
       // TODO add twist
       odom_pub_->publish(current_odom);
+      // update publisher
+      T_odom_base.header.stamp = js.header.stamp;
+      T_odom_base.transform.translation.x = robot.get_x();
+      T_odom_base.transform.translation.y = robot.get_y();
+      T_odom_base.transform.rotation.x = q.x();
+      T_odom_base.transform.rotation.y = q.y();
+      T_odom_base.transform.rotation.z = q.z();
+      T_odom_base.transform.rotation.w = q.w();
+      tf_broadcaster_->sendTransform(T_odom_base);
     } else {
       first_iteration = false;
     }

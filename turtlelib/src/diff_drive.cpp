@@ -47,7 +47,7 @@ namespace turtlelib
 
     void DiffDrive::fk(double new_left, double new_right){
         // taken from MR textbook, eq 13.15
-        double dphi = (-radius/(2*track))*new_left + (radius/(2*track))*new_right;
+        double dphi = (radius/(2*track))*(-1.0*new_left + new_right);
         double dx = 0.5*radius*cos(q.rotation())*(new_left + new_right);
         double dy = 0.5*radius*sin(q.rotation())*(new_left + new_right);
         // update position of the wheels
