@@ -3,7 +3,19 @@ Author: Katie Hughes
 
 ## Description
 
-TODO
+This package provides an odometry estimate for the turtlebot that can interface with either a simulated or real robot.
+
+Launch the odometry nodes: 
+`ros2 launch nuturtle_control start_robot.launch.xml`
+This will always launch the `turtle_control` and `odometry` nodes.
+
+If run with option `robot:=localhost`, this will run the `numsr_turtlebot` node in the `numsr_turtlebot` package, which enables the real robot to publish `sensor_data` and `wheel_commands` data. 
+
+If run with option `robot:=nusim` (the default), the nusim node will also be run. This will simulate the position of the "real" robot as the red robot, which will publish `sensor_data` and respond to `wheel_commands`. The odometry robot is always pictured as the blue robot.
+
+This launchfile allows you to control the robot (real or simulated) using the `cmd_vel` topic to publish a desired body twist. If run with `cmd_src:=circle`, this will run the `circle` node, which will command the robot to drive in a circle at a velocity and radius specified by the user. If run with `cmd_src:=teleop`, this will launch `turtlebot3_teleop`;s `teleop_keyboard` node, which allows you to provide desired twists from keyboard inputs.
+
+Finally, you can also specify if you want a visualization in rviz with the `use_rviz` argument set to either true or false. Using rviz is disabled if running with option `robot:=localhost`.
 
 
 ## Testing on the Physical Turtlebot
@@ -55,3 +67,5 @@ twist:
 ---
 
 ```
+
+Worked with: Nick Morales, Liz Metzger, Hang Yin
