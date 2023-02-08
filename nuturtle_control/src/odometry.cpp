@@ -100,46 +100,57 @@ private:
   void js_cb(const sensor_msgs::msg::JointState & js)
   {
     if (!first_iteration) {
-      // TODO should read these based on wheel_ids. Not hardcoded as 0s and 1s
-      const auto dl = js.position.at(0) - last_js.position.at(0);
-      const auto dr = js.position.at(1) - last_js.position.at(1);
-      // RCLCPP_INFO_STREAM(get_logger(), "dl: "<<dl);
-      // RCLCPP_INFO_STREAM(get_logger(), "dr: "<<dr);
-      const auto current_s = js.header.stamp.sec + 1e-9 * js.header.stamp.nanosec;
-      const auto last_s = last_js.header.stamp.sec + 1e-9 * last_js.header.stamp.nanosec;
-      const auto dt = current_s - last_s;
-      // apply forward kinematics. Save these params to calculate odom velocity
-      const auto prev_x = robot.get_x();
-      const auto prev_y = robot.get_y();
-      const auto prev_phi = robot.get_phi();
-      robot.fk(dl, dr);
-      // RCLCPP_INFO_STREAM(get_logger(), "Odom FK: " << dl << " and " << dr);
-      // publish the location
-      // RCLCPP_INFO_STREAM(get_logger(), "Odom Pose: " << robot.get_config());
-      // publish odometry message based on current config.
-      tf2::Quaternion q;
-      q.setRPY(0, 0, robot.get_phi());
-      current_odom.header.stamp = js.header.stamp;
-      current_odom.pose.pose.position.x = robot.get_x();
-      current_odom.pose.pose.position.y = robot.get_y();
-      current_odom.pose.pose.orientation.x = q.x();
-      current_odom.pose.pose.orientation.y = q.y();
-      current_odom.pose.pose.orientation.z = q.z();
-      current_odom.pose.pose.orientation.w = q.w();
-      // Add twist
-      current_odom.twist.twist.linear.x = (robot.get_x() - prev_x) / dt;
-      current_odom.twist.twist.linear.y = (robot.get_y() - prev_y) / dt;
-      current_odom.twist.twist.angular.z = (robot.get_phi() - prev_phi) / dt;
-      odom_pub_->publish(current_odom);
-      // update publisher
-      T_odom_base.header.stamp = js.header.stamp;
-      T_odom_base.transform.translation.x = robot.get_x();
-      T_odom_base.transform.translation.y = robot.get_y();
-      T_odom_base.transform.rotation.x = q.x();
-      T_odom_base.transform.rotation.y = q.y();
-      T_odom_base.transform.rotation.z = q.z();
-      T_odom_base.transform.rotation.w = q.w();
-      tf_broadcaster_->sendTransform(T_odom_base);
+
+      // std::find function call: Example I took from here
+      // https://www.geeksforgeeks.org/how-to-find-index-of-a-given-element-in-a-vector-in-cpp/
+      const auto find_left = std::find(js.name.begin(), js.name.end(), wheel_left);
+      const auto find_right = std::find(js.name.begin(), js.name.end(), wheel_right);
+      if ((find_left != js.name.end()) && (find_right != js.name.end())) {
+        const auto index_left = find_left - js.name.begin();
+        const auto index_right = find_right - js.name.begin();
+        // find change in joint positions of the wheels
+        const auto dl = js.position.at(index_left) - last_js.position.at(index_left);
+        const auto dr = js.position.at(index_right) - last_js.position.at(index_right);
+        // RCLCPP_INFO_STREAM(get_logger(), "dl: "<<dl);
+        // RCLCPP_INFO_STREAM(get_logger(), "dr: "<<dr);
+        const auto current_s = js.header.stamp.sec + 1e-9 * js.header.stamp.nanosec;
+        const auto last_s = last_js.header.stamp.sec + 1e-9 * last_js.header.stamp.nanosec;
+        const auto dt = current_s - last_s;
+        // apply forward kinematics. Save these params to calculate odom velocity
+        const auto prev_x = robot.get_x();
+        const auto prev_y = robot.get_y();
+        const auto prev_phi = robot.get_phi();
+        robot.fk(dl, dr);
+        // RCLCPP_INFO_STREAM(get_logger(), "Odom FK: " << dl << " and " << dr);
+        // publish the location
+        // RCLCPP_INFO_STREAM(get_logger(), "Odom Pose: " << robot.get_config());
+        // publish odometry message based on current config.
+        tf2::Quaternion q;
+        q.setRPY(0, 0, robot.get_phi());
+        current_odom.header.stamp = js.header.stamp;
+        current_odom.pose.pose.position.x = robot.get_x();
+        current_odom.pose.pose.position.y = robot.get_y();
+        current_odom.pose.pose.orientation.x = q.x();
+        current_odom.pose.pose.orientation.y = q.y();
+        current_odom.pose.pose.orientation.z = q.z();
+        current_odom.pose.pose.orientation.w = q.w();
+        // Add twist
+        current_odom.twist.twist.linear.x = (robot.get_x() - prev_x) / dt;
+        current_odom.twist.twist.linear.y = (robot.get_y() - prev_y) / dt;
+        current_odom.twist.twist.angular.z = (robot.get_phi() - prev_phi) / dt;
+        odom_pub_->publish(current_odom);
+        // update publisher
+        T_odom_base.header.stamp = js.header.stamp;
+        T_odom_base.transform.translation.x = robot.get_x();
+        T_odom_base.transform.translation.y = robot.get_y();
+        T_odom_base.transform.rotation.x = q.x();
+        T_odom_base.transform.rotation.y = q.y();
+        T_odom_base.transform.rotation.z = q.z();
+        T_odom_base.transform.rotation.w = q.w();
+        tf_broadcaster_->sendTransform(T_odom_base);
+      } else {
+        RCLCPP_INFO_STREAM(get_logger(), "Wheel IDs not found in Joint State Message!");
+      }
     } else {
       first_iteration = false;
     }
