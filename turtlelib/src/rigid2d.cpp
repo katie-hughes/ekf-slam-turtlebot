@@ -155,9 +155,6 @@ namespace turtlelib
         double input_x, input_y, input_ang;
         char c = is.peek();
         if (c=='d'){
-            // TODO dont' use these use std::string package. Also only works for first call.
-            // char label_ang[4], label_x[2], label_y[2];
-            // This seems suspicious as I am not specifying length of strings? But it works
             std::string label_ang, label_x, label_y;
             is >> label_ang >> input_ang >> label_x >> input_x >> label_y >> input_y;
         } else{

@@ -1,8 +1,7 @@
-/// \file
+/// \file nusim.cpp
 /// \brief Simulates a turtlebot.
 ///
 /// PARAMETERS:
-///     parameter_name (parameter_type): description of the parameter
 ///     rate (double): frequency of the timer, in Hz
 ///     x0 (double): starting x location of the turtlebot (m)
 ///     y0 (double): starting y location of the turtlebot (m)
@@ -10,11 +9,20 @@
 ///     obstacles/x (double[]): list of x coordinates of cylindrical obstacles (m)
 ///     obstacles/y (double[]): list of r coordinates of cylindrical obstacles (m)
 ///     obstacles/r (double): radius of cylindrical obstacles (m)
+///     wheel_radius: radius of the robot's wheels (m)
+///     track_width: distance from the center of the robot to the wheels (m)
+///     encoder_ticks_per_rad: Number of ticks that correspond to a one radian turn on the wheels
+///     motor_cmd_per_rad_sec: The number of motor commands sent per rad/sec
+///     motor_cmd_max: The maximum value that the motors can turn at
+///     ~x_length: X length of rectangular arena (m)
+///     ~y_length: Y length of rectangular arena (m)
 /// PUBLISHES:
 ///     ~/timestep (std_msgs::msg::Uint64): current timestep of simulation
 ///     ~/obstacles (visualization_msgs::msg::MarkerArray): marker objects representing cylinders
+///     ~/walls (visualization_msgs::msg::MarkerArray): marker objects representing walls of arena
+///     red/sensor_data (nuturtlebot_msgs::msg::SensorData): current simulated sensor readings
 /// SUBSCRIBES:
-///     none
+///    red/wheel_cmd (nuturtlebot_msgs::msg::WheelCommands): simulated controls for robot to follow
 /// SERVERS:
 ///     ~/reset (std_srvs::srv::Empty): resets the simulation to the initial state
 ///     ~/teleport (nusim::srv::Teleport): teleports the turtle to a given x, y, theta value

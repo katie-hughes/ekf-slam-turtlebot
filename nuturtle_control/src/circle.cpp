@@ -1,3 +1,21 @@
+/// \file circle.cpp
+/// \brief Sends cmd_vel commands to command a circular path.
+///
+/// PARAMETERS:
+///     frequency (int): frequency of the timer, in Hz
+/// PUBLISHES:
+///     cmd_vel (geometry_msgs::msg::Twist): twist for robot to follow
+/// SUBSCRIBES:
+///    red/wheel_cmd (nuturtlebot_msgs::msg::WheelCommands): simulated controls for robot to follow
+/// SERVERS:
+///     control (nuturtle_control::srv::Control): Specify the radius and velocity of the desired
+///             circular path.
+///     reverse (std_srvs::srv::Empty): provide commands to reverse the direction of the circle
+///     stop (std_srvs::srv::Empty): publish a single cmd_vel of 0, then stop publishing cmd_vel
+/// CLIENTS:
+///     none
+
+
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -21,17 +39,14 @@
 
 using namespace std::chrono_literals;
 
-/* This example creates a subclass of Node and uses std::bind() to register a
-* member function as a callback from the timer. */
-
 class Circle : public rclcpp::Node
 {
 public:
   Circle()
   : Node("circle")
   {
-    this->declare_parameter("frequency", 100);
-    int frequency_hz = this->get_parameter("frequency").as_int();
+    declare_parameter("frequency", 100);
+    int frequency_hz = get_parameter("frequency").as_int();
     RCLCPP_INFO_STREAM(get_logger(), "Publish frequency is " << frequency_hz << " Hz");
     auto rate = (std::chrono::milliseconds) ((int)(1000. / frequency_hz));
 
@@ -55,6 +70,7 @@ public:
   }
 
 private:
+  /// @brief Publish cmd_vel if not in the stopped state
   void timer_callback()
   {
     if (publish_twist) {
@@ -62,14 +78,14 @@ private:
     }
   }
 
+
+  /// @brief Provide parameters for driving in a specific circle
+  /// @param req velocity and radius of desired circular path
+  /// @param res boolean, if setting is successful
   void control_cb(
     std::shared_ptr<nuturtle_control::srv::Control::Request> req,
     std::shared_ptr<nuturtle_control::srv::Control::Response> res)
   {
-    /// \brief Provide parameters for driving in a specific circle
-    ///
-    /// \param Request: velocity and radius of desired circular path
-    /// \param Response: boolean, if setting is successful
     const auto radius = req->radius;
     if (radius > 0) {
       RCLCPP_INFO_STREAM(get_logger(), "Driving in a Circle!");
@@ -85,27 +101,25 @@ private:
 
   }
 
+  /// @brief Reverse the circle
+  /// @param req: empty request
+  /// @param res: emtpy response
   void reverse_cb(
     std::shared_ptr<std_srvs::srv::Empty::Request>,
     std::shared_ptr<std_srvs::srv::Empty::Response>)
   {
-    /// \brief Reverse the circle
-    ///
-    /// \param Request: empty request
-    /// \param Response: empty response
     RCLCPP_INFO_STREAM(get_logger(), "Reversing the Circle!");
     current_twist.linear.x *= -1.0;
     current_twist.angular.z *= -1.0;
   }
 
+  /// @brief stop publishing cmd_vels
+  /// @param req: empty request
+  /// @param res: emtpy response
   void stop_cb(
     std::shared_ptr<std_srvs::srv::Empty::Request>,
     std::shared_ptr<std_srvs::srv::Empty::Response>)
   {
-    /// \brief Stop publishing cmd_vels
-    ///
-    /// \param Request: empty request
-    /// \param Response: empty response
     RCLCPP_INFO_STREAM(get_logger(), "Stopping the Circle!");
     twist_pub_->publish(zero_twist);
     publish_twist = false;
