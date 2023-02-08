@@ -300,17 +300,23 @@ private:
       ma.markers.at(i).pose.position.z = 0.125;
     }
 
-    ma.markers.at(0).scale.y = y_length;
-    ma.markers.at(0).pose.position.x = 0.5 * x_length;
+    const auto wall_thickness = 0.1;
 
-    ma.markers.at(1).scale.x = x_length;
-    ma.markers.at(1).pose.position.y = 0.5 * y_length;
+    ma.markers.at(0).scale.x = wall_thickness;
+    ma.markers.at(0).scale.y = y_length + 2 * wall_thickness;
+    ma.markers.at(0).pose.position.x = 0.5 * (x_length + wall_thickness);
 
-    ma.markers.at(2).scale.y = y_length;
-    ma.markers.at(2).pose.position.x = -0.5 * x_length;
+    ma.markers.at(1).scale.x = x_length + 2 * wall_thickness;
+    ma.markers.at(1).scale.y = wall_thickness;
+    ma.markers.at(1).pose.position.y = 0.5 * (y_length + wall_thickness);
 
-    ma.markers.at(3).scale.x = x_length;
-    ma.markers.at(3).pose.position.y = -0.5 * y_length;
+    ma.markers.at(2).scale.x = wall_thickness;
+    ma.markers.at(2).scale.y = y_length + 2 * wall_thickness;
+    ma.markers.at(2).pose.position.x = -0.5 * (x_length + wall_thickness);
+
+    ma.markers.at(3).scale.x = x_length + 2 * wall_thickness;
+    ma.markers.at(3).scale.y = wall_thickness;
+    ma.markers.at(3).pose.position.y = -0.5 * (y_length + wall_thickness);
 
     walls_pub_->publish(ma);
   }
