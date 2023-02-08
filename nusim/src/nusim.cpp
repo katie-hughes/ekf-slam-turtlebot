@@ -28,6 +28,8 @@
 ///     ~/teleport (nusim::srv::Teleport): teleports the turtle to a given x, y, theta value
 /// CLIENTS:
 ///     none
+/// BROADCASTS:
+///    nusim/world -> red/base_footprint
 
 
 #include <chrono>

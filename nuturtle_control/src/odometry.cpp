@@ -1,3 +1,24 @@
+/// \file odometry.cpp
+/// \brief Updates odometry estimations to determine where the robot is
+///
+/// PARAMETERS:
+///     body_id (string): the frame id of the robot's footprint, will be a child of odom_id frame
+///     odom_id (string): the name of the odom frame (default: odom)
+///     wheel_left (string): the name of the left wheel joint in the robot
+///     wheel_right (string): the name of the right wheel joint in the robot
+///     wheel_radius: radius of the robot's wheels (m)
+///     track_width: distance from the center of the robot to the wheels (m)
+/// PUBLISHES:
+///     odom (nav_msgs::msg::Odometry): current transform between odom_id and body_id
+/// SUBSCRIBES:
+///    joint_states (sensor_msgs::msg::JointState): the joint states of the odometry robot
+/// SERVERS:
+///     initial_pose (nuturtle_control::srv::InitialPose): manually set the pose of the odom robot
+/// CLIENTS:
+///     none
+/// BROADCASTS:
+///    odom_id -> body_id
+
 #include <chrono>
 #include <functional>
 #include <memory>

@@ -1,3 +1,24 @@
+/// \file turtle_control.cpp
+/// \brief Provide controls for interpreting sensor data and cmd_vel
+///
+/// PARAMETERS:
+///     wheel_radius: radius of the robot's wheels (m)
+///     track_width: distance from the center of the robot to the wheels (m)
+///     encoder_ticks_per_rad: Number of ticks that correspond to a one radian turn on the wheels
+///     motor_cmd_per_rad_sec: The number of motor commands sent per rad/sec
+///     motor_cmd_max: The maximum value that the motors can turn at
+/// PUBLISHES:
+///    wheel_cmd (nuturtlebot_msgs::msg::WheelCommands): wheel controls for the robot to follow
+///    joint_states (sensor_msgs::msg::JointState): The updated robot joint states required to
+///       follow the desired wheel commands
+/// SUBSCRIBES:
+///     cmd_vel (geometry_msgs::msg::Twist): twist for robot to follow
+///     sensor_data (nuturtlebot_msgs::msg::SensorData): reading of the robot's internal encoders
+/// SERVERS:
+///     none
+/// CLIENTS:
+///     none
+
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -72,6 +93,8 @@ public:
   }
 
 private:
+  /// @brief callback to convert cmd_vel commands into appropriate wheel commands
+  /// @param twist: desired cmd_vel to follow
   void cmd_vel_cb(const geometry_msgs::msg::Twist & twist)
   {
     // assume twist is in the body frame. Convert into turtlelib object.
@@ -93,6 +116,8 @@ private:
     wheel_pub_->publish(wc);
   }
 
+  /// @brief callback to convert sensor data messages into updated joint states
+  /// @param sensor_data current wheel encoder data
   void sensor_cb(const nuturtlebot_msgs::msg::SensorData & sensor_data)
   {
     std::vector<double> joint_position(2);
