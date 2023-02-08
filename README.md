@@ -3,8 +3,10 @@
 * Winter 2022
 # Package List
 This repository consists of several ROS packages
-- nuturtle_description - Package for visualizing one or many turtlebots
-- nusim - For simulating a Turtlebot3 in an rviz environment
+- [nuturtle_description](nuturtle_description) - Visualize one or many turtlebots
+- [nusim](nusim) - Simulates a Turtlebot3 in an rviz environment
+- [nuturtle_control](nuturtle_control) - provides an odometry estimate for the turtlebot that can interface with either a simulated or real robot.
+
 
 # Libraries
-- turtlelib: A library for handling transformations in SE(2) and other turtlebot-related math.
+- [turtlelib](turtlelib): A library for handling transformations in SE(2) and other turtlebot-related math.
