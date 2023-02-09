@@ -248,8 +248,8 @@ namespace turtlelib
         // define desired twist: Rotate to PI
         Twist2D tw = Twist2D{PI, Vector2D{0.0, 0.0}};
         WheelState ws = dd.ik(tw);
-        REQUIRE_THAT(ws.l, Catch::Matchers::WithinAbs(-1*rad*PI, 1e-5));
-        REQUIRE_THAT(ws.r, Catch::Matchers::WithinAbs(rad*PI, 1e-5));
+        REQUIRE_THAT(ws.l, Catch::Matchers::WithinAbs(-0.5*rad*PI, 1e-5));
+        REQUIRE_THAT(ws.r, Catch::Matchers::WithinAbs(0.5*rad*PI, 1e-5));
         dd.fk(ws.l,ws.r);
         REQUIRE_THAT(dd.get_x(), Catch::Matchers::WithinAbs(0.0, 1e-5));
         REQUIRE_THAT(dd.get_y(), Catch::Matchers::WithinAbs(0.0, 1e-5));
@@ -268,8 +268,8 @@ namespace turtlelib
         // define desired twist: Rotate to PI and move forward 1 unit
         Twist2D tw = Twist2D{PI, Vector2D{1.0, 0.0}};
         WheelState ws = dd.ik(tw);
-        REQUIRE_THAT(ws.l, Catch::Matchers::WithinAbs(1-PI, 1e-5));
-        REQUIRE_THAT(ws.r, Catch::Matchers::WithinAbs(1+PI, 1e-5));
+        REQUIRE_THAT(ws.l, Catch::Matchers::WithinAbs(1-0.5*PI, 1e-5));
+        REQUIRE_THAT(ws.r, Catch::Matchers::WithinAbs(1+0.5*PI, 1e-5));
         dd.fk(ws.l,ws.r);
         REQUIRE_THAT(dd.get_x(), Catch::Matchers::WithinAbs(1.0, 1e-5));
         REQUIRE_THAT(dd.get_y(), Catch::Matchers::WithinAbs(0.0, 1e-5));

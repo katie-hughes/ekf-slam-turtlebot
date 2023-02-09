@@ -3,7 +3,7 @@
     # These are in m
     wheel_radius: 0.033
     # Distance between the wheels
-    track_width: 0.08
+    track_width: 0.16
     motor_cmd_max: 265
     motor_cmd_per_rad_sec: 0.024
     # 1 revolution is 2^12 ticks. So below is = 2^12/2pi
