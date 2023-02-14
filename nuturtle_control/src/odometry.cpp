@@ -36,6 +36,8 @@
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2/LinearMath/Quaternion.h"
 #include "geometry_msgs/msg/transform_stamped.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "nav_msgs/msg/path.hpp"
 
 #include "turtlelib/diff_drive.hpp"
 
@@ -107,6 +109,8 @@ public:
 
     odom_pub_ = create_publisher<nav_msgs::msg::Odometry>("odom", 10);
 
+    path_pub_ = create_publisher<nav_msgs::msg::Path>("~/path", 10);
+
     js_sub_ = create_subscription<sensor_msgs::msg::JointState>(
       "joint_states", 10, std::bind(&Odometry::js_cb, this, std::placeholders::_1));
 
@@ -169,6 +173,20 @@ private:
         T_odom_base.transform.rotation.z = q.z();
         T_odom_base.transform.rotation.w = q.w();
         tf_broadcaster_->sendTransform(T_odom_base);
+        // update path
+        geometry_msgs::msg::PoseStamped ps;
+        ps.header.stamp = js.header.stamp;
+        ps.header.frame_id = "nusim/world";
+        ps.pose.position.x = robot.get_x();
+        ps.pose.position.y = robot.get_y();
+        ps.pose.orientation.x = q.x();
+        ps.pose.orientation.y = q.y();
+        ps.pose.orientation.z = q.z();
+        ps.pose.orientation.w = q.w();
+        followed_path.poses.push_back(ps);
+        followed_path.header.stamp = ps.header.stamp;
+        followed_path.header.frame_id = "nusim/world";
+        path_pub_->publish(followed_path);
       } else {
         RCLCPP_INFO_STREAM(get_logger(), "Wheel IDs not found in Joint State Message!");
       }
@@ -194,6 +212,7 @@ private:
   }
 
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr js_sub_;
 
   rclcpp::Service<nuturtle_control::srv::InitialPose>::SharedPtr initial_pose_srv_;
@@ -208,6 +227,7 @@ private:
   nav_msgs::msg::Odometry current_odom;
   std::string body_id, odom_id, wheel_left, wheel_right;
   geometry_msgs::msg::TransformStamped T_odom_base;
+  nav_msgs::msg::Path followed_path;
 };
 
 int main(int argc, char * argv[])
