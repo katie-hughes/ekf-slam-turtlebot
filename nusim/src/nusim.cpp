@@ -37,6 +37,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <random>
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/u_int64.hpp"
@@ -114,10 +115,19 @@ public:
     declare_parameter("draw_only", false);
     draw_only = get_parameter("draw_only").as_bool();
 
+    declare_parameter("input_noise", 1.0);
+    input_noise = get_parameter("input_noise").as_double();
+
+    declare_parameter("slip_fraction", 0.0);
+    slip_fraction = get_parameter("slip_fraction").as_double();
+
+    std::normal_distribution<> temp_dist{0, input_noise};
+    normal_dist = temp_dist;
+
     // slightly hacky workaround to get new values in
     auto start_pose = turtlelib::Transform2D(turtlelib::Vector2D{x0, y0}, theta0);
-    turtlelib::DiffDrive temp(start_pose, track_width, wheel_radius);
-    robot = temp;
+    turtlelib::DiffDrive temp_robot(start_pose, track_width, wheel_radius);
+    robot = temp_robot;
 
     if (obx.size() == oby.size()) {
       // this is a valid input
@@ -170,11 +180,14 @@ private:
     if(!draw_only){
       auto message = std_msgs::msg::UInt64();
       message.data = timestep_;
-      //   RCLCPP_INFO_STREAM(get_logger(), "Timestep: " << message.data);
+      // RCLCPP_INFO_STREAM(get_logger(), "Random #" << normal_dist(gen));
       timestep_pub_->publish(message);
       // udpate wheel states
-      const auto ws_left = left_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz);
-      const auto ws_right = right_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz);
+      const auto vl = (left_velocity != 0.0) ? left_velocity + normal_dist(gen) : left_velocity;
+      const auto vr = (right_velocity != 0.0) ? right_velocity + normal_dist(gen) : right_velocity;
+      // RCLCPP_INFO_STREAM(get_logger(), "Before & after: " << left_velocity<< " " << vl);
+      const auto ws_left = vl * motor_cmd_per_rad_sec * (1.0 / rate_hz);
+      const auto ws_right = vr * motor_cmd_per_rad_sec * (1.0 / rate_hz);
       // udpate robot position with fk
       // this will update in tfs as the broadcaster reads from diff drive object
       robot.fk(ws_left, ws_right);
@@ -395,6 +408,13 @@ private:
   double right_encoder_save = 0.0;
   nav_msgs::msg::Path followed_path;
   bool draw_only;
+  double input_noise, slip_fraction;
+  // https://en.cppreference.com/w/cpp/numeric/random/normal_distribution
+  std::random_device rd{};
+  std::mt19937 gen{rd()};
+  // values near the mean are the most likely
+  // standard deviation affects the dispersion of generated values from the mean
+  std::normal_distribution<> normal_dist{0, 0};
 };
 
 int main(int argc, char * argv[])
