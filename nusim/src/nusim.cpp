@@ -288,8 +288,8 @@ private:
       ma.markers.at(i).action = 0;
       // set color
       ma.markers.at(i).color.r = 1.0;
-      ma.markers.at(i).color.g = 1.0;
-      ma.markers.at(i).color.b = 1.0;
+      ma.markers.at(i).color.g = 0.0;
+      ma.markers.at(i).color.b = 0.0;
       ma.markers.at(i).color.a = 1.0;
       // they are all same z height
       ma.markers.at(i).scale.x = 0.0;
