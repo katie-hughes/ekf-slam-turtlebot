@@ -92,4 +92,10 @@
   <node pkg="tf2_ros"
         exec="static_transform_publisher"
         args="0 0 0 0 0 0 nusim/world odom"/>
+
+  <!-- Launch hlds_laser_publisher -->
+  <node pkg="run hls_lfcd_lds_driver" exec="hlds_laser_publisher"
+        if="$(eval '\'$(var robot)\' == \'localhost\'')">
+    <param name="port" value="/dev/ttyUSB0"/>
+  </node>
 </launch>
