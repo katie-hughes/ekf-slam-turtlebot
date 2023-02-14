@@ -49,6 +49,16 @@
     <param name="~y_length" value="10.0"/>
   </node>
 
+  <!-- launch nusim node in "draw_only" mode if none or localhost -->
+  <node pkg="nusim" exec="nusim" name="nuwall"
+        if="$(eval '\'$(var robot)\' == \'none\' or \'$(var robot)\' == \'localhost\'')">
+    <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+    <param from="$(find-pkg-share nusim)/config/basic_world.yaml"/>
+    <param name="~x_length" value="10.0"/>
+    <param name="~y_length" value="10.0"/>
+    <param name="draw_only" value="true"/>
+  </node>
+
   <!-- circle node launched if cmd_src=circle -->
 
   <node pkg="nuturtle_control" exec="circle"

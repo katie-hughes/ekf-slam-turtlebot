@@ -111,6 +111,9 @@ public:
     declare_parameter("~y_length", 10.0);
     y_length = get_parameter("~y_length").as_double();
 
+    declare_parameter("draw_only", false);
+    draw_only = get_parameter("draw_only").as_bool();
+
     // slightly hacky workaround to get new values in
     auto start_pose = turtlelib::Transform2D(turtlelib::Vector2D{x0, y0}, theta0);
     turtlelib::DiffDrive temp(start_pose, track_width, wheel_radius);
@@ -164,34 +167,36 @@ private:
   /// also update the location of the robot with forward kinematics
   void timer_callback()
   {
-    auto message = std_msgs::msg::UInt64();
-    message.data = timestep_;
-    //   RCLCPP_INFO_STREAM(get_logger(), "Timestep: " << message.data);
-    timestep_pub_->publish(message);
-    // udpate wheel states
-    const auto ws_left = left_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz);
-    const auto ws_right = right_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz);
-    // udpate robot position with fk
-    // this will update in tfs as the broadcaster reads from diff drive object
-    robot.fk(ws_left, ws_right);
-    // RCLCPP_INFO_STREAM(get_logger(), "Nusim FK: " << ws_left << " and " << ws_right);
-    // RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: " << robot.get_config());
-    // update sensor data
-    // i am suspicious that it is this simple, but let's try it
-    // try calculating stamp with timestep_????
-    current_sensor.stamp = this->get_clock()->now();
-    left_encoder_save += ws_left * encoder_ticks;
-    right_encoder_save += ws_right * encoder_ticks;
-    current_sensor.left_encoder = left_encoder_save;
-    current_sensor.right_encoder = right_encoder_save;
-    // sensor_pub_->publish(current_sensor);
-    sensor_pub_->publish(current_sensor);
-    // send robot transform
-    send_transform();
-    update_path();
+    if(!draw_only){
+      auto message = std_msgs::msg::UInt64();
+      message.data = timestep_;
+      //   RCLCPP_INFO_STREAM(get_logger(), "Timestep: " << message.data);
+      timestep_pub_->publish(message);
+      // udpate wheel states
+      const auto ws_left = left_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz);
+      const auto ws_right = right_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz);
+      // udpate robot position with fk
+      // this will update in tfs as the broadcaster reads from diff drive object
+      robot.fk(ws_left, ws_right);
+      // RCLCPP_INFO_STREAM(get_logger(), "Nusim FK: " << ws_left << " and " << ws_right);
+      // RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: " << robot.get_config());
+      // update sensor data
+      // i am suspicious that it is this simple, but let's try it
+      // try calculating stamp with timestep_????
+      current_sensor.stamp = this->get_clock()->now();
+      left_encoder_save += ws_left * encoder_ticks;
+      right_encoder_save += ws_right * encoder_ticks;
+      current_sensor.left_encoder = left_encoder_save;
+      current_sensor.right_encoder = right_encoder_save;
+      // sensor_pub_->publish(current_sensor);
+      sensor_pub_->publish(current_sensor);
+      // send robot transform
+      send_transform();
+      update_path();
+      timestep_++;
+    }
     publish_obstacles();
     publish_walls();
-    timestep_++;
   }
 
   /// @brief Reset the simulation
@@ -389,6 +394,7 @@ private:
   double left_encoder_save = 0.0;
   double right_encoder_save = 0.0;
   nav_msgs::msg::Path followed_path;
+  bool draw_only;
 };
 
 int main(int argc, char * argv[])

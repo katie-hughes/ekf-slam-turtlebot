@@ -3,9 +3,8 @@ Panels:
     Help Height: 85
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /MarkerArray2/Status1
-      Splitter Ratio: 0.6894586682319641
+      Expanded: ~
+      Splitter Ratio: 0.5783475637435913
     Tree Height: 712
   - Class: rviz_common/Selection
     Name: Selection
@@ -73,27 +72,9 @@ Visualization Manager:
           Value: false
         blue/imu_link:
           Value: false
-        blue/wheel_left_link:
-          Value: true
-        blue/wheel_right_link:
-          Value: true
         nusim/world:
           Value: false
         odom:
-          Value: true
-        red/base_footprint:
-          Value: false
-        red/base_link:
-          Value: true
-        red/base_scan:
-          Value: false
-        red/caster_back_link:
-          Value: false
-        red/imu_link:
-          Value: false
-        red/wheel_left_link:
-          Value: true
-        red/wheel_right_link:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -103,30 +84,7 @@ Visualization Manager:
       Tree:
         nusim/world:
           odom:
-            blue/base_footprint:
-              blue/base_link:
-                blue/base_scan:
-                  {}
-                blue/caster_back_link:
-                  {}
-                blue/imu_link:
-                  {}
-                blue/wheel_left_link:
-                  {}
-                blue/wheel_right_link:
-                  {}
-          red/base_footprint:
-            red/base_link:
-              red/base_scan:
-                {}
-              red/caster_back_link:
-                {}
-              red/imu_link:
-                {}
-              red/wheel_left_link:
-                {}
-              red/wheel_right_link:
-                {}
+            {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -229,7 +187,7 @@ Visualization Manager:
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: MarkerArray
+      Name: ObstacleMarkerArray
       Namespaces:
         "": true
       Topic:
@@ -237,7 +195,19 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /nusim/walls
+        Value: /nuwall/obstacles
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: WallMarkerArray
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /nuwall/walls
       Value: true
   Enabled: true
   Global Options:
@@ -285,25 +255,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 3.798430919647217
+      Distance: 4.710744857788086
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.14580173790454865
-        Y: 0.8255583047866821
-        Z: -0.21435979008674622
+        X: -0.10318724811077118
+        Y: 0.6605967283248901
+        Z: 0.07378169894218445
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6153980493545532
+      Pitch: 0.49539804458618164
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.4853969812393188
+      Yaw: 1.4053970575332642
     Saved: ~
 Window Geometry:
   Displays:
