@@ -45,10 +45,12 @@
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_ros/transform_broadcaster.h"
 #include "geometry_msgs/msg/transform_stamped.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "visualization_msgs/msg/marker.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 #include "nuturtlebot_msgs/msg/wheel_commands.hpp"
 #include "nuturtlebot_msgs/msg/sensor_data.hpp"
+#include "nav_msgs/msg/path.hpp"
 
 #include "turtlelib/diff_drive.hpp"
 
@@ -135,6 +137,8 @@ public:
 
     sensor_pub_ = create_publisher<nuturtlebot_msgs::msg::SensorData>("red/sensor_data", 10);
 
+    path_pub_ = create_publisher<nav_msgs::msg::Path>("~/path", 10);
+
     wheel_sub_ = create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
       "red/wheel_cmd", 10, std::bind(&Nusim::wheel_cb, this, std::placeholders::_1));
 
@@ -184,6 +188,7 @@ private:
     sensor_pub_->publish(current_sensor);
     // send robot transform
     send_transform();
+    update_path();
     publish_obstacles();
     publish_walls();
     timestep_++;
@@ -237,6 +242,24 @@ private:
     t.transform.rotation.w = q.w();
     // Send the transformation
     tf_broadcaster_->sendTransform(t);
+  }
+
+  void update_path(){
+    geometry_msgs::msg::PoseStamped ps;
+    ps.header.stamp = this->get_clock()->now();
+    ps.header.frame_id = "nusim/world";
+    ps.pose.position.x = robot.get_x();
+    ps.pose.position.y = robot.get_y();
+    tf2::Quaternion q;
+    q.setRPY(0, 0, robot.get_phi());
+    ps.pose.orientation.x = q.x();
+    ps.pose.orientation.y = q.y();
+    ps.pose.orientation.z = q.z();
+    ps.pose.orientation.w = q.w();
+    followed_path.poses.push_back(ps);
+    followed_path.header.stamp = ps.header.stamp;
+    followed_path.header.frame_id = "nusim/world";
+    path_pub_->publish(followed_path);
   }
 
   /// @brief publish obstacle marker locations
@@ -337,6 +360,7 @@ private:
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr obs_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr walls_pub_;
   rclcpp::Publisher<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_pub_;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
 
   rclcpp::Subscription<nuturtlebot_msgs::msg::WheelCommands>::SharedPtr wheel_sub_;
 
@@ -364,6 +388,7 @@ private:
   int32_t right_velocity = 0;
   double left_encoder_save = 0.0;
   double right_encoder_save = 0.0;
+  nav_msgs::msg::Path followed_path;
 };
 
 int main(int argc, char * argv[])
