@@ -344,6 +344,10 @@ private:
     ps.pose.orientation.z = q.z();
     ps.pose.orientation.w = q.w();
     followed_path.poses.push_back(ps);
+    // keep array from getting too big!
+    if (followed_path.poses.size()>50){
+      followed_path.poses.erase(followed_path.poses.begin());
+    }
     followed_path.header.stamp = ps.header.stamp;
     followed_path.header.frame_id = "nusim/world";
     path_pub_->publish(followed_path);

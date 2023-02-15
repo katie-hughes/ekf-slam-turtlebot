@@ -13,7 +13,7 @@
         if="$(eval '\'$(var robot)\' == \'none\' and \'$(var use_rviz)\' == \'true\'')"
         args="-d $(find-pkg-share nuturtle_control)/config/control_b.rviz"/>
 
-  <!-- turtle_control and odometry nodes are always launched! -->
+  <!-- turtle_control and odometry nodes are always launched if robot not none -->
 
   <node pkg="nuturtle_control" exec="turtle_control"
         if="$(eval '\'$(var robot)\' == \'nusim\'')">
@@ -50,9 +50,9 @@
     <param name="~y_length" value="10.0"/>
   </node>
 
-  <!-- launch nusim node in "draw_only" mode if none or localhost -->
+  <!-- launch nusim node in "draw_only" mode if robot = none -->
   <node pkg="nusim" exec="nusim" name="nuwall"
-        if="$(eval '\'$(var robot)\' == \'none\' or \'$(var robot)\' == \'localhost\'')">
+        if="$(eval '\'$(var robot)\' == \'none\'')">
     <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
     <param from="$(find-pkg-share nusim)/config/basic_world.yaml"/>
     <param name="~x_length" value="10.0"/>
@@ -66,7 +66,7 @@
         if="$(eval '\'$(var cmd_src)\' == \'circle\' and \'$(var robot)\' != \'none\'')">
   </node>
 
-  <!-- launch this if localhost -->
+  <!-- launch numsr_turtlebot for sensor data if localhost -->
 
   <node pkg="numsr_turtlebot" exec="numsr_turtlebot"
         if="$(eval '\'$(var robot)\' == \'localhost\'')">
@@ -81,7 +81,7 @@
 
   <!-- Launch robot models -->
 
-  <!-- always load the blue robot -->
+  <!-- always load the blue robot if robot not none -->
 
   <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py"
            if="$(eval '\'$(var robot)\' != \'none\'')">
@@ -100,14 +100,15 @@
     <arg name="use_jsp" value="true"/>
   </include>
 
-  <!-- launch static transform pub: odom located at world frame -->
+  <!-- launch static transform pub: odom located at world frame if not none -->
 
   <node pkg="tf2_ros"
         if="$(eval '\'$(var robot)\' != \'none\'')"
         exec="static_transform_publisher"
         args="0 0 0 0 0 0 nusim/world odom"/>
 
-  <!-- Launch hlds_laser_publisher -->
+  <!-- Launch hlds_laser_publisher if on localhost-->
+  
   <node pkg="hls_lfcd_lds_driver" exec="hlds_laser_publisher"
         if="$(eval '\'$(var robot)\' == \'localhost\'')">
     <param name="port" value="/dev/ttyUSB0"/>
