@@ -257,7 +257,7 @@ private:
           // there was a collision. Get unit vector along line from obstacle to robot centers.
           const auto ux = (robot.get_x() - obx.at(i)) / ob_dist;
           const auto uy = (robot.get_y() - oby.at(i)) / ob_dist;
-          const auto amount_to_shift = ob_dist - collision_radius - obr;
+          const auto amount_to_shift = collision_radius + obr - ob_dist;
           const auto new_x = robot.get_x() + amount_to_shift * ux;
           const auto new_y = robot.get_y() + amount_to_shift * uy;
           // update diffdrive object location. Keep same theta
