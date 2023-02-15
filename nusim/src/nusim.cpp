@@ -469,7 +469,7 @@ private:
   }
 
   /// @brief Publish LaserScan message based on the obstacles/walls
-  void send_laser(){
+  void publish_laser(){
     sensor_msgs::msg::LaserScan laser;
     laser.header.stamp = this->get_clock()->now();
     // copied from turtlebot live message
@@ -483,7 +483,8 @@ private:
     laser.range_max = laser_max_range;
     // fill in the laser.ranges array
     // for (int n=0; n<laser_nsamples; n++){
-    //   // laser.rang
+    //   // If not in range, it's 0. If in range, it's the distance.
+    //   // laser.ranges.push_back(something)
     //   continue;
     // }
     // laser.intensities = leave blank

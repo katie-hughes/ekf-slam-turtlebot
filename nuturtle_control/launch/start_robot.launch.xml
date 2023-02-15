@@ -26,12 +26,13 @@
   <!-- Don't do remapping if nusim is not running! (red robot doesn't exist then) -->
 
   <node pkg="nuturtle_control" exec="turtle_control"
-        if="$(eval '\'$(var robot)\' != \'nusim\'')">
+        if="$(eval '\'$(var robot)\' != \'nusim\' and \'$(var robot)\' != \'none\'')">
     <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
     <remap from="joint_states" to="blue/joint_states"/>
   </node>
 
-  <node pkg="nuturtle_control" exec="odometry">
+  <node pkg="nuturtle_control" exec="odometry"
+        if="$(eval '\'$(var robot)\' != \'none\'')">
     <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
     <param name="body_id" value="blue/base_footprint"/>
     <param name="wheel_left" value="wheel_left_joint"/>
@@ -62,7 +63,7 @@
   <!-- circle node launched if cmd_src=circle -->
 
   <node pkg="nuturtle_control" exec="circle"
-        if="$(eval '\'$(var cmd_src)\' == \'circle\'')">
+        if="$(eval '\'$(var cmd_src)\' == \'circle\' and \'$(var robot)\' != \'none\'')">
   </node>
 
   <!-- launch this if localhost -->
@@ -82,7 +83,8 @@
 
   <!-- always load the blue robot -->
 
-  <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py">
+  <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py"
+           if="$(eval '\'$(var robot)\' != \'none\'')">
     <arg name="color" value="blue"/>
     <arg name="use_rviz" value="false"/>
     <arg name="use_jsp" value="false"/>
@@ -101,6 +103,7 @@
   <!-- launch static transform pub: odom located at world frame -->
 
   <node pkg="tf2_ros"
+        if="$(eval '\'$(var robot)\' != \'none\'')"
         exec="static_transform_publisher"
         args="0 0 0 0 0 0 nusim/world odom"/>
 
