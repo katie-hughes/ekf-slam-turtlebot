@@ -296,6 +296,13 @@ namespace turtlelib
     Transform2D integrate_twist(Twist2D tw);
 
 
+    /// @brief Calculate Euclidean distance between points (x1, y1) and (x2, y2)
+    /// @param x1 first x coordinate
+    /// @param y1 first y coordinate
+    /// @param x2 second x coordinate
+    /// @param y2 second y coordinate
+    /// @return Euclidean distance
+    double distance(double x1, double y1, double x2, double y2);
 
 }
 

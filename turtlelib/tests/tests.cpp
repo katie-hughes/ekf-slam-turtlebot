@@ -318,4 +318,10 @@ namespace turtlelib
         REQUIRE_THAT(dd.get_y(), Catch::Matchers::WithinAbs(1.0, 1e-5));
         REQUIRE_THAT(dd.get_phi(), Catch::Matchers::WithinAbs(0.5*PI, 1e-5));
     }
+
+    TEST_CASE("Distance", "Rigid2d"){
+        REQUIRE_THAT(distance(0.0, 0.0, 1.0, 0.0), Catch::Matchers::WithinAbs(1.0, 1e-5));
+        REQUIRE_THAT(distance(0.0, 0.0, -1.0, 0.0), Catch::Matchers::WithinAbs(1.0, 1e-5));
+        REQUIRE_THAT(distance(0.0, 0.0, 3.0, 4.0), Catch::Matchers::WithinAbs(5.0, 1e-5));
+    }
 }

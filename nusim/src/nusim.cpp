@@ -121,6 +121,12 @@ public:
     declare_parameter("slip_fraction", 0.5);
     slip_fraction = get_parameter("slip_fraction").as_double();
 
+    declare_parameter("basic_sensor_variance", 0.5);
+    basic_sensor_variance = get_parameter("basic_sensor_variance").as_double();
+
+    declare_parameter("max_range", 0.5);
+    max_range = get_parameter("max_range").as_double();
+
     std::normal_distribution<> temp_normal{0, input_noise};
     normal_dist = temp_normal;
 
@@ -150,6 +156,8 @@ public:
     obs_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("~/obstacles", 10);
 
     walls_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("~/walls", 10);
+
+    fake_sensor_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("fake_sensor", 10);
 
     sensor_pub_ = create_publisher<nuturtlebot_msgs::msg::SensorData>("red/sensor_data", 10);
 
@@ -315,6 +323,39 @@ private:
     obs_pub_->publish(ma);
   }
 
+
+  /// @brief publish obstacle marker locations
+  void publish_fake_obstacles()
+  {
+    visualization_msgs::msg::MarkerArray ma;
+    for (size_t i = 0; i < n_cylinders; i++) {
+      // for each thing
+      visualization_msgs::msg::Marker m;
+      m.header.stamp = this->get_clock()->now();
+      m.header.frame_id = "nusim/world";
+      m.id = i;         // so each has a unique ID
+      m.type = 3;       // cylinder
+      // set to 2 = delete if it is not within range
+      m.action = 0;     // add/modify
+      // Set color as yellow
+      m.color.r = 1.0;
+      m.color.g = 1.0;
+      m.color.b = 0.0;
+      m.color.a = 1.0;
+      // Set Radius
+      m.scale.x = obr;
+      m.scale.y = obr;
+      m.scale.z = 0.25;
+      m.pose.position.x = obx.at(i);
+      m.pose.position.y = oby.at(i);
+      m.pose.position.z = 0.125;
+      // Add to marker array
+      ma.markers.push_back(m);
+    }
+    // RCLCPP_INFO_STREAM(get_logger(), "Publishing Marker Array");
+    fake_sensor_pub_->publish(ma);
+  }
+
   /// @brief Publish wall marker locations
   void publish_walls()
   {
@@ -382,6 +423,7 @@ private:
   rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr timestep_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr obs_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr walls_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr fake_sensor_pub_;
   rclcpp::Publisher<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_pub_;
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
 
@@ -413,7 +455,7 @@ private:
   double right_encoder_save = 0.0;
   nav_msgs::msg::Path followed_path;
   bool draw_only;
-  double input_noise, slip_fraction;
+  double input_noise, slip_fraction, basic_sensor_variance, max_range;
   // https://en.cppreference.com/w/cpp/numeric/random/normal_distribution
   std::random_device rd{};
   std::mt19937 gen{rd()};
