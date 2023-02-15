@@ -262,8 +262,7 @@ private:
           const auto new_y = robot.get_y() + amount_to_shift * uy;
           // update diffdrive object location. Keep same theta
           auto new_pos = turtlelib::Transform2D(turtlelib::Vector2D{new_x, new_y}, robot.get_phi());
-          turtlelib::DiffDrive new_robot(new_pos, track_width, wheel_radius);
-          robot = new_robot;
+          robot.change_state(new_pos);
         }
       }
       send_transform();

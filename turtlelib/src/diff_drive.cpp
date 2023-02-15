@@ -72,4 +72,8 @@ namespace turtlelib
             throw std::logic_error("Y component of control twist must be 0!");
         }
     }
+
+    void DiffDrive::change_state(Transform2D config){
+        q = config;
+    }
 }

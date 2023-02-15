@@ -71,6 +71,10 @@ namespace turtlelib
         /// @param tw - the twist we want to move at
         /// @return - Wheel velocities required in rad/s
         WheelState ik(Twist2D tw);
+
+        /// @brief change the current configuration of the robot.
+        /// @param config desired x, y, and theta orientation of the robot.
+        void change_state(Transform2D config);
     };
 
     /// @brief Output wheel state as "left: xx right: xx"
