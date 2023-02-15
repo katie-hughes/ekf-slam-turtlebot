@@ -47,7 +47,7 @@ Visualization Manager:
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: MarkerArray
+      Name: Obstacles
       Namespaces:
         "": true
       Topic:
@@ -287,7 +287,7 @@ Visualization Manager:
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: MarkerArray
+      Name: Walls
       Namespaces:
         "": true
       Topic:
@@ -353,6 +353,18 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /nusim/path
       Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: FakeSensor
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /fake_sensor
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -399,25 +411,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 4.496173858642578
+      Distance: 3.637599229812622
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.14580173790454865
-        Y: 0.8255583047866821
-        Z: -0.21435979008674622
+        X: -0.056189410388469696
+        Y: 0.7100404500961304
+        Z: -0.005609220825135708
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6153980493545532
+      Pitch: 0.5397968888282776
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.4853969812393188
+      Yaw: 1.380393385887146
     Saved: ~
 Window Geometry:
   Displays:

@@ -121,10 +121,10 @@ public:
     declare_parameter("slip_fraction", 0.5);
     slip_fraction = get_parameter("slip_fraction").as_double();
 
-    declare_parameter("basic_sensor_variance", 0.5);
+    declare_parameter("basic_sensor_variance", 0.0);
     basic_sensor_variance = get_parameter("basic_sensor_variance").as_double();
 
-    declare_parameter("max_range", 0.5);
+    declare_parameter("max_range", 10.0);
     max_range = get_parameter("max_range").as_double();
 
     std::normal_distribution<> temp_normal{0, input_noise};
@@ -169,6 +169,10 @@ public:
     timer_ = create_wall_timer(
       rate,
       std::bind(&Nusim::timer_callback, this));
+
+    fake_sensor_timer_ = create_wall_timer(
+      200ms,
+      std::bind(&Nusim::fake_sensor_timer_callback, this));
 
     reset_ = create_service<std_srvs::srv::Empty>(
       "~/reset",
@@ -219,10 +223,18 @@ private:
       // send robot transform
       send_transform();
       update_path();
+      // publish_fake_obstacles();
       timestep_++;
     }
     publish_obstacles();
     publish_walls();
+  }
+
+  // publish the fake sensor markers at a slower rate
+  void fake_sensor_timer_callback(){
+    if(!draw_only){
+      publish_fake_obstacles();
+    }
   }
 
   /// @brief Reset the simulation
@@ -324,7 +336,7 @@ private:
   }
 
 
-  /// @brief publish obstacle marker locations
+  /// @brief publish simulated obstacle marker locations
   void publish_fake_obstacles()
   {
     visualization_msgs::msg::MarkerArray ma;
@@ -335,8 +347,12 @@ private:
       m.header.frame_id = "nusim/world";
       m.id = i;         // so each has a unique ID
       m.type = 3;       // cylinder
-      // set to 2 = delete if it is not within range
-      m.action = 0;     // add/modify
+      // add marker if within range. Delete if not.
+      if (turtlelib::distance(robot.get_x(),robot.get_y(),obx.at(i),oby.at(i)) > max_range){
+        m.action = 2; // delete
+      } else {
+        m.action = 0; // add/modify
+      }
       // Set color as yellow
       m.color.r = 1.0;
       m.color.g = 1.0;
@@ -419,6 +435,7 @@ private:
   }
 
   rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::TimerBase::SharedPtr fake_sensor_timer_;
 
   rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr timestep_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr obs_pub_;
