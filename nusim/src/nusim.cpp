@@ -118,11 +118,14 @@ public:
     declare_parameter("input_noise", 1.0);
     input_noise = get_parameter("input_noise").as_double();
 
-    declare_parameter("slip_fraction", 0.0);
+    declare_parameter("slip_fraction", 0.5);
     slip_fraction = get_parameter("slip_fraction").as_double();
 
-    std::normal_distribution<> temp_dist{0, input_noise};
-    normal_dist = temp_dist;
+    std::normal_distribution<> temp_normal{0, input_noise};
+    normal_dist = temp_normal;
+
+    std::uniform_real_distribution<> temp_uniform{-1.0*slip_fraction, slip_fraction};
+    uniform_dist = temp_uniform;
 
     // slightly hacky workaround to get new values in
     auto start_pose = turtlelib::Transform2D(turtlelib::Vector2D{x0, y0}, theta0);
@@ -197,8 +200,10 @@ private:
       // i am suspicious that it is this simple, but let's try it
       // try calculating stamp with timestep_????
       current_sensor.stamp = this->get_clock()->now();
-      left_encoder_save += ws_left * encoder_ticks;
-      right_encoder_save += ws_right * encoder_ticks;
+
+      left_encoder_save += ws_left * (1 + uniform_dist(gen)) * encoder_ticks;
+      right_encoder_save += ws_right * (1 + uniform_dist(gen)) * encoder_ticks;
+
       current_sensor.left_encoder = left_encoder_save;
       current_sensor.right_encoder = right_encoder_save;
       // sensor_pub_->publish(current_sensor);
@@ -415,6 +420,7 @@ private:
   // values near the mean are the most likely
   // standard deviation affects the dispersion of generated values from the mean
   std::normal_distribution<> normal_dist{0, 0};
+  std::uniform_real_distribution<> uniform_dist{0, 0};
 };
 
 int main(int argc, char * argv[])
