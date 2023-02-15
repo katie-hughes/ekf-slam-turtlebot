@@ -52,6 +52,7 @@
 #include "nuturtlebot_msgs/msg/wheel_commands.hpp"
 #include "nuturtlebot_msgs/msg/sensor_data.hpp"
 #include "nav_msgs/msg/path.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 
 #include "turtlelib/diff_drive.hpp"
 
@@ -94,6 +95,10 @@ public:
     track_width = get_parameter("track_width").as_double();
     RCLCPP_INFO_STREAM(get_logger(), "Track Width: " << track_width);
 
+    declare_parameter("collision_radius", -1.0);
+    collision_radius = get_parameter("collision_radius").as_double();
+    RCLCPP_INFO_STREAM(get_logger(), "Collision Radius: " << collision_radius);
+
     declare_parameter("encoder_ticks_per_rad", -1.0);
     encoder_ticks = get_parameter("encoder_ticks_per_rad").as_double();
     RCLCPP_INFO_STREAM(get_logger(), "Encoder Ticks: " << encoder_ticks);
@@ -126,6 +131,24 @@ public:
 
     declare_parameter("max_range", 10.0);
     max_range = get_parameter("max_range").as_double();
+
+    declare_parameter("laser_min_range", 0.11999999731779099);
+    laser_min_range = get_parameter("laser_min_range").as_double();
+
+    declare_parameter("laser_max_range", 3.5);
+    laser_max_range = get_parameter("laser_max_range").as_double();
+
+    declare_parameter("laser_angle_increment", 0.01745329238474369);
+    laser_angle_increment = get_parameter("laser_angle_increment").as_double();
+
+    declare_parameter("laser_nsamples", 360);
+    laser_nsamples = get_parameter("laser_nsamples").as_int();
+
+    declare_parameter("laser_resolution", 10.0);
+    laser_resolution = get_parameter("laser_resolution").as_double();
+
+    declare_parameter("laser_noise", 10.0);
+    laser_noise = get_parameter("laser_noise").as_double();
 
     std::normal_distribution<> temp_normal{0, input_noise};
     normal_dist = temp_normal;
@@ -165,6 +188,8 @@ public:
     sensor_pub_ = create_publisher<nuturtlebot_msgs::msg::SensorData>("red/sensor_data", 10);
 
     path_pub_ = create_publisher<nav_msgs::msg::Path>("~/path", 10);
+
+    laser_pub_ = create_publisher<sensor_msgs::msg::LaserScan>("scan", 10);
 
     wheel_sub_ = create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
       "red/wheel_cmd", 10, std::bind(&Nusim::wheel_cb, this, std::placeholders::_1));
@@ -224,6 +249,23 @@ private:
       // sensor_pub_->publish(current_sensor);
       sensor_pub_->publish(current_sensor);
       // send robot transform
+      // Before I send the transform, I need to check if it has intersected and update config if so
+      for (size_t i = 0; i < n_cylinders; i++) {
+        const auto ob_dist = turtlelib::distance(robot.get_x(),robot.get_y(),obx.at(i),oby.at(i));
+        if (ob_dist < collision_radius + obr){
+          RCLCPP_INFO_STREAM(get_logger(), "Collision w obstacle " << i);
+          // there was a collision. Get unit vector along line from obstacle to robot centers.
+          const auto ux = (robot.get_x() - obx.at(i)) / ob_dist;
+          const auto uy = (robot.get_y() - oby.at(i)) / ob_dist;
+          const auto amount_to_shift = ob_dist - collision_radius - obr;
+          const auto new_x = robot.get_x() + amount_to_shift * ux;
+          const auto new_y = robot.get_y() + amount_to_shift * uy;
+          // update diffdrive object location. Keep same theta
+          auto new_pos = turtlelib::Transform2D(turtlelib::Vector2D{new_x, new_y}, robot.get_phi());
+          turtlelib::DiffDrive new_robot(new_pos, track_width, wheel_radius);
+          robot = new_robot;
+        }
+      }
       send_transform();
       update_path();
       // publish_fake_obstacles();
@@ -427,6 +469,28 @@ private:
     walls_pub_->publish(ma);
   }
 
+  /// @brief Publish LaserScan message based on the obstacles/walls
+  void send_laser(){
+    sensor_msgs::msg::LaserScan laser;
+    laser.header.stamp = this->get_clock()->now();
+    // copied from turtlebot live message
+    laser.header.frame_id = "base_scan";
+    laser.angle_min = 0.0;
+    laser.angle_max = 6.2657318115234375;
+    laser.angle_increment = laser_angle_increment;
+    laser.time_increment = 0.0005574136157520115;
+    laser.scan_time = 0.20066890120506287;
+    laser.range_min = laser_min_range;
+    laser.range_max = laser_max_range;
+    // fill in the laser.ranges array
+    // for (int n=0; n<laser_nsamples; n++){
+    //   // laser.rang
+    //   continue;
+    // }
+    // laser.intensities = leave blank
+    laser_pub_->publish(laser);
+  }
+
   /// @brief Callback function for receiving wheel commands message
   /// @param wc wheel commands message
   void wheel_cb(const nuturtlebot_msgs::msg::WheelCommands & wc)
@@ -456,6 +520,7 @@ private:
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr fake_sensor_pub_;
   rclcpp::Publisher<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_pub_;
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laser_pub_;
 
   rclcpp::Subscription<nuturtlebot_msgs::msg::WheelCommands>::SharedPtr wheel_sub_;
 
@@ -472,7 +537,7 @@ private:
   double obr;
   size_t n_cylinders;
   // for my params
-  double wheel_radius, track_width, encoder_ticks, motor_cmd_per_rad_sec;
+  double wheel_radius, track_width, encoder_ticks, motor_cmd_per_rad_sec, collision_radius;
   int motor_cmd_max;
   nuturtlebot_msgs::msg::SensorData current_sensor;
   // initialize with garbage values, overwrite later
@@ -490,6 +555,9 @@ private:
   std::normal_distribution<> normal_dist{0, 0};
   std::normal_distribution<> sensor_dist{0, 0};
   std::uniform_real_distribution<> uniform_dist{0, 0};
+
+  double laser_min_range, laser_max_range, laser_angle_increment, laser_resolution, laser_noise;
+  int laser_nsamples;
 };
 
 int main(int argc, char * argv[])
