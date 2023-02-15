@@ -121,7 +121,7 @@ public:
     declare_parameter("slip_fraction", 0.5);
     slip_fraction = get_parameter("slip_fraction").as_double();
 
-    declare_parameter("basic_sensor_variance", 0.0);
+    declare_parameter("basic_sensor_variance", 0.05);
     basic_sensor_variance = get_parameter("basic_sensor_variance").as_double();
 
     declare_parameter("max_range", 10.0);
@@ -132,6 +132,9 @@ public:
 
     std::uniform_real_distribution<> temp_uniform{-1.0*slip_fraction, slip_fraction};
     uniform_dist = temp_uniform;
+
+    std::normal_distribution<> temp_sensor{0, basic_sensor_variance};
+    sensor_dist = temp_sensor;
 
     // slightly hacky workaround to get new values in
     auto start_pose = turtlelib::Transform2D(turtlelib::Vector2D{x0, y0}, theta0);
@@ -198,8 +201,8 @@ private:
       // RCLCPP_INFO_STREAM(get_logger(), "Random #" << normal_dist(gen));
       timestep_pub_->publish(message);
       // udpate wheel states
-      const auto vl = (left_velocity != 0.0) ? left_velocity + normal_dist(gen) : left_velocity;
-      const auto vr = (right_velocity != 0.0) ? right_velocity + normal_dist(gen) : right_velocity;
+      const auto vl = (left_velocity != 0.0) ? left_velocity + normal_dist(get_random()) : left_velocity;
+      const auto vr = (right_velocity != 0.0) ? right_velocity + normal_dist(get_random()) : right_velocity;
       // RCLCPP_INFO_STREAM(get_logger(), "Before & after: " << left_velocity<< " " << vl);
       const auto ws_left = vl * motor_cmd_per_rad_sec * (1.0 / rate_hz);
       const auto ws_right = vr * motor_cmd_per_rad_sec * (1.0 / rate_hz);
@@ -213,8 +216,8 @@ private:
       // try calculating stamp with timestep_????
       current_sensor.stamp = this->get_clock()->now();
 
-      left_encoder_save += ws_left * (1 + uniform_dist(gen)) * encoder_ticks;
-      right_encoder_save += ws_right * (1 + uniform_dist(gen)) * encoder_ticks;
+      left_encoder_save += ws_left * (1 + uniform_dist(get_random())) * encoder_ticks;
+      right_encoder_save += ws_right * (1 + uniform_dist(get_random())) * encoder_ticks;
 
       current_sensor.left_encoder = left_encoder_save;
       current_sensor.right_encoder = right_encoder_save;
@@ -362,8 +365,8 @@ private:
       m.scale.x = obr;
       m.scale.y = obr;
       m.scale.z = 0.25;
-      m.pose.position.x = obx.at(i);
-      m.pose.position.y = oby.at(i);
+      m.pose.position.x = obx.at(i) + sensor_dist(get_random());
+      m.pose.position.y = oby.at(i) + sensor_dist(get_random());
       m.pose.position.z = 0.125;
       // Add to marker array
       ma.markers.push_back(m);
@@ -434,6 +437,16 @@ private:
     // RCLCPP_INFO_STREAM(get_logger(), "Receiving "<<wc.left_velocity<<" and "<<wc.right_velocity);
   }
 
+  std::mt19937 & get_random()
+  {
+    // static variables inside a function are created once and persist for the remainder of the program
+    static std::random_device rd{}; 
+    static std::mt19937 mt{rd()};
+    // we return a reference to the pseudo-random number genrator object. This is always the
+    // same object every time get_random is called
+    return mt;
+  }
+
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::TimerBase::SharedPtr fake_sensor_timer_;
 
@@ -474,11 +487,8 @@ private:
   bool draw_only;
   double input_noise, slip_fraction, basic_sensor_variance, max_range;
   // https://en.cppreference.com/w/cpp/numeric/random/normal_distribution
-  std::random_device rd{};
-  std::mt19937 gen{rd()};
-  // values near the mean are the most likely
-  // standard deviation affects the dispersion of generated values from the mean
   std::normal_distribution<> normal_dist{0, 0};
+  std::normal_distribution<> sensor_dist{0, 0};
   std::uniform_real_distribution<> uniform_dist{0, 0};
 };
 
