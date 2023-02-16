@@ -120,10 +120,13 @@ public:
     declare_parameter("draw_only", false);
     draw_only = get_parameter("draw_only").as_bool();
 
+    declare_parameter("do_noise", true);
+    do_noise = get_parameter("do_noise").as_bool();
+
     declare_parameter("input_noise", 1.0);
     input_noise = get_parameter("input_noise").as_double();
 
-    declare_parameter("slip_fraction", 0.5);
+    declare_parameter("slip_fraction", 0.05);
     slip_fraction = get_parameter("slip_fraction").as_double();
 
     declare_parameter("basic_sensor_variance", 0.05);
@@ -150,11 +153,11 @@ public:
     declare_parameter("laser_noise", 10.0);
     laser_noise = get_parameter("laser_noise").as_double();
 
-    std::normal_distribution<> temp_normal{0, input_noise};
-    normal_dist = temp_normal;
+    std::normal_distribution<> temp_commands{0, input_noise};
+    commands_dist = temp_commands;
 
-    std::uniform_real_distribution<> temp_uniform{-1.0*slip_fraction, slip_fraction};
-    uniform_dist = temp_uniform;
+    std::uniform_real_distribution<> temp_slip{-1.0*slip_fraction, slip_fraction};
+    slip_dist = temp_slip;
 
     std::normal_distribution<> temp_sensor{0, basic_sensor_variance};
     sensor_dist = temp_sensor;
@@ -223,11 +226,18 @@ private:
     if(!draw_only){
       auto message = std_msgs::msg::UInt64();
       message.data = timestep_;
-      // RCLCPP_INFO_STREAM(get_logger(), "Random #" << normal_dist(gen));
       timestep_pub_->publish(message);
       // udpate wheel states
-      const auto vl = (left_velocity != 0.0) ? left_velocity + normal_dist(get_random()) : left_velocity;
-      const auto vr = (right_velocity != 0.0) ? right_velocity + normal_dist(get_random()) : right_velocity;
+      auto vl = left_velocity;
+      auto vr = right_velocity;
+      if (do_noise){
+        if (vl != 0.0){
+          vl += commands_dist(get_random());
+        }
+        if (vr != 0.0){
+          vr += commands_dist(get_random());
+        }
+      }
       // RCLCPP_INFO_STREAM(get_logger(), "Before & after: " << left_velocity<< " " << vl);
       const auto ws_left = vl * motor_cmd_per_rad_sec * (1.0 / rate_hz);
       const auto ws_right = vr * motor_cmd_per_rad_sec * (1.0 / rate_hz);
@@ -241,8 +251,13 @@ private:
       // try calculating stamp with timestep_????
       current_sensor.stamp = this->get_clock()->now();
 
-      left_encoder_save += ws_left * (1 + uniform_dist(get_random())) * encoder_ticks;
-      right_encoder_save += ws_right * (1 + uniform_dist(get_random())) * encoder_ticks;
+      if (do_noise){
+        left_encoder_save += ws_left * (1 + slip_dist(get_random())) * encoder_ticks;
+        right_encoder_save += ws_right * (1 + slip_dist(get_random())) * encoder_ticks;
+      } else {
+        left_encoder_save += ws_left * encoder_ticks;
+        right_encoder_save += ws_right * encoder_ticks;
+      }
 
       current_sensor.left_encoder = left_encoder_save;
       current_sensor.right_encoder = right_encoder_save;
@@ -486,11 +501,20 @@ private:
     laser.range_min = laser_min_range;
     laser.range_max = laser_max_range;
     // fill in the laser.ranges array
-    // for (int n=0; n<laser_nsamples; n++){
-    //   // If not in range, it's 0. If in range, it's the distance.
-    //   // laser.ranges.push_back(something)
-    //   continue;
-    // }
+    auto angle = laser.angle_min;
+    for (int n=0; n<laser_nsamples; n++){
+      auto measurement = 0.0;
+      // If not in range, it's 0. If in range, it's the distance.
+      // const auto xe = laser_max_range*cos(angle);
+      // const auto ye = laser_max_range*sin(angle);
+      // const auto D = robot.get_x()*ye - robot.get_y()*xe;
+      // // iterate through obstacles
+      // for (int i = 0; i < n_cylinders; i++){
+      //   const auto delta = obr*
+      // }
+      laser.ranges.push_back(measurement);
+      angle += laser.angle_increment;
+    }
     // laser.intensities = leave blank
     laser_pub_->publish(laser);
   }
@@ -556,12 +580,13 @@ private:
   bool draw_only;
   double input_noise, slip_fraction, basic_sensor_variance, max_range;
   // https://en.cppreference.com/w/cpp/numeric/random/normal_distribution
-  std::normal_distribution<> normal_dist{0, 0};
-  std::normal_distribution<> sensor_dist{0, 0};
-  std::uniform_real_distribution<> uniform_dist{0, 0};
+  std::normal_distribution<> commands_dist;
+  std::normal_distribution<> sensor_dist;
+  std::uniform_real_distribution<> slip_dist;
 
   double laser_min_range, laser_max_range, laser_angle_increment, laser_resolution, laser_noise;
   int laser_nsamples;
+  bool do_noise;
 };
 
 int main(int argc, char * argv[])

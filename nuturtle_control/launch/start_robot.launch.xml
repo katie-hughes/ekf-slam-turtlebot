@@ -26,13 +26,13 @@
   <!-- Don't do remapping if nusim is not running! (red robot doesn't exist then) -->
 
   <node pkg="nuturtle_control" exec="turtle_control"
-        if="$(eval '\'$(var robot)\' != \'nusim\' and \'$(var robot)\' != \'none\'')">
+        if="$(eval '\'$(var robot)\' == \'localhost\'')">
     <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
     <remap from="joint_states" to="blue/joint_states"/>
   </node>
 
   <node pkg="nuturtle_control" exec="odometry"
-        if="$(eval '\'$(var robot)\' != \'none\'')">
+        if="$(eval '\'$(var robot)\' == \'nusim\'')">
     <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
     <param name="body_id" value="blue/base_footprint"/>
     <param name="wheel_left" value="wheel_left_joint"/>
