@@ -185,7 +185,7 @@ private:
         ps.pose.orientation.w = q.w();
         followed_path.poses.push_back(ps);
         // keep array from getting too big!
-        if (followed_path.poses.size()>50){
+        if (followed_path.poses.size()>1000){
           followed_path.poses.erase(followed_path.poses.begin());
         }
         followed_path.header.stamp = ps.header.stamp;

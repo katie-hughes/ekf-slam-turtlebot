@@ -1,5 +1,5 @@
 <launch>
-  <arg name="cmd_src" default="circle" description="Options for cmd_vel: circle teleop none"/>
+  <arg name="cmd_src" default="none" description="Options for cmd_vel: circle teleop none"/>
   <arg name="robot" default="nusim" description="Options for robot model: nusim localhost none"/>
   <arg name="use_rviz" default="true" description="Options for launching rviz: true false"/>
 
@@ -81,10 +81,10 @@
 
   <!-- Launch robot models -->
 
-  <!-- always load the blue robot if robot not none -->
+  <!-- always load the blue robot if not on localhost -->
 
   <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py"
-           if="$(eval '\'$(var robot)\' != \'none\'')">
+           if="$(eval '\'$(var robot)\' != \'localhost\'')">
     <arg name="color" value="blue"/>
     <arg name="use_rviz" value="false"/>
     <arg name="use_jsp" value="false"/>
@@ -103,7 +103,7 @@
   <!-- launch static transform pub: odom located at world frame if not none -->
 
   <node pkg="tf2_ros"
-        if="$(eval '\'$(var robot)\' != \'none\'')"
+        if="$(eval '\'$(var robot)\' != \'localhost\'')"
         exec="static_transform_publisher"
         args="0 0 0 0 0 0 nusim/world odom"/>
 

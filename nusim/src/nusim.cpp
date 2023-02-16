@@ -189,7 +189,7 @@ public:
 
     path_pub_ = create_publisher<nav_msgs::msg::Path>("~/path", 10);
 
-    laser_pub_ = create_publisher<sensor_msgs::msg::LaserScan>("scan", 10);
+    laser_pub_ = create_publisher<sensor_msgs::msg::LaserScan>("fakescan", 10);
 
     wheel_sub_ = create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
       "red/wheel_cmd", 10, std::bind(&Nusim::wheel_cb, this, std::placeholders::_1));
@@ -345,7 +345,7 @@ private:
     ps.pose.orientation.w = q.w();
     followed_path.poses.push_back(ps);
     // keep array from getting too big!
-    if (followed_path.poses.size()>50){
+    if (followed_path.poses.size()>5000){
       followed_path.poses.erase(followed_path.poses.begin());
     }
     followed_path.header.stamp = ps.header.stamp;
