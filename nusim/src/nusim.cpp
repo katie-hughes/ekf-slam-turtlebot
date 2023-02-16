@@ -153,13 +153,13 @@ public:
     declare_parameter("laser_noise", 10.0);
     laser_noise = get_parameter("laser_noise").as_double();
 
-    std::normal_distribution<> temp_commands{0, input_noise};
+    std::normal_distribution<> temp_commands{0, sqrt(input_noise)};
     commands_dist = temp_commands;
 
     std::uniform_real_distribution<> temp_slip{-1.0*slip_fraction, slip_fraction};
     slip_dist = temp_slip;
 
-    std::normal_distribution<> temp_sensor{0, basic_sensor_variance};
+    std::normal_distribution<> temp_sensor{0, sqrt(basic_sensor_variance)};
     sensor_dist = temp_sensor;
 
     // slightly hacky workaround to get new values in
@@ -231,6 +231,9 @@ private:
       auto vl = left_velocity;
       auto vr = right_velocity;
       if (do_noise){
+        // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<commands_dist(get_random()));
+        // RCLCPP_INFO_STREAM(get_logger(), "Mean "<<commands_dist.mean());
+        // RCLCPP_INFO_STREAM(get_logger(), "Stddev "<<commands_dist.stddev());
         if (vl != 0.0){
           vl += commands_dist(get_random());
         }
@@ -252,6 +255,9 @@ private:
       current_sensor.stamp = this->get_clock()->now();
 
       if (do_noise){
+        // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<slip_dist(get_random()));
+        // RCLCPP_INFO_STREAM(get_logger(), "low "<<slip_dist.a());
+        // RCLCPP_INFO_STREAM(get_logger(), "hi "<<slip_dist.b());
         left_encoder_save += ws_left * (1 + slip_dist(get_random())) * encoder_ticks;
         right_encoder_save += ws_right * (1 + slip_dist(get_random())) * encoder_ticks;
       } else {
@@ -425,8 +431,15 @@ private:
       m.scale.x = obr;
       m.scale.y = obr;
       m.scale.z = 0.25;
-      m.pose.position.x = obx.at(i) + sensor_dist(get_random());
-      m.pose.position.y = oby.at(i) + sensor_dist(get_random());
+      m.pose.position.x = obx.at(i);
+      m.pose.position.y = oby.at(i);
+      if (do_noise){
+        // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<sensor_dist(get_random()));
+        // RCLCPP_INFO_STREAM(get_logger(), "Mean "<<sensor_dist.mean());
+        // RCLCPP_INFO_STREAM(get_logger(), "Stddev "<<sensor_dist.stddev());
+        m.pose.position.x += sensor_dist(get_random());
+        m.pose.position.y += sensor_dist(get_random());
+      }
       m.pose.position.z = 0.125;
       // Add to marker array
       ma.markers.push_back(m);
