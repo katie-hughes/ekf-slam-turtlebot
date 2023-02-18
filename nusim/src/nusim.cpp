@@ -534,8 +534,8 @@ private:
       const auto angle = laser.angle_min + (dangle/laser_nsamples) * n;
       auto measurement = laser_max_range;
       // If not in range, it's 0. If in range, it's the distance.
-      const auto xmax = laser_max_range*cos(angle + robot.get_phi());
-      const auto ymax = laser_max_range*sin(angle + robot.get_phi());
+      const auto xmax = robot.get_x() + laser_max_range*cos(angle + robot.get_phi());
+      const auto ymax = robot.get_y() + laser_max_range*sin(angle + robot.get_phi());
       // I should *probably* check if slope = 0 but this is highly unlikely to happen
       const auto slope = (ymax-robot.get_y())/(xmax - robot.get_x());
       // iterate through obstacles
