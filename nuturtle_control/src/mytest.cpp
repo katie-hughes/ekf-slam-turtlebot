@@ -43,9 +43,13 @@ public:
   Test()
   : Node("test")
   {
+    // use this if running from turtlebot
+    // laser_sub_ = create_subscription<sensor_msgs::msg::LaserScan>(
+    //   "scan", rclcpp::SensorDataQoS(), std::bind(&Test::laser_cb, this, std::placeholders::_1));
 
+    // use this if running with nusim
     laser_sub_ = create_subscription<sensor_msgs::msg::LaserScan>(
-      "scan", rclcpp::SensorDataQoS(), std::bind(&Test::laser_cb, this, std::placeholders::_1));
+      "scan", 10, std::bind(&Test::laser_cb, this, std::placeholders::_1));
 
     tf_sub_ = create_subscription<tf2_msgs::msg::TFMessage>(
       "tf", 10, std::bind(&Test::tf_cb, this, std::placeholders::_1));
@@ -62,9 +66,9 @@ private:
 
   void timer_callback()
   {
-    RCLCPP_INFO_STREAM(get_logger(), "Laser  Publishes: "<<lasers_count);
-    RCLCPP_INFO_STREAM(get_logger(), "Sensor Publishes: "<<sensors_count);
-    RCLCPP_INFO_STREAM(get_logger(), "Odom   Publishes: "<<tfs_count<<"\n");
+    // RCLCPP_INFO_STREAM(get_logger(), "Laser  Publishes: "<<lasers_count);
+    // RCLCPP_INFO_STREAM(get_logger(), "Sensor Publishes: "<<sensors_count);
+    // RCLCPP_INFO_STREAM(get_logger(), "Odom   Publishes: "<<tfs_count<<"\n");
     lasers_count = 0;
     sensors_count = 0;
     tfs_count = 0;
@@ -77,15 +81,15 @@ private:
   {
     lasers.push_back(las);
     lasers_count ++;
-    // RCLCPP_ERROR_STREAM(get_logger(), "Laser Sec: " << las.header.stamp.sec <<
-    //                                        " ns: " << las.header.stamp.nanosec);
+    RCLCPP_ERROR_STREAM(get_logger(), "Laser Sec: " << las.header.stamp.sec <<
+                                           " ns: " << las.header.stamp.nanosec);
   }
 
   void sensor_cb(const nuturtlebot_msgs::msg::SensorData & sensor)
   {
     sensors.push_back(sensor);
     sensors_count ++;
-    // RCLCPP_ERROR_STREAM(get_logger(), "Laser Sec: " << las.header.stamp.sec <<
+    // RCLCPP_ERROR_STREAM(get_logger(), "Scan Sec: " << las.header.stamp.sec <<
     //                                        " ns: " << las.header.stamp.nanosec);
   }
 
@@ -93,11 +97,12 @@ private:
   {
     for (size_t n = 0; n < tf.transforms.size(); n++){
       const auto transform = tf.transforms.at(n);
-      if (transform.header.frame_id == "odom"){
+      if ((transform.header.frame_id == "nusim/world") && 
+          (transform.child_frame_id == "red/base_footprint")){
         tfs.push_back(tf);
         tfs_count ++;
-        // RCLCPP_INFO_STREAM(get_logger(), "Odom Sec: " << transform.header.stamp.sec <<
-        //                                       " ns: " << transform.header.stamp.nanosec);
+        RCLCPP_INFO_STREAM(get_logger(), "Tf Sec: " << transform.header.stamp.sec <<
+                                            " ns: " << transform.header.stamp.nanosec);
       }
     }
   }

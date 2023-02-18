@@ -53,6 +53,7 @@
 #include "nuturtlebot_msgs/msg/sensor_data.hpp"
 #include "nav_msgs/msg/path.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
+#include "builtin_interfaces/msg/time.hpp"
 
 #include "turtlelib/diff_drive.hpp"
 
@@ -216,6 +217,8 @@ public:
     // From: https://docs.ros.org/en/humble/Tutorials/Intermediate/Tf2/
     // Writing-A-Tf2-Broadcaster-Cpp.html
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+
+    current_time = this->get_clock()->now();
   }
 
 private:
@@ -223,6 +226,8 @@ private:
   /// also update the location of the robot with forward kinematics
   void timer_callback()
   {
+    current_time = this->get_clock()->now();
+
     if(!draw_only){
       auto message = std_msgs::msg::UInt64();
       message.data = timestep_;
@@ -252,7 +257,7 @@ private:
       // update sensor data
       // i am suspicious that it is this simple, but let's try it
       // try calculating stamp with timestep_????
-      current_sensor.stamp = this->get_clock()->now();
+      current_sensor.stamp = current_time;
 
       if (do_noise){
         // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<slip_dist(get_random()));
@@ -297,6 +302,9 @@ private:
   void slower_timer_callback(){
     if(!draw_only){
       publish_fake_obstacles();
+
+      
+
       publish_laser();
       update_path();
     }
@@ -338,7 +346,14 @@ private:
   void send_transform()
   {
     geometry_msgs::msg::TransformStamped t;
-    t.header.stamp = this->get_clock()->now();
+    t.header.stamp = current_time;
+    // print stamp
+    // RCLCPP_INFO_STREAM(get_logger(), "TF S: " << t.header.stamp.sec << " ns " <<
+    //                                  t.header.stamp.nanosec);
+    // DO THIS TO GET RID OF TF ERROR LOL
+    t.header.stamp.nanosec += 3e8;
+    // RCLCPP_INFO_STREAM(get_logger(), "TF S: " << t.header.stamp.sec << " ns " <<
+    //                                  t.header.stamp.nanosec);
     t.header.frame_id = "nusim/world";
     t.child_frame_id = "red/base_footprint";
     t.transform.translation.x = robot.get_x();
@@ -356,7 +371,7 @@ private:
 
   void update_path(){
     geometry_msgs::msg::PoseStamped ps;
-    ps.header.stamp = this->get_clock()->now();
+    ps.header.stamp = current_time;
     ps.header.frame_id = "nusim/world";
     ps.pose.position.x = robot.get_x();
     ps.pose.position.y = robot.get_y();
@@ -382,7 +397,7 @@ private:
     visualization_msgs::msg::MarkerArray ma;
     for (size_t i = 0; i < n_cylinders; i++) {
       visualization_msgs::msg::Marker m;
-      m.header.stamp = this->get_clock()->now();
+      m.header.stamp = current_time;
       m.header.frame_id = "nusim/world";
       m.id = i;         // so each has a unique ID
       m.type = 3;       // cylinder
@@ -393,8 +408,8 @@ private:
       m.color.b = 0.0;
       m.color.a = 1.0;
       // Set Radius
-      m.scale.x = obr;
-      m.scale.y = obr;
+      m.scale.x = 2*obr;
+      m.scale.y = 2*obr;
       m.scale.z = 0.25;
       m.pose.position.x = obx.at(i);
       m.pose.position.y = oby.at(i);
@@ -414,7 +429,7 @@ private:
     for (size_t i = 0; i < n_cylinders; i++) {
       // for each thing
       visualization_msgs::msg::Marker m;
-      m.header.stamp = this->get_clock()->now();
+      m.header.stamp = current_time;
       m.header.frame_id = "nusim/world";
       m.id = i;         // so each has a unique ID
       m.type = 3;       // cylinder
@@ -430,8 +445,8 @@ private:
       m.color.b = 0.0;
       m.color.a = 1.0;
       // Set Radius
-      m.scale.x = obr;
-      m.scale.y = obr;
+      m.scale.x = 2*obr;
+      m.scale.y = 2*obr;
       m.scale.z = 0.25;
       m.pose.position.x = obx.at(i);
       m.pose.position.y = oby.at(i);
@@ -462,7 +477,7 @@ private:
     ma.markers.push_back(m4);
 
     for (int i = 0; i < 4; i++) {
-      ma.markers.at(i).header.stamp = this->get_clock()->now();
+      ma.markers.at(i).header.stamp = current_time;
       ma.markers.at(i).header.frame_id = "nusim/world";
       ma.markers.at(i).id = i;
       ma.markers.at(i).type = 1;
@@ -505,7 +520,9 @@ private:
   /// @brief Publish LaserScan message based on the obstacles/walls
   void publish_laser(){
     sensor_msgs::msg::LaserScan laser;
-    laser.header.stamp = this->get_clock()->now();
+    laser.header.stamp = current_time;
+    // RCLCPP_INFO_STREAM(get_logger(), "LASER S: " << laser.header.stamp.sec << " ns " <<
+    //                                  laser.header.stamp.nanosec);
     // copied from turtlebot live message
     laser.header.frame_id = laser_frame_id;
     laser.angle_min = 0.0;
@@ -570,6 +587,50 @@ private:
             measurement = dst2;
           }
         }
+      }
+      // iterate through the walls
+      // wall at x = x_length/2
+      const auto w1x = 0.5 * x_length;
+      const auto w1y = slope * (w1x - robot.get_x()) + robot.get_y();
+      const bool right_side_w1x = (robot.get_x() <= w1x) && (w1x <= xmax);
+      const auto dstw1 = turtlelib::distance(robot.get_x(),robot.get_y(),w1x,w1y);
+      if ((dstw1 < laser_max_range) && (dstw1 < measurement) && right_side_w1x){
+        measurement = dstw1;
+      }
+      // wall at x = -x_length/2
+      const auto w3x = -0.5 * x_length;
+      const auto w3y = slope * (w3x - robot.get_x()) + robot.get_y();
+      const bool right_side_w3x = (xmax <= w3x) && (w3x <= robot.get_x());
+      const auto dstw3 = turtlelib::distance(robot.get_x(),robot.get_y(),w3x,w3y);
+      if ((dstw3 < laser_max_range) && (dstw3 < measurement) && right_side_w3x){
+        measurement = dstw3;
+      }
+      // wall at y = y_length/2
+      const auto w2y = 0.5 * y_length;
+      const auto w2x = (1.0/slope) * (w2y - robot.get_y()) + robot.get_x();
+      const bool right_side_w2y = (robot.get_y() <= w2y) && (w2y <= ymax);
+      const auto dstw2 = turtlelib::distance(robot.get_x(),robot.get_y(),w2x,w2y);
+      if ((dstw2 < laser_max_range) && (dstw2 < measurement) && right_side_w2y){
+        measurement = dstw2;
+      }
+      // wall at y = -y_length/2
+      const auto w4y = - 0.5 * y_length;
+      const auto w4x = (1.0/slope) * (w4y - robot.get_y()) + robot.get_x();
+      const bool right_side_w4y = (ymax <= w4y) && (w4y <= robot.get_y());
+      const auto dstw4 = turtlelib::distance(robot.get_x(),robot.get_y(),w4x,w4y);
+      if ((dstw4 < laser_max_range) && (dstw4 < measurement) && right_side_w4y){
+        measurement = dstw4;
+      }
+      // check if anything has changed. If there is nothing in range, it should be 0.
+      if (measurement == laser_max_range){
+        measurement = 0.0;
+      }
+      // add sensor noise
+      if ((do_noise) && (measurement != 0.0)){
+        // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<sensor_dist(get_random()));
+        // RCLCPP_INFO_STREAM(get_logger(), "Mean "<<sensor_dist.mean());
+        // RCLCPP_INFO_STREAM(get_logger(), "Stddev "<<sensor_dist.stddev());
+        measurement += sensor_dist(get_random());
       }
       laser.ranges.push_back(measurement);
     }
@@ -646,6 +707,7 @@ private:
   int laser_nsamples;
   bool do_noise;
   std::string laser_frame_id;
+  builtin_interfaces::msg::Time current_time;
 };
 
 int main(int argc, char * argv[])

@@ -78,7 +78,7 @@ ament_target_dependencies(circle
 target_link_libraries(circle turtlelib::turtlelib "${cpp_typesupport_target}")
 
 
-add_executable(mytest src/test.cpp)
+add_executable(mytest src/mytest.cpp)
 ament_target_dependencies(mytest
   rclcpp
   std_msgs
