@@ -258,8 +258,8 @@ private:
         // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<slip_dist(get_random()));
         // RCLCPP_INFO_STREAM(get_logger(), "low "<<slip_dist.a());
         // RCLCPP_INFO_STREAM(get_logger(), "hi "<<slip_dist.b());
-        left_encoder_save += ws_left * (1 + slip_dist(get_random())) * encoder_ticks;
-        right_encoder_save += ws_right * (1 + slip_dist(get_random())) * encoder_ticks;
+        left_encoder_save +=  left_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz) * (1 + slip_dist(get_random())) * encoder_ticks;
+        right_encoder_save += right_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz) * (1 + slip_dist(get_random())) * encoder_ticks;
       } else {
         left_encoder_save += ws_left * encoder_ticks;
         right_encoder_save += ws_right * encoder_ticks;
