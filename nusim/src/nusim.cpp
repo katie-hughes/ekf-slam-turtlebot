@@ -516,8 +516,9 @@ private:
     laser.range_min = laser_min_range;
     laser.range_max = laser_max_range;
     // fill in the laser.ranges array
-    auto angle = laser.angle_min;
+    const auto dangle = laser.angle_max - laser.angle_min;
     for (int n=0; n<laser_nsamples; n++){
+      const auto angle = laser.angle_min + (dangle/laser_nsamples) * n;
       auto measurement = laser_max_range;
       // If not in range, it's 0. If in range, it's the distance.
       const auto xmax = laser_max_range*cos(angle);
@@ -571,7 +572,6 @@ private:
         }
       }
       laser.ranges.push_back(measurement);
-      angle += laser.angle_increment;
     }
     // laser.intensities = leave blank
     laser_pub_->publish(laser);
