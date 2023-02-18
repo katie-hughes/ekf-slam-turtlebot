@@ -19,7 +19,8 @@ find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(nuturtlebot_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
-
+find_package(tf2_msgs REQUIRED)
+find_package(rmw REQUIRED)
 find_package(turtlelib REQUIRED)
 
 
@@ -76,8 +77,25 @@ ament_target_dependencies(circle
 
 target_link_libraries(circle turtlelib::turtlelib "${cpp_typesupport_target}")
 
+
+add_executable(mytest src/test.cpp)
+ament_target_dependencies(mytest
+  rclcpp
+  std_msgs
+  std_srvs
+  tf2
+  tf2_ros
+  geometry_msgs
+  visualization_msgs
+  nuturtlebot_msgs
+  nav_msgs
+  tf2_msgs
+  rmw)
+
+target_link_libraries(mytest turtlelib::turtlelib "${cpp_typesupport_target}")
+
 install(TARGETS
-  turtle_control odometry circle
+  turtle_control odometry circle mytest
   DESTINATION lib/${PROJECT_NAME})
 
 
