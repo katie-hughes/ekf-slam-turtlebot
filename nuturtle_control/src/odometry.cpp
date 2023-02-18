@@ -173,24 +173,27 @@ private:
         T_odom_base.transform.rotation.z = q.z();
         T_odom_base.transform.rotation.w = q.w();
         tf_broadcaster_->sendTransform(T_odom_base);
-        // update path
-        geometry_msgs::msg::PoseStamped ps;
-        ps.header.stamp = js.header.stamp;
-        ps.header.frame_id = "nusim/world";
-        ps.pose.position.x = robot.get_x();
-        ps.pose.position.y = robot.get_y();
-        ps.pose.orientation.x = q.x();
-        ps.pose.orientation.y = q.y();
-        ps.pose.orientation.z = q.z();
-        ps.pose.orientation.w = q.w();
-        followed_path.poses.push_back(ps);
-        // keep array from getting too big!
-        if (followed_path.poses.size()>100){
-          followed_path.poses.erase(followed_path.poses.begin());
+        // update path. ONLY SELECTIVELY
+        if (iterations % 100 == 0){
+          geometry_msgs::msg::PoseStamped ps;
+          ps.header.stamp = js.header.stamp;
+          ps.header.frame_id = "nusim/world";
+          ps.pose.position.x = robot.get_x();
+          ps.pose.position.y = robot.get_y();
+          ps.pose.orientation.x = q.x();
+          ps.pose.orientation.y = q.y();
+          ps.pose.orientation.z = q.z();
+          ps.pose.orientation.w = q.w();
+          followed_path.poses.push_back(ps);
+          // keep array from getting too big!
+          if (followed_path.poses.size()>100){
+            followed_path.poses.erase(followed_path.poses.begin());
+          }
+          followed_path.header.stamp = ps.header.stamp;
+          followed_path.header.frame_id = "nusim/world";
+          path_pub_->publish(followed_path);
         }
-        followed_path.header.stamp = ps.header.stamp;
-        followed_path.header.frame_id = "nusim/world";
-        path_pub_->publish(followed_path);
+        iterations++;
       } else {
         RCLCPP_INFO_STREAM(get_logger(), "Wheel IDs not found in Joint State Message!");
       }
@@ -232,6 +235,7 @@ private:
   std::string body_id, odom_id, wheel_left, wheel_right;
   geometry_msgs::msg::TransformStamped T_odom_base;
   nav_msgs::msg::Path followed_path;
+  long iterations = 0;
 };
 
 int main(int argc, char * argv[])

@@ -3,7 +3,8 @@ Panels:
     Help Height: 85
     Name: Displays
     Property Tree Widget:
-      Expanded: ~
+      Expanded:
+        - /Odometry1/Shape1
       Splitter Ratio: 0.6894586682319641
     Tree Height: 712
   - Class: rviz_common/Selection
@@ -272,10 +273,10 @@ Visualization Manager:
         Axes Length: 1
         Axes Radius: 0.10000000149011612
         Color: 255; 25; 0
-        Head Length: 0.30000001192092896
-        Head Radius: 0.10000000149011612
-        Shaft Length: 1
-        Shaft Radius: 0.05000000074505806
+        Head Length: 0.10000000149011612
+        Head Radius: 0.05000000074505806
+        Shaft Length: 0.25
+        Shaft Radius: 0.009999999776482582
         Value: Arrow
       Topic:
         Depth: 5

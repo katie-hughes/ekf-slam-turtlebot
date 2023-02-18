@@ -153,14 +153,11 @@ public:
     declare_parameter("laser_noise", 10.0);
     laser_noise = get_parameter("laser_noise").as_double();
 
-    std::normal_distribution<> temp_commands{0, sqrt(input_noise)};
-    commands_dist = temp_commands;
-
-    std::uniform_real_distribution<> temp_slip{-1.0*slip_fraction, slip_fraction};
-    slip_dist = temp_slip;
-
-    std::normal_distribution<> temp_sensor{0, sqrt(basic_sensor_variance)};
-    sensor_dist = temp_sensor;
+    commands_dist = std::normal_distribution<>{0, sqrt(input_noise)};
+    
+    slip_dist = std::uniform_real_distribution<>{-1.0*slip_fraction, slip_fraction};
+    
+    sensor_dist = std::normal_distribution<>{0, sqrt(basic_sensor_variance)};
 
     // slightly hacky workaround to get new values in
     auto start_pose = turtlelib::Transform2D(turtlelib::Vector2D{x0, y0}, theta0);
@@ -274,7 +271,7 @@ private:
       for (size_t i = 0; i < n_cylinders; i++) {
         const auto ob_dist = turtlelib::distance(robot.get_x(),robot.get_y(),obx.at(i),oby.at(i));
         if (ob_dist < collision_radius + obr){
-          RCLCPP_INFO_STREAM(get_logger(), "Collision w obstacle " << i);
+          // RCLCPP_INFO_STREAM(get_logger(), "Collision w obstacle " << i);
           // there was a collision. Get unit vector along line from obstacle to robot centers.
           const auto ux = (robot.get_x() - obx.at(i)) / ob_dist;
           const auto uy = (robot.get_y() - oby.at(i)) / ob_dist;
@@ -287,7 +284,6 @@ private:
         }
       }
       send_transform();
-      update_path();
       // publish_fake_obstacles();
       timestep_++;
     }
@@ -295,10 +291,11 @@ private:
     publish_walls();
   }
 
-  // publish the fake sensor markers at a slower rate
+  // publish the fake sensor markers and path at a slower rate
   void fake_sensor_timer_callback(){
     if(!draw_only){
       publish_fake_obstacles();
+      update_path();
     }
   }
 
@@ -366,7 +363,7 @@ private:
     ps.pose.orientation.w = q.w();
     followed_path.poses.push_back(ps);
     // keep array from getting too big!
-    if (followed_path.poses.size()>5000){
+    if (followed_path.poses.size()>500){
       followed_path.poses.erase(followed_path.poses.begin());
     }
     followed_path.header.stamp = ps.header.stamp;
