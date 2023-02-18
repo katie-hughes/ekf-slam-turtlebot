@@ -4,3 +4,6 @@
     laser_min_range: 0.11999999731779099
     laser_max_range: 3.5
     laser_angle_increment: 0.01745329238474369
+    laser_nsamples: 360
+    laser_resolution: 10.0
+    laser_noise: 10.0

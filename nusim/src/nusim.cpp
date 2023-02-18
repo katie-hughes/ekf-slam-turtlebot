@@ -136,6 +136,9 @@ public:
     declare_parameter("max_range", 10.0);
     max_range = get_parameter("max_range").as_double();
 
+    declare_parameter("laser_frame_id", "base_scan");
+    laser_frame_id = get_parameter("laser_frame_id").as_string();
+
     declare_parameter("laser_min_range", 0.11999999731779099);
     laser_min_range = get_parameter("laser_min_range").as_double();
 
@@ -154,19 +157,16 @@ public:
     declare_parameter("laser_noise", 10.0);
     laser_noise = get_parameter("laser_noise").as_double();
 
-    declare_parameter("laser_frame_id", "base_scan");
-    laser_frame_id = get_parameter("laser_frame_id").as_string();
-
     commands_dist = std::normal_distribution<>{0, sqrt(input_noise)};
     
     slip_dist = std::uniform_real_distribution<>{-1.0*slip_fraction, slip_fraction};
     
     sensor_dist = std::normal_distribution<>{0, sqrt(basic_sensor_variance)};
 
-    // slightly hacky workaround to get new values in
+    // slightly hacky workaround to get new values into my diff drive object
     auto start_pose = turtlelib::Transform2D(turtlelib::Vector2D{x0, y0}, theta0);
-    turtlelib::DiffDrive temp_robot(start_pose, track_width, wheel_radius);
-    robot = temp_robot;
+    // turtlelib::DiffDrive temp_robot(start_pose, track_width, wheel_radius);
+    robot = turtlelib::DiffDrive{start_pose, track_width, wheel_radius};
 
     if (obx.size() == oby.size()) {
       // this is a valid input
@@ -291,9 +291,8 @@ private:
           robot.change_state(new_pos);
         }
       }
+      // Update the tfs of the robot!
       send_transform();
-      // publish_fake_obstacles();
-      // publish_laser();
       timestep_++;
     }
   }
@@ -302,9 +301,6 @@ private:
   void slower_timer_callback(){
     if(!draw_only){
       publish_fake_obstacles();
-
-      
-
       publish_laser();
       update_path();
     }
@@ -538,8 +534,8 @@ private:
       const auto angle = laser.angle_min + (dangle/laser_nsamples) * n;
       auto measurement = laser_max_range;
       // If not in range, it's 0. If in range, it's the distance.
-      const auto xmax = laser_max_range*cos(angle);
-      const auto ymax = laser_max_range*sin(angle);
+      const auto xmax = laser_max_range*cos(angle + robot.get_phi());
+      const auto ymax = laser_max_range*sin(angle + robot.get_phi());
       const auto slope = (ymax-robot.get_y())/(xmax - robot.get_x());
       // iterate through obstacles
       for (size_t i = 0; i < n_cylinders; i++){
