@@ -153,6 +153,9 @@ public:
     declare_parameter("laser_noise", 10.0);
     laser_noise = get_parameter("laser_noise").as_double();
 
+    declare_parameter("laser_frame_id", "base_scan");
+    laser_frame_id = get_parameter("laser_frame_id").as_string();
+
     commands_dist = std::normal_distribution<>{0, sqrt(input_noise)};
     
     slip_dist = std::uniform_real_distribution<>{-1.0*slip_fraction, slip_fraction};
@@ -189,7 +192,7 @@ public:
 
     path_pub_ = create_publisher<nav_msgs::msg::Path>("~/path", 10);
 
-    laser_pub_ = create_publisher<sensor_msgs::msg::LaserScan>("fakescan", 10);
+    laser_pub_ = create_publisher<sensor_msgs::msg::LaserScan>("scan", 10);
 
     wheel_sub_ = create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
       "red/wheel_cmd", 10, std::bind(&Nusim::wheel_cb, this, std::placeholders::_1));
@@ -285,6 +288,7 @@ private:
       }
       send_transform();
       // publish_fake_obstacles();
+      // publish_laser();
       timestep_++;
     }
     publish_obstacles();
@@ -295,6 +299,7 @@ private:
   void fake_sensor_timer_callback(){
     if(!draw_only){
       publish_fake_obstacles();
+      publish_laser();
       update_path();
     }
   }
@@ -502,7 +507,7 @@ private:
     sensor_msgs::msg::LaserScan laser;
     laser.header.stamp = this->get_clock()->now();
     // copied from turtlebot live message
-    laser.header.frame_id = "base_scan";
+    laser.header.frame_id = laser_frame_id;
     laser.angle_min = 0.0;
     laser.angle_max = 6.2657318115234375;
     laser.angle_increment = laser_angle_increment;
@@ -513,15 +518,58 @@ private:
     // fill in the laser.ranges array
     auto angle = laser.angle_min;
     for (int n=0; n<laser_nsamples; n++){
-      auto measurement = 0.0;
+      auto measurement = laser_max_range;
       // If not in range, it's 0. If in range, it's the distance.
-      // const auto xe = laser_max_range*cos(angle);
-      // const auto ye = laser_max_range*sin(angle);
-      // const auto D = robot.get_x()*ye - robot.get_y()*xe;
-      // // iterate through obstacles
-      // for (int i = 0; i < n_cylinders; i++){
-      //   const auto delta = obr*
-      // }
+      const auto xmax = laser_max_range*cos(angle);
+      const auto ymax = laser_max_range*sin(angle);
+      const auto slope = (ymax-robot.get_y())/(xmax - robot.get_x());
+      // iterate through obstacles
+      for (size_t i = 0; i < n_cylinders; i++){
+        // here I am solving a quadratic equation in x
+        // which is the solution of points of intersection between circle and line
+        // another useful constant that got repeated a lot in my derivation
+        const auto alpha = robot.get_y() - slope*robot.get_x() - oby.at(i);
+        // here are the constants for the equation a x^2 + b x + c = 0
+        const auto a = 1 + slope*slope;
+        const auto b = 2 * (alpha * slope - obx.at(i));
+        const auto c = obx.at(i)*obx.at(i) + alpha*alpha - obr*obr;
+        // the determinant ie b^2 - 4ac is what determines the number of solutions
+        const auto det = b*b - 4*a*c;
+        // if it is <0, there is no solution.
+        if (det == 0){
+          // 1 solution
+          const auto x1 = (-1.0*b)/(2*a);
+          const auto y1 = slope * (x1 - robot.get_x()) + robot.get_y();
+          // check if the solution is in range
+          const auto dst1 = turtlelib::distance(robot.get_x(),robot.get_y(),x1,y1);
+          // IF in range AND closer than current measurement, set
+          if ((dst1 < laser_max_range) && (dst1 < measurement)){
+            measurement = dst1;
+          }
+        } else if (det > 0) {
+          // 2 solutions
+          const auto x1 = (-1.0*b + sqrt(det))/(2*a);
+          const auto x2 = (-1.0*b - sqrt(det))/(2*a);
+          const auto y1 = slope * (x1 - robot.get_x()) + robot.get_y();
+          const auto y2 = slope * (x2 - robot.get_x()) + robot.get_y();
+          const auto dst1 = turtlelib::distance(robot.get_x(),robot.get_y(),x1,y1);
+          const auto dst2 = turtlelib::distance(robot.get_x(),robot.get_y(),x2,y2);
+          // FIRST need to check that the intersection is on the right side
+          const bool right_side_x1 = ((x1 - robot.get_x())/(xmax - robot.get_x())) > 0;
+          const bool right_side_x2 = ((x2 - robot.get_x())/(xmax - robot.get_x())) > 0;
+          const bool right_side_y1 = ((y1 - robot.get_y())/(ymax - robot.get_y())) > 0;
+          const bool right_side_y2 = ((y2 - robot.get_y())/(ymax - robot.get_y())) > 0;
+          const bool right_side_1 = right_side_x1 && right_side_y1;
+          const bool right_side_2 = right_side_x2 && right_side_y2;
+          // IF in range AND closer than current measurement AND right side, set
+          if ((dst1 < laser_max_range) && (dst1 < measurement) && right_side_1){
+            measurement = dst1;
+          }
+          if ((dst2 < laser_max_range) && (dst2 < measurement) && right_side_2){
+            measurement = dst2;
+          }
+        }
+      }
       laser.ranges.push_back(measurement);
       angle += laser.angle_increment;
     }
@@ -597,6 +645,7 @@ private:
   double laser_min_range, laser_max_range, laser_angle_increment, laser_resolution, laser_noise;
   int laser_nsamples;
   bool do_noise;
+  std::string laser_frame_id;
 };
 
 int main(int argc, char * argv[])
