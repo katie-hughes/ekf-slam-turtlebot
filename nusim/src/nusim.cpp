@@ -203,7 +203,7 @@ public:
 
     fake_sensor_timer_ = create_wall_timer(
       200ms,
-      std::bind(&Nusim::fake_sensor_timer_callback, this));
+      std::bind(&Nusim::slower_timer_callback, this));
 
     reset_ = create_service<std_srvs::srv::Empty>(
       "~/reset",
@@ -291,17 +291,17 @@ private:
       // publish_laser();
       timestep_++;
     }
-    publish_obstacles();
-    publish_walls();
   }
 
   // publish the fake sensor markers and path at a slower rate
-  void fake_sensor_timer_callback(){
+  void slower_timer_callback(){
     if(!draw_only){
       publish_fake_obstacles();
       publish_laser();
       update_path();
     }
+    publish_obstacles();
+    publish_walls();
   }
 
   /// @brief Reset the simulation
