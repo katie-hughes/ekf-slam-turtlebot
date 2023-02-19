@@ -426,7 +426,7 @@ private:
       // for each thing
       visualization_msgs::msg::Marker m;
       m.header.stamp = current_time;
-      m.header.frame_id = "nusim/world";
+      m.header.frame_id = "red/base_footprint";
       m.id = i;         // so each has a unique ID
       m.type = 3;       // cylinder
       // add marker if within range. Delete if not.
@@ -444,8 +444,11 @@ private:
       m.scale.x = 2*obr;
       m.scale.y = 2*obr;
       m.scale.z = 0.25;
-      m.pose.position.x = obx.at(i);
-      m.pose.position.y = oby.at(i);
+      // set position
+      // get the obstacle location relative to the robot frame
+      const auto config_rf = (robot.get_config().inv())(turtlelib::Vector2D{obx.at(i), oby.at(i)});
+      m.pose.position.x = config_rf.x;
+      m.pose.position.y = config_rf.y;
       if (do_noise){
         // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<sensor_dist(get_random()));
         // RCLCPP_INFO_STREAM(get_logger(), "Mean "<<sensor_dist.mean());
