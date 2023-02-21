@@ -44,23 +44,23 @@ namespace turtlelib
 
         /// @brief the current configuration of the robot in the world frame
         /// @return the transform from world to robot.
-        Transform2D get_config();
+        Transform2D get_config() const;
 
         /// @brief get x component of the configuration
         /// @return x coordinate in m
-        double get_x();
+        double get_x() const;
 
         /// @brief get y component of the configuration
         /// @return y coordinate in m
-        double get_y();
+        double get_y() const;
 
         /// @brief get phi of configuration
         /// @return phi in radians
-        double get_phi();
+        double get_phi() const;
 
         /// @brief Get current wheel state of configuration
         /// @return wheel state of current config in radians
-        WheelState get_wheels();
+        WheelState get_wheels() const;
 
         /// @brief Update the configuration based on new wheel positions
         /// @param new_left - new left wheel angle in radians

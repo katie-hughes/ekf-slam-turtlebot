@@ -20,23 +20,23 @@ namespace turtlelib
         radius{wheel_radius}
     {}
 
-    Transform2D DiffDrive::get_config(){
+    Transform2D DiffDrive::get_config() const{
         return q;
     }
 
-    double DiffDrive::get_x(){
+    double DiffDrive::get_x() const{
         return q.translation().x;
     }
 
-    double DiffDrive::get_y(){
+    double DiffDrive::get_y() const{
         return q.translation().y;
     }
 
-    double DiffDrive::get_phi(){
+    double DiffDrive::get_phi() const{
         return q.rotation();
     }
 
-    WheelState DiffDrive::get_wheels(){
+    WheelState DiffDrive::get_wheels() const{
         return w;
     }
 
