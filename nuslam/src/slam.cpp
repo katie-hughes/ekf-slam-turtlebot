@@ -1,4 +1,4 @@
-/// \file odometry.cpp
+/// \file slam.cpp
 /// \brief Updates odometry estimations to determine where the robot is
 ///
 /// PARAMETERS:
