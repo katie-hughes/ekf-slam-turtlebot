@@ -222,75 +222,20 @@ public:
   }
 
 private:
-  /// @brief Publish timestep, markers, and transform on each simulation timestep
+  /// @brief Publish timestep, sensor data, and transform on each simulation timestep
   /// also update the location of the robot with forward kinematics
   void timer_callback()
   {
+    // use this global timestamp for everything i publish
     current_time = this->get_clock()->now();
-
     if(!draw_only){
       auto message = std_msgs::msg::UInt64();
       message.data = timestep_;
       timestep_pub_->publish(message);
-      // udpate wheel states
-      auto vl = left_velocity;
-      auto vr = right_velocity;
-      if (do_noise){
-        // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<commands_dist(get_random()));
-        // RCLCPP_INFO_STREAM(get_logger(), "Mean "<<commands_dist.mean());
-        // RCLCPP_INFO_STREAM(get_logger(), "Stddev "<<commands_dist.stddev());
-        if (vl != 0.0){
-          vl += commands_dist(get_random());
-        }
-        if (vr != 0.0){
-          vr += commands_dist(get_random());
-        }
-      }
-      // RCLCPP_INFO_STREAM(get_logger(), "Before & after: " << left_velocity<< " " << vl);
-      const auto ws_left = vl * motor_cmd_per_rad_sec * (1.0 / rate_hz);
-      const auto ws_right = vr * motor_cmd_per_rad_sec * (1.0 / rate_hz);
-      // udpate robot position with fk
-      // this will update in tfs as the broadcaster reads from diff drive object
-      robot.fk(ws_left, ws_right);
-      // RCLCPP_INFO_STREAM(get_logger(), "Nusim FK: " << ws_left << " and " << ws_right);
-      // RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: " << robot.get_config());
-      // update sensor data
-      // i am suspicious that it is this simple, but let's try it
-      // try calculating stamp with timestep_????
-      current_sensor.stamp = current_time;
-
-      if (do_noise){
-        // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<slip_dist(get_random()));
-        // RCLCPP_INFO_STREAM(get_logger(), "low "<<slip_dist.a());
-        // RCLCPP_INFO_STREAM(get_logger(), "hi "<<slip_dist.b());
-        left_encoder_save +=  left_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz) * (1 + slip_dist(get_random())) * encoder_ticks;
-        right_encoder_save += right_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz) * (1 + slip_dist(get_random())) * encoder_ticks;
-      } else {
-        left_encoder_save += ws_left * encoder_ticks;
-        right_encoder_save += ws_right * encoder_ticks;
-      }
-
-      current_sensor.left_encoder = left_encoder_save;
-      current_sensor.right_encoder = right_encoder_save;
-      // sensor_pub_->publish(current_sensor);
-      sensor_pub_->publish(current_sensor);
-      // send robot transform
+      // do forward kinematics and publish sensor msg
+      update_sensor();
       // Before I send the transform, I need to check if it has intersected and update config if so
-      for (size_t i = 0; i < n_cylinders; i++) {
-        const auto ob_dist = turtlelib::distance(robot.get_x(),robot.get_y(),obx.at(i),oby.at(i));
-        if (ob_dist < collision_radius + obr){
-          // RCLCPP_INFO_STREAM(get_logger(), "Collision w obstacle " << i);
-          // there was a collision. Get unit vector along line from obstacle to robot centers.
-          const auto ux = (robot.get_x() - obx.at(i)) / ob_dist;
-          const auto uy = (robot.get_y() - oby.at(i)) / ob_dist;
-          const auto amount_to_shift = collision_radius + obr - ob_dist;
-          const auto new_x = robot.get_x() + amount_to_shift * ux;
-          const auto new_y = robot.get_y() + amount_to_shift * uy;
-          // update diffdrive object location. Keep same theta
-          auto new_pos = turtlelib::Transform2D(turtlelib::Vector2D{new_x, new_y}, robot.get_phi());
-          robot.change_state(new_pos);
-        }
-      }
+      check_collisions();
       // Update the tfs of the robot!
       send_transform();
       timestep_++;
@@ -306,6 +251,71 @@ private:
     }
     publish_obstacles();
     publish_walls();
+  }
+
+  /// @brief do forward kinematics on the robot based on wheel commands
+  void update_sensor(){
+    // udpate wheel states
+    auto vl = left_velocity;
+    auto vr = right_velocity;
+    if (do_noise){
+      // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<commands_dist(get_random()));
+      // RCLCPP_INFO_STREAM(get_logger(), "Mean "<<commands_dist.mean());
+      // RCLCPP_INFO_STREAM(get_logger(), "Stddev "<<commands_dist.stddev());
+      if (vl != 0.0){
+        vl += commands_dist(get_random());
+      }
+      if (vr != 0.0){
+        vr += commands_dist(get_random());
+      }
+    }
+    // RCLCPP_INFO_STREAM(get_logger(), "Before & after: " << left_velocity<< " " << vl);
+    const auto ws_left = vl * motor_cmd_per_rad_sec * (1.0 / rate_hz);
+    const auto ws_right = vr * motor_cmd_per_rad_sec * (1.0 / rate_hz);
+    // udpate robot position with fk
+    // this will update in tfs as the broadcaster reads from diff drive object
+    robot.fk(ws_left, ws_right);
+    // RCLCPP_INFO_STREAM(get_logger(), "Nusim FK: " << ws_left << " and " << ws_right);
+    // RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: " << robot.get_config());
+    // update sensor data
+    // i am suspicious that it is this simple, but let's try it
+    // try calculating stamp with timestep_????
+    current_sensor.stamp = current_time;
+
+    if (do_noise){
+      // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<slip_dist(get_random()));
+      // RCLCPP_INFO_STREAM(get_logger(), "low "<<slip_dist.a());
+      // RCLCPP_INFO_STREAM(get_logger(), "hi "<<slip_dist.b());
+      left_encoder_save +=  left_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz) * (1 + slip_dist(get_random())) * encoder_ticks;
+      right_encoder_save += right_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz) * (1 + slip_dist(get_random())) * encoder_ticks;
+    } else {
+      left_encoder_save += ws_left * encoder_ticks;
+      right_encoder_save += ws_right * encoder_ticks;
+    }
+
+    current_sensor.left_encoder = left_encoder_save;
+    current_sensor.right_encoder = right_encoder_save;
+    // sensor_pub_->publish(current_sensor);
+    sensor_pub_->publish(current_sensor);
+  }
+
+  /// @brief Check if the robot has collided with an obstacle and update the config if yes
+  void check_collisions(){
+    for (size_t i = 0; i < n_cylinders; i++) {
+      const auto ob_dist = turtlelib::distance(robot.get_x(),robot.get_y(),obx.at(i),oby.at(i));
+      if (ob_dist < collision_radius + obr){
+        // RCLCPP_INFO_STREAM(get_logger(), "Collision w obstacle " << i);
+        // there was a collision. Get unit vector along line from obstacle to robot centers.
+        const auto ux = (robot.get_x() - obx.at(i)) / ob_dist;
+        const auto uy = (robot.get_y() - oby.at(i)) / ob_dist;
+        const auto amount_to_shift = collision_radius + obr - ob_dist;
+        const auto new_x = robot.get_x() + amount_to_shift * ux;
+        const auto new_y = robot.get_y() + amount_to_shift * uy;
+        // update diffdrive object location. Keep same theta
+        auto new_pos = turtlelib::Transform2D(turtlelib::Vector2D{new_x, new_y}, robot.get_phi());
+        robot.change_state(new_pos);
+      }
+    }
   }
 
   /// @brief Reset the simulation
