@@ -253,15 +253,59 @@ private:
     publish_walls();
   }
 
+  /// @brief Reset the simulation
+  /// @param Request: The empty request
+  /// @param Response: The empty response
+  void reset(
+    std::shared_ptr<std_srvs::srv::Empty::Request>,
+    std::shared_ptr<std_srvs::srv::Empty::Response>)
+  {
+    RCLCPP_INFO_STREAM(get_logger(), "Resetting!");
+    timestep_ = 0;
+    auto start_pose = turtlelib::Transform2D(turtlelib::Vector2D{x0, y0}, theta0);
+    robot.change_state(start_pose);
+  }
+
+  /// @brief Teleport the turtle to a given location
+  /// @param req contains x, y, and theta to teleport the turtle to
+  /// @param res boolean response (if teleport is successful)
+  void teleport(
+    std::shared_ptr<nusim::srv::Teleport::Request> req,
+    std::shared_ptr<nusim::srv::Teleport::Response> res)
+  {
+    x0 = req->x;
+    y0 = req->y;
+    theta0 = req->theta;
+    RCLCPP_INFO_STREAM(get_logger(), "Teleporting! x=" << x0 << " y=" << y0 << " theta=" << theta0);
+    res->success = true;
+  }
+
+  /// @brief Callback function for receiving wheel commands message
+  /// @param wc wheel commands message
+  void wheel_cb(const nuturtlebot_msgs::msg::WheelCommands & wc)
+  {
+    // just store left and right velocity and do this update in the timer
+    left_velocity = wc.left_velocity;   // multiply by timestep*period
+    right_velocity = wc.right_velocity;
+    // RCLCPP_INFO_STREAM(get_logger(), "Receiving "<<wc.left_velocity<<" and "<<wc.right_velocity);
+  }
+
+  std::mt19937 & get_random()
+  {
+    // static variables inside a function are created once and persist for the remainder of the program
+    static std::random_device rd{}; 
+    static std::mt19937 mt{rd()};
+    // we return a reference to the pseudo-random number genrator object. This is always the
+    // same object every time get_random is called
+    return mt;
+  }
+
   /// @brief do forward kinematics on the robot based on wheel commands
   void update_sensor(){
     // udpate wheel states
     auto vl = left_velocity;
     auto vr = right_velocity;
     if (do_noise){
-      // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<commands_dist(get_random()));
-      // RCLCPP_INFO_STREAM(get_logger(), "Mean "<<commands_dist.mean());
-      // RCLCPP_INFO_STREAM(get_logger(), "Stddev "<<commands_dist.stddev());
       if (vl != 0.0){
         vl += commands_dist(get_random());
       }
@@ -269,33 +313,22 @@ private:
         vr += commands_dist(get_random());
       }
     }
-    // RCLCPP_INFO_STREAM(get_logger(), "Before & after: " << left_velocity<< " " << vl);
     const auto ws_left = vl * motor_cmd_per_rad_sec * (1.0 / rate_hz);
     const auto ws_right = vr * motor_cmd_per_rad_sec * (1.0 / rate_hz);
     // udpate robot position with fk
     // this will update in tfs as the broadcaster reads from diff drive object
     robot.fk(ws_left, ws_right);
-    // RCLCPP_INFO_STREAM(get_logger(), "Nusim FK: " << ws_left << " and " << ws_right);
-    // RCLCPP_INFO_STREAM(get_logger(), "Nusim Pose: " << robot.get_config());
     // update sensor data
-    // i am suspicious that it is this simple, but let's try it
-    // try calculating stamp with timestep_????
     current_sensor.stamp = current_time;
-
     if (do_noise){
-      // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<slip_dist(get_random()));
-      // RCLCPP_INFO_STREAM(get_logger(), "low "<<slip_dist.a());
-      // RCLCPP_INFO_STREAM(get_logger(), "hi "<<slip_dist.b());
       left_encoder_save +=  left_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz) * (1 + slip_dist(get_random())) * encoder_ticks;
       right_encoder_save += right_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz) * (1 + slip_dist(get_random())) * encoder_ticks;
     } else {
       left_encoder_save += ws_left * encoder_ticks;
       right_encoder_save += ws_right * encoder_ticks;
     }
-
     current_sensor.left_encoder = left_encoder_save;
     current_sensor.right_encoder = right_encoder_save;
-    // sensor_pub_->publish(current_sensor);
     sensor_pub_->publish(current_sensor);
   }
 
@@ -316,34 +349,6 @@ private:
         robot.change_state(new_pos);
       }
     }
-  }
-
-  /// @brief Reset the simulation
-  /// @param Request: The empty request
-  /// @param Response: The empty response
-  void reset(
-    std::shared_ptr<std_srvs::srv::Empty::Request>,
-    std::shared_ptr<std_srvs::srv::Empty::Response>)
-  {
-    RCLCPP_INFO_STREAM(get_logger(), "Resetting!");
-    timestep_ = 0;
-    auto start_pose = turtlelib::Transform2D(turtlelib::Vector2D{x0, y0}, theta0);
-    turtlelib::DiffDrive temp(start_pose, track_width, wheel_radius);
-    robot = temp;
-  }
-
-  /// @brief Teleport the turtle to a given location
-  /// @param req contains x, y, and theta to teleport the turtle to
-  /// @param res boolean response (if teleport is successful)
-  void teleport(
-    std::shared_ptr<nusim::srv::Teleport::Request> req,
-    std::shared_ptr<nusim::srv::Teleport::Response> res)
-  {
-    x0 = req->x;
-    y0 = req->y;
-    theta0 = req->theta;
-    RCLCPP_INFO_STREAM(get_logger(), "Teleporting! x=" << x0 << " y=" << y0 << " theta=" << theta0);
-    res->success = true;
   }
 
   /// @brief Broadcast transform between turtle and world frame
@@ -375,6 +380,7 @@ private:
     tf_broadcaster_->sendTransform(t);
   }
 
+  /// @brief Update path of red robot
   void update_path(){
     geometry_msgs::msg::PoseStamped ps;
     ps.header.stamp = current_time;
@@ -426,7 +432,6 @@ private:
     // RCLCPP_INFO_STREAM(get_logger(), "Publishing Marker Array");
     obs_pub_->publish(ma);
   }
-
 
   /// @brief publish simulated obstacle marker locations
   void publish_fake_obstacles()
@@ -645,27 +650,8 @@ private:
       laser.ranges.push_back(measurement);
     }
     // laser.intensities = leave blank
+    // MAYBE: try setting timestamp here instead? 
     laser_pub_->publish(laser);
-  }
-
-  /// @brief Callback function for receiving wheel commands message
-  /// @param wc wheel commands message
-  void wheel_cb(const nuturtlebot_msgs::msg::WheelCommands & wc)
-  {
-    // just store left and right velocity and do this update in the timer
-    left_velocity = wc.left_velocity;   // multiply by timestep*period
-    right_velocity = wc.right_velocity;
-    // RCLCPP_INFO_STREAM(get_logger(), "Receiving "<<wc.left_velocity<<" and "<<wc.right_velocity);
-  }
-
-  std::mt19937 & get_random()
-  {
-    // static variables inside a function are created once and persist for the remainder of the program
-    static std::random_device rd{}; 
-    static std::mt19937 mt{rd()};
-    // we return a reference to the pseudo-random number genrator object. This is always the
-    // same object every time get_random is called
-    return mt;
   }
 
   rclcpp::TimerBase::SharedPtr timer_;
