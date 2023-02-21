@@ -229,6 +229,7 @@ private:
     // use this global timestamp for everything i publish
     current_time = this->get_clock()->now();
     if(!draw_only){
+      // publish timetsep
       auto message = std_msgs::msg::UInt64();
       message.data = timestep_;
       timestep_pub_->publish(message);
@@ -650,7 +651,8 @@ private:
       laser.ranges.push_back(measurement);
     }
     // laser.intensities = leave blank
-    // MAYBE: try setting timestamp here instead? 
+    // MAYBE: try setting timestamp here instead? Did not work :(
+    // laser.header.stamp = current_time;
     laser_pub_->publish(laser);
   }
 
