@@ -3,6 +3,11 @@
   <arg name="robot" default="nusim" description="Options for robot model: nusim localhost none"/>
   <arg name="use_rviz" default="true" description="Options for launching rviz: true false"/>
 
+  <!-- Launch rviz -->
+  <node pkg="rviz2" exec="rviz2"
+        if="$(eval '\'$(var robot)\' == \'nusim\' and \'$(var use_rviz)\' == \'true\'')"
+        args="-d $(find-pkg-share nuslam)/config/slam.rviz"/>
+
   <!-- nuslam updates the green robot -->
   <node pkg="nuslam" exec="slam"
         if="$(eval '\'$(var robot)\' == \'nusim\'')">
