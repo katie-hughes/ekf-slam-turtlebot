@@ -248,6 +248,9 @@ private:
     if(!draw_only){
       publish_fake_obstacles();
       publish_laser();
+      // this is a laser publisher that is super simple, just publishes a constant value
+      // so it should be computationally faster (for testing purposes)
+      // test_publish_laser();
       update_path();
     }
     publish_obstacles();
@@ -653,6 +656,30 @@ private:
     // laser.intensities = leave blank
     // MAYBE: try setting timestamp here instead? Did not work :(
     // laser.header.stamp = current_time;
+    laser_pub_->publish(laser);
+  }
+
+
+  /// @brief Publish a test LaserScan that should update quicker than real 
+  void test_publish_laser(){
+    sensor_msgs::msg::LaserScan laser;
+    laser.header.stamp = current_time;
+    // RCLCPP_INFO_STREAM(get_logger(), "LASER S: " << laser.header.stamp.sec << " ns " <<
+    //                                  laser.header.stamp.nanosec);
+    // copied from turtlebot live message
+    laser.header.frame_id = laser_frame_id;
+    laser.angle_min = 0.0;
+    laser.angle_max = 6.2657318115234375;
+    laser.angle_increment = laser_angle_increment;
+    laser.time_increment = 0.0005574136157520115;
+    laser.scan_time = 0.20066890120506287;
+    laser.range_min = laser_min_range;
+    laser.range_max = laser_max_range;
+    // fill in the laser.ranges array
+    // just make this super simple to see if it's running too slow in other
+    for (int n=0; n<laser_nsamples; n++){
+      laser.ranges.push_back(1.0);
+    }
     laser_pub_->publish(laser);
   }
 
