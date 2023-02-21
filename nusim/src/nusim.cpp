@@ -246,12 +246,12 @@ private:
   // publish the fake sensor markers and path at a slower rate
   void slower_timer_callback(){
     if(!draw_only){
-      publish_fake_obstacles();
       publish_laser();
       // this is a laser publisher that is super simple, just publishes a constant value
       // so it should be computationally faster (for testing purposes)
       // test_publish_laser();
       update_path();
+      publish_fake_obstacles();
     }
     publish_obstacles();
     publish_walls();
@@ -366,7 +366,7 @@ private:
     // RCLCPP_INFO_STREAM(get_logger(), "TF S: " << t.header.stamp.sec << " ns " <<
     //                                  t.header.stamp.nanosec);
     // DO THIS TO GET RID OF TF ERROR LOL
-    t.header.stamp.nanosec += 3e8;
+    // t.header.stamp.nanosec += 3e8;
     // RCLCPP_INFO_STREAM(get_logger(), "TF S: " << t.header.stamp.sec << " ns " <<
     //                                  t.header.stamp.nanosec);
     t.header.frame_id = "nusim/world";
@@ -546,7 +546,7 @@ private:
     laser.angle_min = 0.0;
     laser.angle_max = 6.2657318115234375;
     laser.angle_increment = laser_angle_increment;
-    laser.time_increment = 0.0005574136157520115;
+    laser.time_increment = 0.0; // 0.0005574136157520115;
     laser.scan_time = 0.20066890120506287;
     laser.range_min = laser_min_range;
     laser.range_max = laser_max_range;

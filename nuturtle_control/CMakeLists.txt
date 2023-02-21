@@ -20,6 +20,7 @@ find_package(visualization_msgs REQUIRED)
 find_package(nuturtlebot_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(tf2_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(rmw REQUIRED)
 find_package(turtlelib REQUIRED)
 
@@ -94,8 +95,15 @@ ament_target_dependencies(mytest
 
 target_link_libraries(mytest turtlelib::turtlelib "${cpp_typesupport_target}")
 
+add_executable(lasertest src/lasertest.cpp)
+ament_target_dependencies(lasertest
+  rclcpp
+  tf2
+  tf2_ros
+  sensor_msgs)
+
 install(TARGETS
-  turtle_control odometry circle mytest
+  turtle_control odometry circle mytest lasertest
   DESTINATION lib/${PROJECT_NAME})
 
 
