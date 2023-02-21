@@ -1,0 +1,6 @@
+<launch>
+
+  <node pkg="nuslam" exec="slam">
+  </node>
+
+</launch>
