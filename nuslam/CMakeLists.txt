@@ -22,6 +22,7 @@ find_package(nav_msgs REQUIRED)
 find_package(tf2_msgs REQUIRED)
 find_package(turtlelib REQUIRED)
 find_package(nuturtle_control REQUIRED)
+find_package(Armadillo REQUIRED)
 
 add_executable(slam src/slam.cpp)
 ament_target_dependencies(slam
@@ -36,7 +37,9 @@ ament_target_dependencies(slam
   nav_msgs
   nuturtle_control)
 
-target_link_libraries(slam turtlelib::turtlelib "${cpp_typesupport_target}")
+include_directories(${ARMADILLO_INCLUDE_DIRS})
+
+target_link_libraries(slam turtlelib::turtlelib ${ARMADILLO_LIBRARIES} "${cpp_typesupport_target}")
 
 install(TARGETS
   slam

@@ -23,6 +23,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <armadillo>
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
@@ -38,6 +39,7 @@
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav_msgs/msg/path.hpp"
+
 
 #include "turtlelib/diff_drive.hpp"
 
