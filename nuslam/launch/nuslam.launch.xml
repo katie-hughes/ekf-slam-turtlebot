@@ -43,8 +43,8 @@
         args="0 0 0 0 0 0 nusim/world map"/>
 
   <!-- This should be done in slam node -->
-  <node pkg="tf2_ros"
+  <!-- <node pkg="tf2_ros"
         exec="static_transform_publisher"
-        args="0 0 0 0 0 0 map green/odom"/>
+        args="0 0 0 0 0 0 map green/odom"/> -->
 
 </launch>

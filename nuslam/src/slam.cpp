@@ -102,6 +102,9 @@ public:
     // do the same for tf object
     T_odom_base.header.frame_id = odom_id;
     T_odom_base.child_frame_id = body_id;
+    // this is provided by the slam update
+    T_map_odom.header.frame_id = "map";
+    T_map_odom.child_frame_id = odom_id;
     
     robot = turtlelib::DiffDrive(track_width, wheel_radius);
 
@@ -120,17 +123,42 @@ public:
       std::bind(&Slam::initial_pose, this, std::placeholders::_1, std::placeholders::_2));
 
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+
+    max_obstacles = 3;
+    Covariance = arma::mat(max_obstacles*2 + 3, max_obstacles*2 + 3);
+    Covariance.fill(0.0);
+    // 
+    for (int i = 0; i < 2*max_obstacles; i++){
+      // These represent that in the beginning we don't know anything about obstacle loc.
+      Covariance(i+3, i+3) = 999999;
+    }
+    RCLCPP_INFO_STREAM(get_logger(), "Covariance:\n" << Covariance);
   }
 
 private:
   void fake_sensor_cb(const visualization_msgs::msg::MarkerArray & sensor)
   {
-    RCLCPP_INFO_STREAM(get_logger(), "Received Marker");
+    // RCLCPP_INFO_STREAM(get_logger(), "Received Marker");
+    if (first_slam_iteration){
+      first_slam_iteration = false;
+    }
+    // PREDICTION
+
+    // 1. Update state estimate. This is already handled by odometry?
+
+    // 2. Propogate state uncertainty using linearized state transition model
+    // For this I need A and Q. 
+    // Sigma_t^- = At SigmaHat_{t-1} At^T + Qbar
+    // Qbar = [Q & 03x2n \\ 02nx3 02nx2n]
+    // But what is Q??? "Process noise for robot motion model"
     for(int i = 0; i < static_cast<double>(sensor.markers.size()); i++){
       const auto mx = sensor.markers.at(i).pose.position.x;
       const auto my = sensor.markers.at(i).pose.position.y;
       RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
     }
+    // DO SOMETHING HERE BASED ON SLAM UPDATE rn it's identity transform
+    T_map_odom.header.stamp = get_clock()->now();
+    tf_broadcaster_->sendTransform(T_map_odom);
   }
 
   void js_cb(const sensor_msgs::msg::JointState & js)
@@ -241,12 +269,13 @@ private:
   turtlelib::DiffDrive robot{0.0, 0.0};
   double wheel_radius, track_width;
   sensor_msgs::msg::JointState last_js;
-  bool first_iteration = true;
+  bool first_iteration = true, first_slam_iteration = true;
   nav_msgs::msg::Odometry current_odom;
   std::string body_id, odom_id, wheel_left, wheel_right;
-  geometry_msgs::msg::TransformStamped T_odom_base;
+  geometry_msgs::msg::TransformStamped T_odom_base, T_map_odom;
   nav_msgs::msg::Path followed_path;
   long iterations = 0;
+  int max_obstacles;
 
   // Sigma
   arma::mat Covariance;
