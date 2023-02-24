@@ -18,6 +18,7 @@
     <param name="wheel_right" value="wheel_right_joint"/>
     <!-- Read from the odometry robot -->
     <remap from="joint_states" to="blue/joint_states"/>
+    <remap from="odom" to="green/odom"/>
   </node>
 
   <!-- Do start robot launch -->

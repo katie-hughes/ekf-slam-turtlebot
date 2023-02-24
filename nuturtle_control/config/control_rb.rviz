@@ -75,14 +75,14 @@ Visualization Manager:
           Value: false
         blue/imu_link:
           Value: false
+        blue/odom:
+          Value: true
         blue/wheel_left_link:
           Value: true
         blue/wheel_right_link:
           Value: true
         nusim/world:
           Value: false
-        odom:
-          Value: true
         red/base_footprint:
           Value: false
         red/base_link:
@@ -104,7 +104,7 @@ Visualization Manager:
       Show Names: false
       Tree:
         nusim/world:
-          odom:
+          blue/odom:
             blue/base_footprint:
               blue/base_link:
                 blue/base_scan:
@@ -274,7 +274,7 @@ Visualization Manager:
         Alpha: 1
         Axes Length: 1
         Axes Radius: 0.10000000149011612
-        Color: 255; 25; 0
+        Color: 0; 118; 201
         Head Length: 0.10000000149011612
         Head Radius: 0.05000000074505806
         Shaft Length: 0.25
@@ -286,7 +286,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /odom
+        Value: /blue/odom
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true

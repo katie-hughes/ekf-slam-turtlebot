@@ -39,6 +39,7 @@
     <param name="wheel_left" value="wheel_left_joint"/>
     <param name="wheel_right" value="wheel_right_joint"/>
     <remap from="joint_states" to="blue/joint_states"/>
+    <remap from="odom" to="blue/odom"/>
   </node>
 
   <!-- nusim node launched if robot=nusim -->
