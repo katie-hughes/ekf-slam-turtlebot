@@ -7,11 +7,12 @@ Panels:
         - /Global Options1
         - /Status1
         - /GreenRobotModel1/Description Topic1
-        - /GreenOdometry1/Status1
         - /GreenOdometry1/Topic1
         - /GreenOdometry1/Shape1
         - /BlueOdometry1/Shape1
         - /LaserScan1/Topic1
+        - /MarkerArray1/Topic1
+        - /MarkerArray1/Namespaces1
       Splitter Ratio: 0.5312976837158203
     Tree Height: 515
   - Class: rviz_common/Selection
@@ -374,7 +375,7 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
-        History Policy: Keep Last
+        History Policy: Keep All
         Reliability Policy: Reliable
         Value: /fake_sensor
       Value: true
@@ -439,10 +440,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.565398097038269
+      Pitch: 0.7003980875015259
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.7403966188430786
+      Yaw: 1.9403990507125854
     Saved: ~
 Window Geometry:
   Displays:

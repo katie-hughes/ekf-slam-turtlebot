@@ -39,6 +39,7 @@
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav_msgs/msg/path.hpp"
+#include "visualization_msgs/msg/marker_array.hpp"
 
 
 #include "turtlelib/diff_drive.hpp"
@@ -111,6 +112,9 @@ public:
     js_sub_ = create_subscription<sensor_msgs::msg::JointState>(
       "joint_states", 10, std::bind(&Slam::js_cb, this, std::placeholders::_1));
 
+    fake_sensor_sub_ = create_subscription<visualization_msgs::msg::MarkerArray>(
+      "fake_sensor", 10, std::bind(&Slam::fake_sensor_cb, this, std::placeholders::_1));
+
     initial_pose_srv_ = create_service<nuturtle_control::srv::InitialPose>(
       "initial_pose",
       std::bind(&Slam::initial_pose, this, std::placeholders::_1, std::placeholders::_2));
@@ -119,6 +123,16 @@ public:
   }
 
 private:
+  void fake_sensor_cb(const visualization_msgs::msg::MarkerArray & sensor)
+  {
+    RCLCPP_INFO_STREAM(get_logger(), "Received Marker");
+    for(int i = 0; i < static_cast<double>(sensor.markers.size()); i++){
+      const auto mx = sensor.markers.at(i).pose.position.x;
+      const auto my = sensor.markers.at(i).pose.position.y;
+      RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
+    }
+  }
+
   void js_cb(const sensor_msgs::msg::JointState & js)
   {
     if (!first_iteration) {
@@ -217,6 +231,7 @@ private:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr js_sub_;
+  rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr fake_sensor_sub_;
 
   rclcpp::Service<nuturtle_control::srv::InitialPose>::SharedPtr initial_pose_srv_;
 
