@@ -210,8 +210,7 @@ private:
     /// \param Response: boolean, if relocation is successful
     RCLCPP_INFO_STREAM(get_logger(), "Reset initial pose!");
     turtlelib::Transform2D new_pose(turtlelib::Vector2D{req->x, req->y}, req->theta);
-    turtlelib::DiffDrive new_robot(new_pose, track_width, wheel_radius);
-    robot = new_robot;
+    robot = turtlelib::DiffDrive(new_pose, track_width, wheel_radius);
     res->success = true;
   }
 
