@@ -122,7 +122,7 @@ private:
   void js_cb(const sensor_msgs::msg::JointState & js)
   {
     if (!first_iteration) {
-
+      // RCLCPP_INFO_STREAM(get_logger(), "JS CALLBACK!");
       // std::find function call: Example I took from here
       // https://www.geeksforgeeks.org/how-to-find-index-of-a-given-element-in-a-vector-in-cpp/
       const auto find_left = std::find(js.name.begin(), js.name.end(), wheel_left);

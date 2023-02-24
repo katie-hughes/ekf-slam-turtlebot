@@ -32,8 +32,8 @@
            if="$(eval '\'$(var robot)\' != \'none\'')">
     <arg name="color" value="green"/>
     <arg name="use_rviz" value="false"/>
-    <!-- green gets updated by nuslam so don't use jsp -->
-    <arg name="use_jsp" value="false"/>
+    <!-- green js do NOT get updated by nuslam -->
+    <arg name="use_jsp" value="true"/>
   </include>
 
   <!-- launch static transform pub: odom located at world frame if not none -->
