@@ -35,6 +35,7 @@
         if="$(eval '\'$(var robot)\' != \'none\'')">
     <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
     <param name="body_id" value="blue/base_footprint"/>
+    <param name="odom_id" value="blue/odom"/>
     <param name="wheel_left" value="wheel_left_joint"/>
     <param name="wheel_right" value="wheel_right_joint"/>
     <remap from="joint_states" to="blue/joint_states"/>
@@ -107,7 +108,7 @@
   <node pkg="tf2_ros"
         if="$(eval '\'$(var robot)\' != \'localhost\'')"
         exec="static_transform_publisher"
-        args="0 0 0 0 0 0 nusim/world odom"/>
+        args="0 0 0 0 0 0 nusim/world blue/odom"/>
 
   <!-- Launch hlds_laser_publisher if on localhost-->
   

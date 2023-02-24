@@ -101,10 +101,8 @@ public:
     // do the same for tf object
     T_odom_base.header.frame_id = odom_id;
     T_odom_base.child_frame_id = body_id;
-
-    // slightly hacky workaround to get new values in
-    turtlelib::DiffDrive temp(track_width, wheel_radius);
-    robot = temp;
+    
+    robot = turtlelib::DiffDrive(track_width, wheel_radius);
 
     odom_pub_ = create_publisher<nav_msgs::msg::Odometry>("odom", 10);
 
@@ -235,6 +233,9 @@ private:
   geometry_msgs::msg::TransformStamped T_odom_base;
   nav_msgs::msg::Path followed_path;
   long iterations = 0;
+
+  // Sigma
+  arma::mat Covariance;
 };
 
 int main(int argc, char * argv[])
