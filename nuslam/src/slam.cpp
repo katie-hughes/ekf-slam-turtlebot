@@ -200,18 +200,27 @@ private:
       const auto rj = sqrt(dj);
       const auto phij = turtlelib::normalize_angle(atan2(dyj, dxj) - slam_theta);
 
-
-      arma::mat Hj(2, 5, arma::fill::zeros);
+      arma::mat Hj(2, 3+2*max_obstacles, arma::fill::zeros);
+      // "j" is id. 
       Hj.at(1,0) = -1.0;
       Hj.at(0,1) = -dxj/rj;
       Hj.at(1,1) =  dyj/dj;
       Hj.at(0,2) = -dyj/rj;
       Hj.at(1,2) = -dxj/dj;
-      Hj.at(0,3) =  dxj/rj;
-      Hj.at(1,3) = -dyj/dj;
-      Hj.at(0,4) =  dyj/rj;
-      Hj.at(1,4) =  dxj/dj;
+      // skip 2*(j-1) elements
+      Hj.at(0,3 + 2*(id-1)) =  dxj/rj;
+      Hj.at(1,3 + 2*(id-1)) = -dyj/dj;
+      Hj.at(0,4 + 2*(id-1)) =  dyj/rj;
+      Hj.at(1,4 + 2*(id-1)) =  dxj/dj;
       RCLCPP_INFO_STREAM(get_logger(), "Hj:\n"<< Hj);
+
+      // Kalman gain
+      const auto Ri = R.submat(id, id, id+1, id+1);
+      const auto help_Ki = Hj * newCovariance * Hj.t() + Ri;
+      const auto Ki = newCovariance * Hj.t() * help_Ki.i(); 
+      RCLCPP_INFO_STREAM(get_logger(), "Kalman Gain:\n"<< Ki);
+
+
     }
     // DO SOMETHING HERE BASED ON SLAM UPDATE rn it's identity transform
     T_map_odom.header.stamp = get_clock()->now();
