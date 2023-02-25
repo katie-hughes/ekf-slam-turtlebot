@@ -162,23 +162,56 @@ private:
     // 1. Update state estimate. This is already handled by odometry?
     // NO this is not just the robot.get_config(). Since it's WRT map frame not odom frame.
     // actually maybe it just is this ADHFASafdfa 
-    slam_theta = robot.get_theta();
+    slam_theta = robot.get_phi();
     slam_x = robot.get_x();
     slam_y = robot.get_y();
-    const auto dtheta = turtlelib::normalize_angle(slam_theta - last_slam_theta);
+    // const auto dtheta = turtlelib::normalize_angle(slam_theta - last_slam_theta);
+    const auto dx = slam_x - last_slam_x;
+    const auto dy = slam_y - last_slam_y;
     // 2. Propogate state uncertainty using linearized state transition model
     // For this I need At and Qbar. 
     // Sigma_t^- = At SigmaHat_{t-1} At^T + Qbar
-    arma::mat At;
+    arma::mat At(3 + 2*max_obstacles, 3 + 2*max_obstacles, arma::fill::zeros);
+    // only 2 nonzero elements
+    At.at(1, 0) = -dy;
+    At.at(2, 0) = dx;
+    // At is a sum with the identity matrix
+    At.diag() += 1.0;
+    // RCLCPP_INFO_STREAM(get_logger(), "At:\n"<< At);
     
+    auto newCovariance = At * Covariance * At.t() + Qbar;
+
+    // RCLCPP_INFO_STREAM(get_logger(), "New Covariance:\n"<< newCovariance);
     
     // depending on this, there are two options for At matrix
-    
-    // But what is Q??? "Process noise for robot motion model" ig for now assume 0
+
     for(int i = 0; i < static_cast<double>(sensor.markers.size()); i++){
       const auto mx = sensor.markers.at(i).pose.position.x;
       const auto my = sensor.markers.at(i).pose.position.y;
+      // this id will be unique for each marker.
+      // If one goes out of range, the id will no longer show up.
+      const auto id = sensor.markers.at(i).id;
       RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
+      RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
+      // compute tilde z = hj(state)
+      const auto dxj = mx - slam_x;
+      const auto dyj = my - slam_y;
+      const auto dj = dxj*dxj + dyj*dyj;
+      const auto rj = sqrt(dj);
+      const auto phij = turtlelib::normalize_angle(atan2(dyj, dxj) - slam_theta);
+
+
+      arma::mat Hj(2, 5, arma::fill::zeros);
+      Hj.at(1,0) = -1.0;
+      Hj.at(0,1) = -dxj/rj;
+      Hj.at(1,1) =  dyj/dj;
+      Hj.at(0,2) = -dyj/rj;
+      Hj.at(1,2) = -dxj/dj;
+      Hj.at(0,3) =  dxj/rj;
+      Hj.at(1,3) = -dyj/dj;
+      Hj.at(0,4) =  dyj/rj;
+      Hj.at(1,4) =  dxj/dj;
+      RCLCPP_INFO_STREAM(get_logger(), "Hj:\n"<< Hj);
     }
     // DO SOMETHING HERE BASED ON SLAM UPDATE rn it's identity transform
     T_map_odom.header.stamp = get_clock()->now();
