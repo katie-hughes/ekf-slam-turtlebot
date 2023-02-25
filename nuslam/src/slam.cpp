@@ -125,32 +125,48 @@ public:
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
     max_obstacles = 3;
-    Covariance = arma::mat(max_obstacles*2 + 3, max_obstacles*2 + 3);
-    Covariance.fill(0.0);
-    // 
+    Covariance = arma::mat(max_obstacles*2 + 3, max_obstacles*2 + 3, arma::fill::zeros);
+    // set initial covariance
     for (int i = 0; i < 2*max_obstacles; i++){
       // These represent that in the beginning we don't know anything about obstacle loc.
-      Covariance(i+3, i+3) = 999999;
+      Covariance.at(i+3, i+3) = 999999;
     }
     RCLCPP_INFO_STREAM(get_logger(), "Covariance:\n" << Covariance);
+
+    // Set Q and R covariance matrices
+    // Right now they are just Identity. Might need to fiddle with values
+    Q = arma::mat(3, 3, arma::fill::zeros);
+    // Q.fill(0.0);
+    Q.diag() += 1.0;
+    RCLCPP_INFO_STREAM(get_logger(), "Q:\n" << Q);
+    R = arma::mat(2*max_obstacles, 2*max_obstacles, arma::fill::zeros);
+    R.diag() += 1.0;
+    RCLCPP_INFO_STREAM(get_logger(), "R:\n" << R);
+
+    // Qbar = [Q & 03x2n \\ 02nx3 02nx2n]
+    Qbar = arma::mat(max_obstacles*2 + 3, max_obstacles*2 + 3, arma::fill::zeros);
+    Qbar.submat(0, 0, 2, 2) = Q;
+    RCLCPP_INFO_STREAM(get_logger(), "Qbar:\n" << Qbar);
   }
 
 private:
   void fake_sensor_cb(const visualization_msgs::msg::MarkerArray & sensor)
   {
     // RCLCPP_INFO_STREAM(get_logger(), "Received Marker");
-    if (first_slam_iteration){
-      first_slam_iteration = false;
-    }
     // PREDICTION
 
     // 1. Update state estimate. This is already handled by odometry?
-
+    const auto current_slam_state = robot.get_config();
     // 2. Propogate state uncertainty using linearized state transition model
-    // For this I need A and Q. 
+    // For this I need At and Qbar. 
     // Sigma_t^- = At SigmaHat_{t-1} At^T + Qbar
-    // Qbar = [Q & 03x2n \\ 02nx3 02nx2n]
-    // But what is Q??? "Process noise for robot motion model"
+    arma::mat At;
+    const auto dtheta = turtlelib::normalize_angle(current_slam_state.rotation() - 
+                                                    last_slam_state.rotation());
+    
+    // depending on this, there are two options for At matrix
+    
+    // But what is Q??? "Process noise for robot motion model" ig for now assume 0
     for(int i = 0; i < static_cast<double>(sensor.markers.size()); i++){
       const auto mx = sensor.markers.at(i).pose.position.x;
       const auto my = sensor.markers.at(i).pose.position.y;
@@ -278,7 +294,8 @@ private:
   int max_obstacles;
 
   // Sigma
-  arma::mat Covariance;
+  arma::mat Covariance, Q, R, Qbar;
+  turtlelib::Transform2D last_slam_state; 
 };
 
 int main(int argc, char * argv[])
