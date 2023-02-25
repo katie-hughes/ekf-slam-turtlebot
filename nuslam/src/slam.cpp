@@ -147,6 +147,10 @@ public:
     Qbar = arma::mat(max_obstacles*2 + 3, max_obstacles*2 + 3, arma::fill::zeros);
     Qbar.submat(0, 0, 2, 2) = Q;
     RCLCPP_INFO_STREAM(get_logger(), "Qbar:\n" << Qbar);
+
+    last_slam_x = 0.0;
+    last_slam_y = 0.0;
+    last_slam_theta = 0.0;
   }
 
 private:
@@ -156,13 +160,17 @@ private:
     // PREDICTION
 
     // 1. Update state estimate. This is already handled by odometry?
-    const auto current_slam_state = robot.get_config();
+    // NO this is not just the robot.get_config(). Since it's WRT map frame not odom frame.
+    // actually maybe it just is this ADHFASafdfa 
+    slam_theta = robot.get_theta();
+    slam_x = robot.get_x();
+    slam_y = robot.get_y();
+    const auto dtheta = turtlelib::normalize_angle(slam_theta - last_slam_theta);
     // 2. Propogate state uncertainty using linearized state transition model
     // For this I need At and Qbar. 
     // Sigma_t^- = At SigmaHat_{t-1} At^T + Qbar
     arma::mat At;
-    const auto dtheta = turtlelib::normalize_angle(current_slam_state.rotation() - 
-                                                    last_slam_state.rotation());
+    
     
     // depending on this, there are two options for At matrix
     
@@ -295,7 +303,8 @@ private:
 
   // Sigma
   arma::mat Covariance, Q, R, Qbar;
-  turtlelib::Transform2D last_slam_state; 
+  double slam_x, slam_y, slam_theta;
+  double last_slam_x, last_slam_y, last_slam_theta;
 };
 
 int main(int argc, char * argv[])
