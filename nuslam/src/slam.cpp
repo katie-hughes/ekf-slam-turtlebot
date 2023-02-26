@@ -270,9 +270,21 @@ private:
 
     // DO SOMETHING HERE BASED ON SLAM UPDATE rn it's identity transform
 
-    // 
-    
+    // I want T_map_basefootprint = slam_state
+    // But I can only publish T_map_odom
+    // 1. Lookup T_odom_basefootprint
+    // Except I don't need to look up, it's just robot.get_x() and robot.get_y() etc.
+    // 2. Desired x = slamx - robot.get_x() etc
+    // That should be it? 
     T_map_odom.header.stamp = get_clock()->now();
+    T_map_odom.transform.translation.x = slam_state.at(1) - robot.get_x();
+    T_map_odom.transform.translation.y = slam_state.at(2) - robot.get_y();
+    tf2::Quaternion q;
+    q.setRPY(0, 0, turtlelib::normalize_angle(slam_state.at(0) - robot.get_phi()));
+    T_map_odom.transform.rotation.x = q.x();
+    T_map_odom.transform.rotation.y = q.y();
+    T_map_odom.transform.rotation.z = q.z();
+    T_map_odom.transform.rotation.w = q.w();
     tf_broadcaster_->sendTransform(T_map_odom);
     last_slam_state = slam_state;
   }
