@@ -126,6 +126,8 @@ public:
 
     max_obstacles = 3;
 
+    obstacle_initialized = std::vector<bool>(max_obstacles, false);
+
     slam_state = arma::vec(max_obstacles*2 + 3, arma::fill::zeros);
     RCLCPP_INFO_STREAM(get_logger(), "Slam State:\n" << slam_state);
     last_slam_state = arma::vec(max_obstacles*2 + 3, arma::fill::zeros);
@@ -199,8 +201,8 @@ private:
       // this id will be unique for each marker.
       // If one goes out of range, the id will no longer show up.
       const auto id = sensor.markers.at(i).id;
-      RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
-      RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
+      // RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
+      // RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
 
       // this is z (current sensor measurement)
       const auto dxj = mx;
@@ -211,11 +213,12 @@ private:
       arma::vec zj(2, arma::fill::zeros);
       zj.at(0) = rj;
       zj.at(1) = phij;
-      RCLCPP_INFO_STREAM(get_logger(), "zj\n"<< zj);
+      // RCLCPP_INFO_STREAM(get_logger(), "zj\n"<< zj);
 
       // check if obstacle has been seen before. 
       // TODO: Maybe keep track of this in a separate vector or something
-      if ((slam_state.at(3 + 2*id)==0) && (slam_state.at(3 + 2*id + 1)==0)){
+      if (!obstacle_initialized.at(id)){
+      // if ((slam_state.at(3 + 2*id)==0) && (slam_state.at(3 + 2*id + 1)==0)){
         // Obstacle has not been seen. Initialize it!
         // x coordinate
         slam_state.at(3 + 2*id) = slam_state.at(1) + rj * 
@@ -223,6 +226,8 @@ private:
         // y coordinate
         slam_state.at(3 + 2*id + 1) = slam_state.at(2) + rj * 
                                       cos(turtlelib::normalize_angle(phij + slam_state.at(2)));
+        obstacle_initialized.at(id) = true;
+        RCLCPP_INFO_STREAM(get_logger(), "Initialized Obstacle # "<< id);
       }
 
       // this is Zbar (ESTIMATED measurement). Take from state estimation .
@@ -234,7 +239,7 @@ private:
       arma::vec zj_hat(2, arma::fill::zeros);
       zj_hat.at(0) = rj_hat;
       zj_hat.at(1) = phij_hat;
-      RCLCPP_INFO_STREAM(get_logger(), "zj_hat\n"<< zj_hat);
+      // RCLCPP_INFO_STREAM(get_logger(), "zj_hat\n"<< zj_hat);
 
       arma::mat Hj(2, 3+2*max_obstacles, arma::fill::zeros);
       // "j" is id. 
@@ -248,28 +253,24 @@ private:
       Hj.at(1,3 + 2*id) = -dyj_hat/dj_hat;
       Hj.at(0,4 + 2*id) =  dyj_hat/rj_hat;
       Hj.at(1,4 + 2*id) =  dxj_hat/dj_hat;
-      RCLCPP_INFO_STREAM(get_logger(), "Hj:\n"<< Hj);
+      // RCLCPP_INFO_STREAM(get_logger(), "Hj:\n"<< Hj);
 
       // Kalman gain
       arma::mat Ri = R.submat(id, id, id+1, id+1);
       arma::mat help_Kj = Hj * Covariance * Hj.t() + Ri;
       arma::mat Kj = Covariance * Hj.t() * help_Kj.i(); 
-      RCLCPP_INFO_STREAM(get_logger(), "Kalman Gain:\n"<< Kj);
+      // RCLCPP_INFO_STREAM(get_logger(), "Kalman Gain:\n"<< Kj);
 
       // State update
       arma::vec dzj = zj - zj_hat;
       dzj.at(1) = turtlelib::normalize_angle(dzj.at(1));
-      RCLCPP_INFO_STREAM(get_logger(), "dzj:\n"<< dzj);
+      // RCLCPP_INFO_STREAM(get_logger(), "dzj:\n"<< dzj);
       slam_state = slam_state + Kj*dzj;
-      RCLCPP_INFO_STREAM(get_logger(), "New Slam State:\n"<< slam_state);
+      // RCLCPP_INFO_STREAM(get_logger(), "New Slam State:\n"<< slam_state);
 
       // Covariance update
       Covariance = (myIdentity - Kj * Hj) * Covariance;
     }
-
-
-    // DO SOMETHING HERE BASED ON SLAM UPDATE rn it's identity transform
-
     // I want T_map_basefootprint = slam_state
     // But I can only publish T_map_odom
     // 1. Lookup T_odom_basefootprint
@@ -286,6 +287,7 @@ private:
     T_map_odom.transform.rotation.z = q.z();
     T_map_odom.transform.rotation.w = q.w();
     tf_broadcaster_->sendTransform(T_map_odom);
+    // Current slam state now becomes the last slam state
     last_slam_state = slam_state;
   }
 
@@ -408,6 +410,7 @@ private:
   // Sigma
   arma::mat Covariance, Q, R, Qbar, myIdentity;
   arma::vec slam_state, last_slam_state;
+  std::vector<bool> obstacle_initialized;
 };
 
 int main(int argc, char * argv[])
