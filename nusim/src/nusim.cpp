@@ -133,7 +133,7 @@ public:
     declare_parameter("basic_sensor_variance", 0.05);
     basic_sensor_variance = get_parameter("basic_sensor_variance").as_double();
 
-    declare_parameter("max_range", 10.0);
+    declare_parameter("max_range", 3.5);
     max_range = get_parameter("max_range").as_double();
 
     declare_parameter("laser_frame_id", "base_scan");
