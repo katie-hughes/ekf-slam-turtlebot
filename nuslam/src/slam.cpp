@@ -179,7 +179,7 @@ private:
     slam_state.at(1) = robot.get_x();
     slam_state.at(2) = robot.get_y();
     RCLCPP_INFO_STREAM(get_logger(), "Slam State "<< slam_state);
-    const auto dtheta = turtlelib::normalize_angle(slam_state.at(0) - last_slam_state.at(0));
+    // const auto dtheta = turtlelib::normalize_angle(slam_state.at(0) - last_slam_state.at(0));
     const auto dx = slam_state.at(1) - last_slam_state.at(1);
     const auto dy = slam_state.at(2) - last_slam_state.at(2);
     // 2. Propogate state uncertainty using linearized state transition model
@@ -192,12 +192,8 @@ private:
     // At is a sum with the identity matrix
     At.diag() += 1.0;
     // RCLCPP_INFO_STREAM(get_logger(), "At:\n"<< At);
-    
-    Covariance = At * Covariance * At.t() + Qbar;
 
-    RCLCPP_INFO_STREAM(get_logger(), "New Covariance:\n"<< Covariance);
-    
-    // depending on this, there are two options for At matrix
+    Covariance = At * Covariance * At.t() + Qbar;
 
     for(int i = 0; i < static_cast<double>(sensor.markers.size()); i++){
       const auto mx = sensor.markers.at(i).pose.position.x;
@@ -257,14 +253,18 @@ private:
       arma::vec new_slam_state = slam_state + Kj*dzj;
       RCLCPP_INFO_STREAM(get_logger(), "New Slam State:\n"<< new_slam_state);
 
-      // // Covariance update
-      // arma::mat newNewCovariance = (myIdentity - Kj * Hj) * Covariance;
-      // RCLCPP_INFO_STREAM(get_logger(), "New Cov:\n"<< newNewCovariance);
+      // Covariance update
+      Covariance = (myIdentity - Kj * Hj) * Covariance;
     }
+
+
     // DO SOMETHING HERE BASED ON SLAM UPDATE rn it's identity transform
-    last_slam_state = slam_state;
+
+    // 
+    
     T_map_odom.header.stamp = get_clock()->now();
     tf_broadcaster_->sendTransform(T_map_odom);
+    last_slam_state = slam_state;
   }
 
   void js_cb(const sensor_msgs::msg::JointState & js)
