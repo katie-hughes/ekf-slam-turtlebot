@@ -215,17 +215,15 @@ private:
       zj.at(1) = phij;
       // RCLCPP_INFO_STREAM(get_logger(), "zj\n"<< zj);
 
-      // check if obstacle has been seen before. 
-      // TODO: Maybe keep track of this in a separate vector or something
+      // check if this obstacle has been seen before. 
       if (!obstacle_initialized.at(id)){
-      // if ((slam_state.at(3 + 2*id)==0) && (slam_state.at(3 + 2*id + 1)==0)){
         // Obstacle has not been seen. Initialize it!
         // x coordinate
         slam_state.at(3 + 2*id) = slam_state.at(1) + rj * 
                                   cos(turtlelib::normalize_angle(phij + slam_state.at(1)));
         // y coordinate
         slam_state.at(3 + 2*id + 1) = slam_state.at(2) + rj * 
-                                      cos(turtlelib::normalize_angle(phij + slam_state.at(2)));
+                                      sin(turtlelib::normalize_angle(phij + slam_state.at(2)));
         obstacle_initialized.at(id) = true;
         RCLCPP_INFO_STREAM(get_logger(), "Initialized Obstacle # "<< id);
       }
