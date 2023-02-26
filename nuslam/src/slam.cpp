@@ -125,6 +125,11 @@ public:
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
     max_obstacles = 3;
+
+    slam_state = arma::vec(max_obstacles*2 + 3, arma::fill::zeros);
+    RCLCPP_INFO_STREAM(get_logger(), "Slam State:\n" << slam_state);
+    last_slam_state = arma::vec(max_obstacles*2 + 3, arma::fill::zeros);
+
     Covariance = arma::mat(max_obstacles*2 + 3, max_obstacles*2 + 3, arma::fill::zeros);
     // set initial covariance
     for (int i = 0; i < 2*max_obstacles; i++){
@@ -148,9 +153,17 @@ public:
     Qbar.submat(0, 0, 2, 2) = Q;
     RCLCPP_INFO_STREAM(get_logger(), "Qbar:\n" << Qbar);
 
-    last_slam_x = 0.0;
-    last_slam_y = 0.0;
-    last_slam_theta = 0.0;
+    // i don't know why tf I can't use their identity constructor but here we are
+    myIdentity = arma::mat(max_obstacles*2 + 3, max_obstacles*2 + 3, arma::fill::zeros);
+    myIdentity.diag() += 1.0;
+    RCLCPP_INFO_STREAM(get_logger(), "myIdentity:\n" << myIdentity);
+
+
+    arma::mat M1(3+max_obstacles*2, 2, arma::fill::ones);
+    RCLCPP_INFO_STREAM(get_logger(), "M1:\n" << M1);
+    arma::vec V1(2, arma::fill::ones);
+    RCLCPP_INFO_STREAM(get_logger(), "V1:\n" << V1);
+    RCLCPP_INFO_STREAM(get_logger(), "Product:\n" << M1*V1);
   }
 
 private:
@@ -162,12 +175,13 @@ private:
     // 1. Update state estimate. This is already handled by odometry?
     // NO this is not just the robot.get_config(). Since it's WRT map frame not odom frame.
     // actually maybe it just is this ADHFASafdfa 
-    slam_theta = robot.get_phi();
-    slam_x = robot.get_x();
-    slam_y = robot.get_y();
-    // const auto dtheta = turtlelib::normalize_angle(slam_theta - last_slam_theta);
-    const auto dx = slam_x - last_slam_x;
-    const auto dy = slam_y - last_slam_y;
+    slam_state.at(0) = robot.get_phi();
+    slam_state.at(1) = robot.get_x();
+    slam_state.at(2) = robot.get_y();
+    RCLCPP_INFO_STREAM(get_logger(), "Slam State "<< slam_state);
+    const auto dtheta = turtlelib::normalize_angle(slam_state.at(0) - last_slam_state.at(0));
+    const auto dx = slam_state.at(1) - last_slam_state.at(1);
+    const auto dy = slam_state.at(2) - last_slam_state.at(2);
     // 2. Propogate state uncertainty using linearized state transition model
     // For this I need At and Qbar. 
     // Sigma_t^- = At SigmaHat_{t-1} At^T + Qbar
@@ -179,9 +193,9 @@ private:
     At.diag() += 1.0;
     // RCLCPP_INFO_STREAM(get_logger(), "At:\n"<< At);
     
-    auto newCovariance = At * Covariance * At.t() + Qbar;
+    Covariance = At * Covariance * At.t() + Qbar;
 
-    // RCLCPP_INFO_STREAM(get_logger(), "New Covariance:\n"<< newCovariance);
+    RCLCPP_INFO_STREAM(get_logger(), "New Covariance:\n"<< Covariance);
     
     // depending on this, there are two options for At matrix
 
@@ -193,12 +207,28 @@ private:
       const auto id = sensor.markers.at(i).id;
       RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
       RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
-      // compute tilde z = hj(state)
-      const auto dxj = mx - slam_x;
-      const auto dyj = my - slam_y;
+
+      // this is z (current sensor measurement)
+      const auto dxj = mx - slam_state.at(1);
+      const auto dyj = my - slam_state.at(2);
       const auto dj = dxj*dxj + dyj*dyj;
       const auto rj = sqrt(dj);
-      const auto phij = turtlelib::normalize_angle(atan2(dyj, dxj) - slam_theta);
+      const auto phij = turtlelib::normalize_angle(atan2(dyj, dxj) - slam_state.at(0));
+      arma::vec zj(2, arma::fill::zeros);
+      zj.at(0) = rj;
+      zj.at(1) = phij;
+      RCLCPP_INFO_STREAM(get_logger(), "zj\n"<< zj);
+
+      // this is Zbar (ESTIMATED measurement)
+      const auto dxj_hat = slam_state.at(3 + 2*id);
+      const auto dyj_hat = slam_state.at(3 + 2*id);
+      const auto dj_hat = dxj_hat*dxj_hat + dyj_hat*dyj_hat;
+      const auto rj_hat = sqrt(dj_hat);
+      const auto phij_hat = turtlelib::normalize_angle(atan2(dyj_hat, dxj_hat) - slam_state.at(0));
+      arma::vec zj_hat(2, arma::fill::zeros);
+      zj_hat.at(0) = rj_hat;
+      zj_hat.at(1) = phij_hat;
+      RCLCPP_INFO_STREAM(get_logger(), "zj_hat\n"<< zj_hat);
 
       arma::mat Hj(2, 3+2*max_obstacles, arma::fill::zeros);
       // "j" is id. 
@@ -215,14 +245,24 @@ private:
       RCLCPP_INFO_STREAM(get_logger(), "Hj:\n"<< Hj);
 
       // Kalman gain
-      const auto Ri = R.submat(id, id, id+1, id+1);
-      const auto help_Ki = Hj * newCovariance * Hj.t() + Ri;
-      const auto Ki = newCovariance * Hj.t() * help_Ki.i(); 
-      RCLCPP_INFO_STREAM(get_logger(), "Kalman Gain:\n"<< Ki);
+      arma::mat Ri = R.submat(id, id, id+1, id+1);
+      arma::mat help_Kj = Hj * Covariance * Hj.t() + Ri;
+      arma::mat Kj = Covariance * Hj.t() * help_Kj.i(); 
+      RCLCPP_INFO_STREAM(get_logger(), "Kalman Gain:\n"<< Kj);
 
+      // State update
+      arma::vec dzj = zj - zj_hat;
+      dzj.at(1) = turtlelib::normalize_angle(dzj.at(1));
+      RCLCPP_INFO_STREAM(get_logger(), "dzj:\n"<< dzj);
+      arma::vec new_slam_state = slam_state + Kj*dzj;
+      RCLCPP_INFO_STREAM(get_logger(), "New Slam State:\n"<< new_slam_state);
 
+      // // Covariance update
+      // arma::mat newNewCovariance = (myIdentity - Kj * Hj) * Covariance;
+      // RCLCPP_INFO_STREAM(get_logger(), "New Cov:\n"<< newNewCovariance);
     }
     // DO SOMETHING HERE BASED ON SLAM UPDATE rn it's identity transform
+    last_slam_state = slam_state;
     T_map_odom.header.stamp = get_clock()->now();
     tf_broadcaster_->sendTransform(T_map_odom);
   }
@@ -344,9 +384,8 @@ private:
   int max_obstacles;
 
   // Sigma
-  arma::mat Covariance, Q, R, Qbar;
-  double slam_x, slam_y, slam_theta;
-  double last_slam_x, last_slam_y, last_slam_theta;
+  arma::mat Covariance, Q, R, Qbar, myIdentity;
+  arma::vec slam_state, last_slam_state;
 };
 
 int main(int argc, char * argv[])
