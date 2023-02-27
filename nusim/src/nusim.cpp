@@ -245,6 +245,7 @@ private:
 
   // publish the fake sensor markers and path at a slower rate
   void slower_timer_callback(){
+    current_time = this->get_clock()->now();
     if(!draw_only){
       RCLCPP_INFO_STREAM(get_logger(), "Time: "<<current_time.sec<<" "<< current_time.nanosec);
       publish_laser();

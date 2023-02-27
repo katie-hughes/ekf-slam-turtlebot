@@ -143,10 +143,10 @@ public:
     // Set Q and R covariance matrices
     // Right now they are just Identity. Might need to fiddle with values
     Q = arma::mat(3, 3, arma::fill::zeros);
-    Q.diag() += 2.0;
+    Q.diag() += 0.005;
     RCLCPP_INFO_STREAM(get_logger(), "Q:\n" << Q);
     R = arma::mat(2*max_obstacles, 2*max_obstacles, arma::fill::zeros);
-    R.diag() += 1.0;
+    R.diag() += 0.005;
     RCLCPP_INFO_STREAM(get_logger(), "R:\n" << R);
 
     // Qbar = [Q & 03x2n \\ 02nx3 02nx2n]
@@ -195,7 +195,12 @@ private:
       const auto id = sensor.markers.at(i).id;
       // RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
       // RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
-
+      // CHECK THAT IT IS NOT "DELETE"
+      const auto act = sensor.markers.at(i).action;
+      if (act == 2){
+        // Obstacle is out of range. Skip this loop iteration!
+        continue;
+      }
       // this is z (current sensor measurement)
       const auto dxj = mx;
       const auto dyj = my;
@@ -268,10 +273,17 @@ private:
     // 2. Desired x = slamx - robot.get_x() etc
     // That should be it? 
     T_map_odom.header.stamp = get_clock()->now();
-    T_map_odom.transform.translation.x = slam_state.at(1) - robot.get_x();
-    T_map_odom.transform.translation.y = slam_state.at(2) - robot.get_y();
+    const turtlelib::Transform2D Tob = robot.get_config();
+    const turtlelib::Transform2D Tmb{turtlelib::Vector2D{slam_state.at(1), slam_state.at(2)},
+                                     slam_state.at(0)};
+    const auto Tmo = Tmb*Tob.inv();
+    // T_map_odom.transform.translation.x = slam_state.at(1) - robot.get_x();
+    // T_map_odom.transform.translation.y = slam_state.at(2) - robot.get_y();
+    T_map_odom.transform.translation.x = Tmo.translation().x;
+    T_map_odom.transform.translation.y = Tmo.translation().y;
     tf2::Quaternion q;
-    q.setRPY(0, 0, turtlelib::normalize_angle(slam_state.at(0) - robot.get_phi()));
+    // q.setRPY(0, 0, turtlelib::normalize_angle(slam_state.at(0) - robot.get_phi()));
+    q.setRPY(0, 0, turtlelib::normalize_angle(Tmo.rotation()));
     T_map_odom.transform.rotation.x = q.x();
     T_map_odom.transform.rotation.y = q.y();
     T_map_odom.transform.rotation.z = q.z();
