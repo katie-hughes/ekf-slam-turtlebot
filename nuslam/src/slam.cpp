@@ -143,8 +143,7 @@ public:
     // Set Q and R covariance matrices
     // Right now they are just Identity. Might need to fiddle with values
     Q = arma::mat(3, 3, arma::fill::zeros);
-    // Q.fill(0.0);
-    Q.diag() += 1.0;
+    Q.diag() += 2.0;
     RCLCPP_INFO_STREAM(get_logger(), "Q:\n" << Q);
     R = arma::mat(2*max_obstacles, 2*max_obstacles, arma::fill::zeros);
     R.diag() += 1.0;
@@ -155,17 +154,10 @@ public:
     Qbar.submat(0, 0, 2, 2) = Q;
     RCLCPP_INFO_STREAM(get_logger(), "Qbar:\n" << Qbar);
 
-    // i don't know why tf I can't use their identity constructor but here we are
+    // i don't know why I can't use their identity constructor but here we are
     myIdentity = arma::mat(max_obstacles*2 + 3, max_obstacles*2 + 3, arma::fill::zeros);
     myIdentity.diag() += 1.0;
     RCLCPP_INFO_STREAM(get_logger(), "myIdentity:\n" << myIdentity);
-
-
-    arma::mat M1(3+max_obstacles*2, 2, arma::fill::ones);
-    RCLCPP_INFO_STREAM(get_logger(), "M1:\n" << M1);
-    arma::vec V1(2, arma::fill::ones);
-    RCLCPP_INFO_STREAM(get_logger(), "V1:\n" << V1);
-    RCLCPP_INFO_STREAM(get_logger(), "Product:\n" << M1*V1);
   }
 
 private:
@@ -178,7 +170,7 @@ private:
     slam_state.at(0) = robot.get_phi();
     slam_state.at(1) = robot.get_x();
     slam_state.at(2) = robot.get_y();
-    RCLCPP_INFO_STREAM(get_logger(), "Slam State "<< slam_state);
+    RCLCPP_INFO_STREAM(get_logger(), "Slam State\n"<< slam_state);
     // const auto dtheta = turtlelib::normalize_angle(slam_state.at(0) - last_slam_state.at(0));
     const auto dx = slam_state.at(1) - last_slam_state.at(1);
     const auto dy = slam_state.at(2) - last_slam_state.at(2);
@@ -285,6 +277,23 @@ private:
     T_map_odom.transform.rotation.z = q.z();
     T_map_odom.transform.rotation.w = q.w();
     tf_broadcaster_->sendTransform(T_map_odom);
+    // update path. ONLY SELECTIVELY
+    if (iterations % 5 == 0){
+      geometry_msgs::msg::PoseStamped ps;
+      ps.header.stamp = get_clock()->now();
+      ps.header.frame_id = "nusim/world";
+      ps.pose.position.x = slam_state.at(1);
+      ps.pose.position.y = slam_state.at(2);
+      followed_path.poses.push_back(ps);
+      // keep array from getting too big!
+      if (followed_path.poses.size()>100){
+        followed_path.poses.erase(followed_path.poses.begin());
+      }
+      followed_path.header.stamp = get_clock()->now();
+      followed_path.header.frame_id = "nusim/world";
+      path_pub_->publish(followed_path);
+    }
+    iterations++;
     // Current slam state now becomes the last slam state
     last_slam_state = slam_state;
   }
@@ -340,27 +349,7 @@ private:
         T_odom_base.transform.rotation.z = q.z();
         T_odom_base.transform.rotation.w = q.w();
         tf_broadcaster_->sendTransform(T_odom_base);
-        // update path. ONLY SELECTIVELY
-        if (iterations % 100 == 0){
-          geometry_msgs::msg::PoseStamped ps;
-          ps.header.stamp = js.header.stamp;
-          ps.header.frame_id = "nusim/world";
-          ps.pose.position.x = robot.get_x();
-          ps.pose.position.y = robot.get_y();
-          ps.pose.orientation.x = q.x();
-          ps.pose.orientation.y = q.y();
-          ps.pose.orientation.z = q.z();
-          ps.pose.orientation.w = q.w();
-          followed_path.poses.push_back(ps);
-          // keep array from getting too big!
-          if (followed_path.poses.size()>100){
-            followed_path.poses.erase(followed_path.poses.begin());
-          }
-          followed_path.header.stamp = ps.header.stamp;
-          followed_path.header.frame_id = "nusim/world";
-          path_pub_->publish(followed_path);
-        }
-        iterations++;
+        
       } else {
         RCLCPP_INFO_STREAM(get_logger(), "Wheel IDs not found in Joint State Message!");
       }

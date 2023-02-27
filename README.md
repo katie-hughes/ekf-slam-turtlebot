@@ -6,6 +6,7 @@ This repository consists of several ROS packages
 - [nuturtle_description](nuturtle_description) - Visualize one or many turtlebots
 - [nusim](nusim) - Simulates a Turtlebot3 in an rviz environment
 - [nuturtle_control](nuturtle_control) - provides an odometry estimate for the turtlebot that can interface with either a simulated or real robot.
+- [nuslam](nuslam) - Performs EKF slam to generate a map of the environment.
 
 
 # Libraries

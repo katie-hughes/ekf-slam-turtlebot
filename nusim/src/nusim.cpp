@@ -246,6 +246,7 @@ private:
   // publish the fake sensor markers and path at a slower rate
   void slower_timer_callback(){
     if(!draw_only){
+      RCLCPP_INFO_STREAM(get_logger(), "Time: "<<current_time.sec<<" "<< current_time.nanosec);
       publish_laser();
       // this is a laser publisher that is super simple, just publishes a constant value
       // so it should be computationally faster (for testing purposes)
