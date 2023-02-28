@@ -194,6 +194,7 @@ private:
     At.diag() += 1.0;
     // Update Covariance matrix
     Covariance = At * Covariance * At.t() + Qbar;
+    // RCLCPP_INFO_STREAM(get_logger(), "Covariance\n"<< Covariance);
     // Iterate through the markers
     for(int i = 0; i < static_cast<double>(sensor.markers.size()); i++){
       // marker x and y coordinates
