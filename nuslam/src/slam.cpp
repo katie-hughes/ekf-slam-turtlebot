@@ -145,10 +145,10 @@ public:
     // Set Q and R covariance matrices
     // Right now they are just Identity. Might need to fiddle with values
     Q = arma::mat(3, 3, arma::fill::zeros);
-    Q.diag() += 1.0;
+    Q.diag() += 1e-3; // e-3
     RCLCPP_INFO_STREAM(get_logger(), "Q:\n" << Q);
     R = arma::mat(2*max_obstacles, 2*max_obstacles, arma::fill::zeros);
-    R.diag() += 1.0;
+    R.diag() += 1e-1; // e-1
     RCLCPP_INFO_STREAM(get_logger(), "R:\n" << R);
 
     // Qbar = [Q & 03x2n \\ 02nx3 02nx2n]
@@ -228,10 +228,10 @@ private:
         // Obstacle has not been seen. Initialize it!
         // x coordinate
         slam_state.at(3 + 2*id) = slam_state.at(1) + rj * 
-                                  cos(turtlelib::normalize_angle(phij + slam_state.at(1)));
+                                  cos(turtlelib::normalize_angle(phij + slam_state.at(0)));
         // y coordinate
         slam_state.at(3 + 2*id + 1) = slam_state.at(2) + rj * 
-                                      sin(turtlelib::normalize_angle(phij + slam_state.at(2)));
+                                      sin(turtlelib::normalize_angle(phij + slam_state.at(0)));
         obstacle_initialized.at(id) = true;
         RCLCPP_INFO_STREAM(get_logger(), "Initialized Obstacle # "<< id);
       }
