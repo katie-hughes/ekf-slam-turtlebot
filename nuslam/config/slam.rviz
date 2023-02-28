@@ -479,7 +479,7 @@ Visualization Manager:
         blue/imu_link:
           Value: false
         blue/odom:
-          Value: true
+          Value: false
         blue/wheel_left_link:
           Value: false
         blue/wheel_right_link:
@@ -503,7 +503,7 @@ Visualization Manager:
         map:
           Value: true
         nusim/world:
-          Value: true
+          Value: false
         red/base_footprint:
           Value: true
         red/base_link:
@@ -522,7 +522,7 @@ Visualization Manager:
       Name: TF
       Show Arrows: true
       Show Axes: true
-      Show Names: false
+      Show Names: true
       Tree:
         nusim/world:
           blue/odom:
