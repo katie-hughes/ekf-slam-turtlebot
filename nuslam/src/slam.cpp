@@ -258,7 +258,7 @@ private:
       // RCLCPP_INFO_STREAM(get_logger(), "Hj:\n"<< Hj);
 
       // Kalman gain
-      arma::mat Ri = R.submat(2*id, 2*id, 2*id + 1, 2*id + 1);
+      arma::mat Ri = R.submat(2 * id, 2 * id, 2 * id + 1, 2 * id + 1);
       arma::mat help_Kj = Hj * Covariance * Hj.t() + Ri;
       arma::mat Kj = Covariance * Hj.t() * help_Kj.i();
       // RCLCPP_INFO_STREAM(get_logger(), "Kalman Gain:\n"<< Kj);
