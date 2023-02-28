@@ -163,6 +163,8 @@ private:
         odom_pub_->publish(current_odom);
         // update publisher
         T_odom_base.header.stamp = js.header.stamp;
+        // DO THIS FOR TF/LASER ISSUE IN RVIZ
+        T_odom_base.header.stamp.nanosec += 3e8;
         T_odom_base.transform.translation.x = robot.get_x();
         T_odom_base.transform.translation.y = robot.get_y();
         T_odom_base.transform.rotation.x = q.x();
