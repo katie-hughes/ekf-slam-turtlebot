@@ -160,10 +160,6 @@ public:
     myIdentity = arma::mat(max_obstacles*2 + 3, max_obstacles*2 + 3, arma::fill::zeros);
     myIdentity.diag() += 1.0;
     RCLCPP_INFO_STREAM(get_logger(), "myIdentity:\n" << myIdentity);
-
-    last_odom_x = 0;
-    last_odom_y = 0;
-    last_odom_theta = 0;
   }
 
 private:
@@ -173,14 +169,13 @@ private:
     // PREDICTION
 
     // 1. Update state estimate. This is already handled by odometry.
-    odom_x = robot.get_x();
-    odom_y = robot.get_y();
-    odom_theta = robot.get_phi();
 
-    slam_state.at(0) += (odom_theta - last_odom_theta);
+    Tob = robot.get_config();
+    Tmb = Tmo*Tob;
+    slam_state.at(0) = Tmb.rotation();
     slam_state.at(0) = turtlelib::normalize_angle(slam_state.at(0));
-    slam_state.at(1) += (odom_x - last_odom_x);
-    slam_state.at(2) += (odom_y - last_odom_y);
+    slam_state.at(1) = Tmb.translation().x;
+    slam_state.at(2) = Tmb.translation().y;
     RCLCPP_INFO_STREAM(get_logger(), "Initial Slam State\n"<< slam_state);
     // const auto dtheta = turtlelib::normalize_angle(slam_state.at(0) - last_slam_state.at(0));
     const auto dx = slam_state.at(1) - last_slam_state.at(1);
@@ -285,10 +280,10 @@ private:
     // That should be it? 
     RCLCPP_INFO_STREAM(get_logger(), "Slam State\n"<< slam_state);
     T_map_odom.header.stamp = get_clock()->now();
-    const turtlelib::Transform2D Tob = robot.get_config();
-    const turtlelib::Transform2D Tmb{turtlelib::Vector2D{slam_state.at(1), slam_state.at(2)},
-                                     slam_state.at(0)};
-    const auto Tmo = Tmb*Tob.inv();
+    Tob = robot.get_config();
+    Tmb = turtlelib::Transform2D{turtlelib::Vector2D{slam_state.at(1), slam_state.at(2)},
+                                 slam_state.at(0)};
+    Tmo = Tmb*Tob.inv();
     RCLCPP_INFO_STREAM(get_logger(), "Tmb: "<< Tmb);
     // T_map_odom.transform.translation.x = slam_state.at(1) - robot.get_x();
     // T_map_odom.transform.translation.y = slam_state.at(2) - robot.get_y();
@@ -323,9 +318,6 @@ private:
     // Current slam state now becomes the last slam state
     last_slam_state = slam_state;
     // these for keeping track of odometry
-    last_odom_x = odom_x;
-    last_odom_y = odom_y;
-    last_odom_theta = odom_theta;
   }
 
   /// @brief Publish slam measurement marker array
@@ -458,7 +450,7 @@ private:
   nav_msgs::msg::Path followed_path;
   long iterations = 0;
   int max_obstacles;
-  double odom_x, odom_y, odom_theta, last_odom_x, last_odom_y, last_odom_theta;
+  turtlelib::Transform2D Tob, Tmb, Tmo;
 
   // Sigma
   arma::mat Covariance, Q, R, Qbar, myIdentity;
