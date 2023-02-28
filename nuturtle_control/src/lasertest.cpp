@@ -34,7 +34,6 @@ using namespace std::chrono_literals;
 * member function as a callback from the timer. */
 
 
-
 class LaserTest : public rclcpp::Node
 {
 public:
@@ -55,7 +54,6 @@ public:
   }
 
 private:
-
   void fast_timer_callback()
   {
     current_time = this->get_clock()->now();
@@ -65,7 +63,8 @@ private:
     // do_all();
   }
 
-  void slow_timer_callback(){
+  void slow_timer_callback()
+  {
     test_publish_laser();
   }
 
@@ -75,7 +74,7 @@ private:
     geometry_msgs::msg::TransformStamped t;
     t.header.stamp = current_time;
     // t.header.stamp.nanosec = 5e6*tf_count;
-    // 
+    //
     // t.header.stamp.sec = 0;
     // t.header.stamp.nanosec = 2e8; // 21e7;
     t.header.frame_id = "f1";
@@ -89,8 +88,9 @@ private:
     tf_count++;
   }
 
-  /// @brief Publish a test LaserScan that should update quicker than real 
-  void test_publish_laser(){
+  /// @brief Publish a test LaserScan that should update quicker than real
+  void test_publish_laser()
+  {
     sensor_msgs::msg::LaserScan laser;
     laser.header.stamp = current_time;
     // laser.header.stamp.nanosec = 1e8*laser_count;
@@ -109,7 +109,7 @@ private:
     const int laser_nsamples = 360;
     // fill in the laser.ranges array
     // just make this super simple to see if it's running too slow in other
-    for (int n=0; n<laser_nsamples; n++){
+    for (int n = 0; n < laser_nsamples; n++) {
       laser.ranges.push_back(1.0);
     }
     laser_pub_->publish(laser);
@@ -121,7 +121,7 @@ private:
 
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
   rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laser_pub_;
-  
+
   builtin_interfaces::msg::Time current_time;
 
   long laser_count = 0;

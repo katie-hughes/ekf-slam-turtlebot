@@ -36,7 +36,6 @@ using namespace std::chrono_literals;
 * member function as a callback from the timer. */
 
 
-
 class Test : public rclcpp::Node
 {
 public:
@@ -63,7 +62,6 @@ public:
   }
 
 private:
-
   void timer_callback()
   {
     // RCLCPP_INFO_STREAM(get_logger(), "Laser  Publishes: "<<lasers_count);
@@ -80,29 +78,32 @@ private:
   void laser_cb(const sensor_msgs::msg::LaserScan & las)
   {
     lasers.push_back(las);
-    lasers_count ++;
-    RCLCPP_ERROR_STREAM(get_logger(), "Laser Sec: " << las.header.stamp.sec <<
-                                           " ns: " << las.header.stamp.nanosec);
+    lasers_count++;
+    RCLCPP_ERROR_STREAM(
+      get_logger(), "Laser Sec: " << las.header.stamp.sec <<
+        " ns: " << las.header.stamp.nanosec);
   }
 
   void sensor_cb(const nuturtlebot_msgs::msg::SensorData & sensor)
   {
     sensors.push_back(sensor);
-    sensors_count ++;
+    sensors_count++;
     // RCLCPP_ERROR_STREAM(get_logger(), "Scan Sec: " << las.header.stamp.sec <<
     //                                        " ns: " << las.header.stamp.nanosec);
   }
 
   void tf_cb(const tf2_msgs::msg::TFMessage & tf)
   {
-    for (size_t n = 0; n < tf.transforms.size(); n++){
+    for (size_t n = 0; n < tf.transforms.size(); n++) {
       const auto transform = tf.transforms.at(n);
-      if ((transform.header.frame_id == "nusim/world") && 
-          (transform.child_frame_id == "red/base_footprint")){
+      if ((transform.header.frame_id == "nusim/world") &&
+        (transform.child_frame_id == "red/base_footprint"))
+      {
         tfs.push_back(tf);
-        tfs_count ++;
-        RCLCPP_INFO_STREAM(get_logger(), "Tf Sec: " << transform.header.stamp.sec <<
-                                            " ns: " << transform.header.stamp.nanosec);
+        tfs_count++;
+        RCLCPP_INFO_STREAM(
+          get_logger(), "Tf Sec: " << transform.header.stamp.sec <<
+            " ns: " << transform.header.stamp.nanosec);
       }
     }
   }

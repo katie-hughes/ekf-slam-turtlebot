@@ -155,9 +155,9 @@ public:
     laser_noise = get_parameter("laser_noise").as_double();
 
     commands_dist = std::normal_distribution<>{0, sqrt(input_noise)};
-    
-    slip_dist = std::uniform_real_distribution<>{-1.0*slip_fraction, slip_fraction};
-    
+
+    slip_dist = std::uniform_real_distribution<>{-1.0 * slip_fraction, slip_fraction};
+
     sensor_dist = std::normal_distribution<>{0, sqrt(basic_sensor_variance)};
 
     // slightly hacky workaround to get new values into my diff drive object
@@ -225,7 +225,7 @@ private:
   {
     // use this global timestamp for everything i publish
     current_time = this->get_clock()->now();
-    if(!draw_only){
+    if (!draw_only) {
       // publish timetsep
       auto message = std_msgs::msg::UInt64();
       message.data = timestep_;
@@ -241,9 +241,10 @@ private:
   }
 
   // publish the fake sensor markers and path at a slower rate
-  void slower_timer_callback(){
+  void slower_timer_callback()
+  {
     // current_time = this->get_clock()->now();
-    if(!draw_only){
+    if (!draw_only) {
       // RCLCPP_INFO_STREAM(get_logger(), "Time: "<<current_time.sec<<" "<< current_time.nanosec);
       publish_laser();
       // this is a laser publisher that is super simple, just publishes a constant value
@@ -296,7 +297,7 @@ private:
   std::mt19937 & get_random()
   {
     // static variables inside a function are created once and persist for the remainder of the program
-    static std::random_device rd{}; 
+    static std::random_device rd{};
     static std::mt19937 mt{rd()};
     // we return a reference to the pseudo-random number genrator object. This is always the
     // same object every time get_random is called
@@ -304,15 +305,16 @@ private:
   }
 
   /// @brief do forward kinematics on the robot based on wheel commands
-  void update_sensor(){
+  void update_sensor()
+  {
     // udpate wheel states
     auto vl = left_velocity;
     auto vr = right_velocity;
-    if (do_noise){
-      if (vl != 0.0){
+    if (do_noise) {
+      if (vl != 0.0) {
         vl += commands_dist(get_random());
       }
-      if (vr != 0.0){
+      if (vr != 0.0) {
         vr += commands_dist(get_random());
       }
     }
@@ -323,9 +325,11 @@ private:
     robot.fk(ws_left, ws_right);
     // update sensor data
     current_sensor.stamp = current_time;
-    if (do_noise){
-      left_encoder_save +=  left_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz) * (1 + slip_dist(get_random())) * encoder_ticks;
-      right_encoder_save += right_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz) * (1 + slip_dist(get_random())) * encoder_ticks;
+    if (do_noise) {
+      left_encoder_save += left_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz) *
+        (1 + slip_dist(get_random())) * encoder_ticks;
+      right_encoder_save += right_velocity * motor_cmd_per_rad_sec * (1.0 / rate_hz) *
+        (1 + slip_dist(get_random())) * encoder_ticks;
     } else {
       left_encoder_save += ws_left * encoder_ticks;
       right_encoder_save += ws_right * encoder_ticks;
@@ -336,10 +340,11 @@ private:
   }
 
   /// @brief Check if the robot has collided with an obstacle and update the config if yes
-  void check_collisions(){
+  void check_collisions()
+  {
     for (size_t i = 0; i < n_cylinders; i++) {
-      const auto ob_dist = turtlelib::distance(robot.get_x(),robot.get_y(),obx.at(i),oby.at(i));
-      if (ob_dist < collision_radius + obr){
+      const auto ob_dist = turtlelib::distance(robot.get_x(), robot.get_y(), obx.at(i), oby.at(i));
+      if (ob_dist < collision_radius + obr) {
         // RCLCPP_INFO_STREAM(get_logger(), "Collision w obstacle " << i);
         // there was a collision. Get unit vector along line from obstacle to robot centers.
         const auto ux = (robot.get_x() - obx.at(i)) / ob_dist;
@@ -384,7 +389,8 @@ private:
   }
 
   /// @brief Update path of red robot
-  void update_path(){
+  void update_path()
+  {
     geometry_msgs::msg::PoseStamped ps;
     ps.header.stamp = current_time;
     ps.header.frame_id = "nusim/world";
@@ -398,7 +404,7 @@ private:
     ps.pose.orientation.w = q.w();
     followed_path.poses.push_back(ps);
     // keep array from getting too big!
-    if (followed_path.poses.size()>500){
+    if (followed_path.poses.size() > 500) {
       followed_path.poses.erase(followed_path.poses.begin());
     }
     followed_path.header.stamp = ps.header.stamp;
@@ -423,8 +429,8 @@ private:
       m.color.b = 0.0;
       m.color.a = 1.0;
       // Set Radius
-      m.scale.x = 2*obr;
-      m.scale.y = 2*obr;
+      m.scale.x = 2 * obr;
+      m.scale.y = 2 * obr;
       m.scale.z = 0.25;
       m.pose.position.x = obx.at(i);
       m.pose.position.y = oby.at(i);
@@ -448,7 +454,10 @@ private:
       m.id = i;         // so each has a unique ID
       m.type = 3;       // cylinder
       // add marker if within range. Delete if not.
-      if (turtlelib::distance(robot.get_x(),robot.get_y(),obx.at(i),oby.at(i)) > laser_max_range){
+      if (turtlelib::distance(
+          robot.get_x(), robot.get_y(), obx.at(i),
+          oby.at(i)) > laser_max_range)
+      {
         m.action = 2; // delete
       } else {
         m.action = 0; // add/modify
@@ -459,15 +468,15 @@ private:
       m.color.b = 0.0;
       m.color.a = 1.0;
       // Set Radius
-      m.scale.x = 2*obr;
-      m.scale.y = 2*obr;
+      m.scale.x = 2 * obr;
+      m.scale.y = 2 * obr;
       m.scale.z = 0.25;
       // set position
       // get the obstacle location relative to the robot frame
       const auto config_rf = (robot.get_config().inv())(turtlelib::Vector2D{obx.at(i), oby.at(i)});
       m.pose.position.x = config_rf.x;
       m.pose.position.y = config_rf.y;
-      if (do_noise){
+      if (do_noise) {
         // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<sensor_dist(get_random()));
         // RCLCPP_INFO_STREAM(get_logger(), "Mean "<<sensor_dist.mean());
         // RCLCPP_INFO_STREAM(get_logger(), "Stddev "<<sensor_dist.stddev());
@@ -535,7 +544,8 @@ private:
   }
 
   /// @brief Publish LaserScan message based on the obstacles/walls
-  void publish_laser(){
+  void publish_laser()
+  {
     sensor_msgs::msg::LaserScan laser;
     laser.header.stamp = current_time;
     // RCLCPP_INFO_STREAM(get_logger(), "LASER S: " << laser.header.stamp.sec << " ns " <<
@@ -551,57 +561,57 @@ private:
     laser.range_max = laser_max_range;
     // fill in the laser.ranges array
     const auto dangle = laser.angle_max - laser.angle_min;
-    for (int n=0; n<laser_nsamples; n++){
-      const auto angle = laser.angle_min + (dangle/laser_nsamples) * n;
+    for (int n = 0; n < laser_nsamples; n++) {
+      const auto angle = laser.angle_min + (dangle / laser_nsamples) * n;
       auto measurement = laser_max_range;
       // If not in range, it's 0. If in range, it's the distance.
-      const auto xmax = robot.get_x() + laser_max_range*cos(angle + robot.get_phi());
-      const auto ymax = robot.get_y() + laser_max_range*sin(angle + robot.get_phi());
+      const auto xmax = robot.get_x() + laser_max_range * cos(angle + robot.get_phi());
+      const auto ymax = robot.get_y() + laser_max_range * sin(angle + robot.get_phi());
       // I should *probably* check if slope = 0 but this is highly unlikely to happen
-      const auto slope = (ymax-robot.get_y())/(xmax - robot.get_x());
+      const auto slope = (ymax - robot.get_y()) / (xmax - robot.get_x());
       // iterate through obstacles
-      for (size_t i = 0; i < n_cylinders; i++){
+      for (size_t i = 0; i < n_cylinders; i++) {
         // here I am solving a quadratic equation in x
         // which is the solution of points of intersection between circle and line
         // another useful constant that got repeated a lot in my derivation
-        const auto alpha = robot.get_y() - slope*robot.get_x() - oby.at(i);
+        const auto alpha = robot.get_y() - slope * robot.get_x() - oby.at(i);
         // here are the constants for the equation a x^2 + b x + c = 0
-        const auto a = 1 + slope*slope;
+        const auto a = 1 + slope * slope;
         const auto b = 2 * (alpha * slope - obx.at(i));
-        const auto c = obx.at(i)*obx.at(i) + alpha*alpha - obr*obr;
+        const auto c = obx.at(i) * obx.at(i) + alpha * alpha - obr * obr;
         // the determinant ie b^2 - 4ac is what determines the number of solutions
-        const auto det = b*b - 4*a*c;
+        const auto det = b * b - 4 * a * c;
         // if it is <0, there is no solution.
-        if (det == 0){
+        if (det == 0) {
           // 1 solution
-          const auto x1 = (-1.0*b)/(2*a);
+          const auto x1 = (-1.0 * b) / (2 * a);
           const auto y1 = slope * (x1 - robot.get_x()) + robot.get_y();
           // check if the solution is in range
-          const auto dst1 = turtlelib::distance(robot.get_x(),robot.get_y(),x1,y1);
+          const auto dst1 = turtlelib::distance(robot.get_x(), robot.get_y(), x1, y1);
           // IF in range AND closer than current measurement, set
-          if ((dst1 < laser_max_range) && (dst1 < measurement)){
+          if ((dst1 < laser_max_range) && (dst1 < measurement)) {
             measurement = dst1;
           }
         } else if (det > 0) {
           // 2 solutions
-          const auto x1 = (-1.0*b + sqrt(det))/(2*a);
-          const auto x2 = (-1.0*b - sqrt(det))/(2*a);
+          const auto x1 = (-1.0 * b + sqrt(det)) / (2 * a);
+          const auto x2 = (-1.0 * b - sqrt(det)) / (2 * a);
           const auto y1 = slope * (x1 - robot.get_x()) + robot.get_y();
           const auto y2 = slope * (x2 - robot.get_x()) + robot.get_y();
-          const auto dst1 = turtlelib::distance(robot.get_x(),robot.get_y(),x1,y1);
-          const auto dst2 = turtlelib::distance(robot.get_x(),robot.get_y(),x2,y2);
+          const auto dst1 = turtlelib::distance(robot.get_x(), robot.get_y(), x1, y1);
+          const auto dst2 = turtlelib::distance(robot.get_x(), robot.get_y(), x2, y2);
           // FIRST need to check that the intersection is on the right side
-          const bool right_side_x1 = ((x1 - robot.get_x())/(xmax - robot.get_x())) > 0;
-          const bool right_side_x2 = ((x2 - robot.get_x())/(xmax - robot.get_x())) > 0;
-          const bool right_side_y1 = ((y1 - robot.get_y())/(ymax - robot.get_y())) > 0;
-          const bool right_side_y2 = ((y2 - robot.get_y())/(ymax - robot.get_y())) > 0;
+          const bool right_side_x1 = ((x1 - robot.get_x()) / (xmax - robot.get_x())) > 0;
+          const bool right_side_x2 = ((x2 - robot.get_x()) / (xmax - robot.get_x())) > 0;
+          const bool right_side_y1 = ((y1 - robot.get_y()) / (ymax - robot.get_y())) > 0;
+          const bool right_side_y2 = ((y2 - robot.get_y()) / (ymax - robot.get_y())) > 0;
           const bool right_side_1 = right_side_x1 && right_side_y1;
           const bool right_side_2 = right_side_x2 && right_side_y2;
           // IF in range AND closer than current measurement AND right side, set
-          if ((dst1 < laser_max_range) && (dst1 < measurement) && right_side_1){
+          if ((dst1 < laser_max_range) && (dst1 < measurement) && right_side_1) {
             measurement = dst1;
           }
-          if ((dst2 < laser_max_range) && (dst2 < measurement) && right_side_2){
+          if ((dst2 < laser_max_range) && (dst2 < measurement) && right_side_2) {
             measurement = dst2;
           }
         }
@@ -611,40 +621,40 @@ private:
       const auto w1x = 0.5 * x_length;
       const auto w1y = slope * (w1x - robot.get_x()) + robot.get_y();
       const bool right_side_w1x = (robot.get_x() <= w1x) && (w1x <= xmax);
-      const auto dstw1 = turtlelib::distance(robot.get_x(),robot.get_y(),w1x,w1y);
-      if ((dstw1 < laser_max_range) && (dstw1 < measurement) && right_side_w1x){
+      const auto dstw1 = turtlelib::distance(robot.get_x(), robot.get_y(), w1x, w1y);
+      if ((dstw1 < laser_max_range) && (dstw1 < measurement) && right_side_w1x) {
         measurement = dstw1;
       }
       // wall at x = -x_length/2
       const auto w3x = -0.5 * x_length;
       const auto w3y = slope * (w3x - robot.get_x()) + robot.get_y();
       const bool right_side_w3x = (xmax <= w3x) && (w3x <= robot.get_x());
-      const auto dstw3 = turtlelib::distance(robot.get_x(),robot.get_y(),w3x,w3y);
-      if ((dstw3 < laser_max_range) && (dstw3 < measurement) && right_side_w3x){
+      const auto dstw3 = turtlelib::distance(robot.get_x(), robot.get_y(), w3x, w3y);
+      if ((dstw3 < laser_max_range) && (dstw3 < measurement) && right_side_w3x) {
         measurement = dstw3;
       }
       // wall at y = y_length/2
       const auto w2y = 0.5 * y_length;
-      const auto w2x = (1.0/slope) * (w2y - robot.get_y()) + robot.get_x();
+      const auto w2x = (1.0 / slope) * (w2y - robot.get_y()) + robot.get_x();
       const bool right_side_w2y = (robot.get_y() <= w2y) && (w2y <= ymax);
-      const auto dstw2 = turtlelib::distance(robot.get_x(),robot.get_y(),w2x,w2y);
-      if ((dstw2 < laser_max_range) && (dstw2 < measurement) && right_side_w2y){
+      const auto dstw2 = turtlelib::distance(robot.get_x(), robot.get_y(), w2x, w2y);
+      if ((dstw2 < laser_max_range) && (dstw2 < measurement) && right_side_w2y) {
         measurement = dstw2;
       }
       // wall at y = -y_length/2
-      const auto w4y = - 0.5 * y_length;
-      const auto w4x = (1.0/slope) * (w4y - robot.get_y()) + robot.get_x();
+      const auto w4y = -0.5 * y_length;
+      const auto w4x = (1.0 / slope) * (w4y - robot.get_y()) + robot.get_x();
       const bool right_side_w4y = (ymax <= w4y) && (w4y <= robot.get_y());
-      const auto dstw4 = turtlelib::distance(robot.get_x(),robot.get_y(),w4x,w4y);
-      if ((dstw4 < laser_max_range) && (dstw4 < measurement) && right_side_w4y){
+      const auto dstw4 = turtlelib::distance(robot.get_x(), robot.get_y(), w4x, w4y);
+      if ((dstw4 < laser_max_range) && (dstw4 < measurement) && right_side_w4y) {
         measurement = dstw4;
       }
       // check if anything has changed. If there is nothing in range, it should be 0.
-      if (measurement == laser_max_range){
+      if (measurement == laser_max_range) {
         measurement = 0.0;
       }
       // add sensor noise
-      if ((do_noise) && (measurement != 0.0)){
+      if ((do_noise) && (measurement != 0.0)) {
         // RCLCPP_INFO_STREAM(get_logger(), "Random # "<<sensor_dist(get_random()));
         // RCLCPP_INFO_STREAM(get_logger(), "Mean "<<sensor_dist.mean());
         // RCLCPP_INFO_STREAM(get_logger(), "Stddev "<<sensor_dist.stddev());
@@ -659,8 +669,9 @@ private:
   }
 
 
-  /// @brief Publish a test LaserScan that should update quicker than real 
-  void test_publish_laser(){
+  /// @brief Publish a test LaserScan that should update quicker than real
+  void test_publish_laser()
+  {
     sensor_msgs::msg::LaserScan laser;
     laser.header.stamp = current_time;
     // RCLCPP_INFO_STREAM(get_logger(), "LASER S: " << laser.header.stamp.sec << " ns " <<
@@ -676,7 +687,7 @@ private:
     laser.range_max = laser_max_range;
     // fill in the laser.ranges array
     // just make this super simple to see if it's running too slow in other
-    for (int n=0; n<laser_nsamples; n++){
+    for (int n = 0; n < laser_nsamples; n++) {
       laser.ranges.push_back(1.0);
     }
     laser_pub_->publish(laser);

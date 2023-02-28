@@ -108,16 +108,16 @@ private:
     wc.left_velocity = static_cast<int>(ws.l / motor_cmd_per_rad_sec);
     wc.right_velocity = static_cast<int>(ws.r / motor_cmd_per_rad_sec);
     // adjust if over the motor command max
-    if (wc.left_velocity < -1 * motor_cmd_max){
+    if (wc.left_velocity < -1 * motor_cmd_max) {
       wc.left_velocity = -motor_cmd_max;
     }
-    if (wc.left_velocity > motor_cmd_max){
+    if (wc.left_velocity > motor_cmd_max) {
       wc.left_velocity = motor_cmd_max;
     }
-    if (wc.right_velocity < -1 * motor_cmd_max){
+    if (wc.right_velocity < -1 * motor_cmd_max) {
       wc.right_velocity = -motor_cmd_max;
     }
-    if (wc.right_velocity > motor_cmd_max){
+    if (wc.right_velocity > motor_cmd_max) {
       wc.right_velocity = motor_cmd_max;
     }
     // RCLCPP_INFO_STREAM(get_logger(), "Sending "<<wc.left_velocity<<" and "<<wc.right_velocity);
