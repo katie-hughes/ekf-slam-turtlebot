@@ -244,7 +244,7 @@ private:
   void slower_timer_callback(){
     // current_time = this->get_clock()->now();
     if(!draw_only){
-      RCLCPP_INFO_STREAM(get_logger(), "Time: "<<current_time.sec<<" "<< current_time.nanosec);
+      // RCLCPP_INFO_STREAM(get_logger(), "Time: "<<current_time.sec<<" "<< current_time.nanosec);
       publish_laser();
       // this is a laser publisher that is super simple, just publishes a constant value
       // so it should be computationally faster (for testing purposes)

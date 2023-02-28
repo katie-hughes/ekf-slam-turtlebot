@@ -1,5 +1,5 @@
 /// \file slam.cpp
-/// \brief Updates odometry estimations to determine where the robot is
+/// \brief Performs EKF slam to determine robot and obstacle locations in a map frame
 ///
 /// PARAMETERS:
 ///     body_id (string): the frame id of the robot's footprint, will be a child of odom_id frame
@@ -10,14 +10,17 @@
 ///     track_width: distance from the center of the robot to the wheels (m)
 /// PUBLISHES:
 ///     odom (nav_msgs::msg::Odometry): current transform between odom_id and body_id
+///     ~/measured (visualization_msgs::msg::MarkerArray): SLAM estimates for measured obstacles
 /// SUBSCRIBES:
 ///    joint_states (sensor_msgs::msg::JointState): the joint states of the odometry robot
+///    fake_sensor (visualization_msgs::msg::MarkerArray): simulated obstacle locations
 /// SERVERS:
 ///     initial_pose (nuturtle_control::srv::InitialPose): manually set the pose of the odom robot
 /// CLIENTS:
 ///     none
 /// BROADCASTS:
-///    odom_id -> body_id
+///    odom_id -> body_id (Odometry update)
+///    "map" -> odom_id (SLAM update)
 
 #include <chrono>
 #include <functional>
@@ -163,20 +166,20 @@ public:
   }
 
 private:
+
+  /// @brief Callback function upon receiving fake sensor data that performs EKF slam.
+  /// @param sensor marker array representing simulated sensor data
   void fake_sensor_cb(const visualization_msgs::msg::MarkerArray & sensor)
   {
-    // RCLCPP_INFO_STREAM(get_logger(), "Received Marker");
     // PREDICTION
-
     // 1. Update state estimate. This is already handled by odometry.
-
     Tob = robot.get_config();
     Tmb = Tmo*Tob;
     slam_state.at(0) = Tmb.rotation();
     slam_state.at(0) = turtlelib::normalize_angle(slam_state.at(0));
     slam_state.at(1) = Tmb.translation().x;
     slam_state.at(2) = Tmb.translation().y;
-    RCLCPP_INFO_STREAM(get_logger(), "Initial Slam State\n"<< slam_state);
+    // RCLCPP_INFO_STREAM(get_logger(), "Initial Slam State\n"<< slam_state);
     // const auto dtheta = turtlelib::normalize_angle(slam_state.at(0) - last_slam_state.at(0));
     const auto dx = slam_state.at(1) - last_slam_state.at(1);
     const auto dy = slam_state.at(2) - last_slam_state.at(2);
@@ -189,15 +192,14 @@ private:
     At.at(2, 0) = dx;
     // At is a sum with the identity matrix
     At.diag() += 1.0;
-    // RCLCPP_INFO_STREAM(get_logger(), "At:\n"<< At);
-
+    // Update Covariance matrix
     Covariance = At * Covariance * At.t() + Qbar;
-
+    // Iterate through the markers
     for(int i = 0; i < static_cast<double>(sensor.markers.size()); i++){
+      // marker x and y coordinates
       const auto mx = sensor.markers.at(i).pose.position.x;
       const auto my = sensor.markers.at(i).pose.position.y;
-      // this id will be unique for each marker.
-      // If one goes out of range, the id will no longer show up.
+      // this id will be unique for each marker, easy way of distinguishing
       const auto id = sensor.markers.at(i).id;
       // RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
       // RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
@@ -230,7 +232,6 @@ private:
         obstacle_initialized.at(id) = true;
         RCLCPP_INFO_STREAM(get_logger(), "Initialized Obstacle # "<< id);
       }
-
       // this is Zbar (ESTIMATED measurement). Take from state estimation .
       const auto dxj_hat = slam_state.at(3 + 2*id) - slam_state.at(1);
       const auto dyj_hat = slam_state.at(3 + 2*id + 1) - slam_state.at(2);
@@ -242,6 +243,7 @@ private:
       zj_hat.at(1) = phij_hat;
       // RCLCPP_INFO_STREAM(get_logger(), "zj_hat\n"<< zj_hat);
 
+      // H matrix that is constructed from predicted state
       arma::mat Hj(2, 3+2*max_obstacles, arma::fill::zeros);
       // "j" is id. 
       Hj.at(1,0) = -1.0;
@@ -275,35 +277,41 @@ private:
     // I want T_map_basefootprint = slam_state
     // But I can only publish T_map_odom
     // 1. Lookup T_odom_basefootprint
-    // Except I don't need to look up, it's just robot.get_x() and robot.get_y() etc.
-    // 2. Desired x = slamx - robot.get_x() etc
-    // That should be it? 
-    RCLCPP_INFO_STREAM(get_logger(), "Slam State\n"<< slam_state);
+    // Except I don't need to look it up, I can use the current config of the diff drive object
+    // RCLCPP_INFO_STREAM(get_logger(), "Slam State\n"<< slam_state);
     T_map_odom.header.stamp = get_clock()->now();
     Tob = robot.get_config();
     Tmb = turtlelib::Transform2D{turtlelib::Vector2D{slam_state.at(1), slam_state.at(2)},
                                  slam_state.at(0)};
     Tmo = Tmb*Tob.inv();
-    RCLCPP_INFO_STREAM(get_logger(), "Tmb: "<< Tmb);
-    // T_map_odom.transform.translation.x = slam_state.at(1) - robot.get_x();
-    // T_map_odom.transform.translation.y = slam_state.at(2) - robot.get_y();
+    // RCLCPP_INFO_STREAM(get_logger(), "Tmb: "<< Tmb);
     T_map_odom.transform.translation.x = Tmo.translation().x;
     T_map_odom.transform.translation.y = Tmo.translation().y;
     tf2::Quaternion q;
-    // q.setRPY(0, 0, turtlelib::normalize_angle(slam_state.at(0) - robot.get_phi()));
     q.setRPY(0, 0, turtlelib::normalize_angle(Tmo.rotation()));
     T_map_odom.transform.rotation.x = q.x();
     T_map_odom.transform.rotation.y = q.y();
     T_map_odom.transform.rotation.z = q.z();
     T_map_odom.transform.rotation.w = q.w();
     tf_broadcaster_->sendTransform(T_map_odom);
-    // update path. ONLY SELECTIVELY
+    // Update the path that the robot takes for rviz
+    update_path();
+    // publish a marker array corresponding to obstacle locations
+    publish_measurements();
+    // Current slam state now becomes the last slam state
+    last_slam_state = slam_state;
+  }
+
+  /// @brief Update the published path from the slam robot
+  void update_path(){
+    // ONLY SELECTIVELY so things don't slow down too much
     if (iterations % 5 == 0){
       geometry_msgs::msg::PoseStamped ps;
       ps.header.stamp = get_clock()->now();
-      ps.header.frame_id = "nusim/world";
+      ps.header.frame_id = "map";
       ps.pose.position.x = slam_state.at(1);
       ps.pose.position.y = slam_state.at(2);
+      // just ignoring the angle here, I don't think it matters for visualization
       followed_path.poses.push_back(ps);
       // keep array from getting too big!
       if (followed_path.poses.size()>100){
@@ -314,13 +322,9 @@ private:
       path_pub_->publish(followed_path);
     }
     iterations++;
-    publish_measurements();
-    // Current slam state now becomes the last slam state
-    last_slam_state = slam_state;
-    // these for keeping track of odometry
   }
 
-  /// @brief Publish slam measurement marker array
+  /// @brief Publish the slam measurement marker array
   void publish_measurements(){
     visualization_msgs::msg::MarkerArray ma;
     for (int i = 0; i < max_obstacles; i++) {
