@@ -133,20 +133,17 @@ public:
     declare_parameter("basic_sensor_variance", 0.05);
     basic_sensor_variance = get_parameter("basic_sensor_variance").as_double();
 
-    declare_parameter("max_range", 3.5);
-    max_range = get_parameter("max_range").as_double();
-
     declare_parameter("laser_frame_id", "base_scan");
     laser_frame_id = get_parameter("laser_frame_id").as_string();
 
-    declare_parameter("laser_min_range", 0.11999999731779099);
-    laser_min_range = get_parameter("laser_min_range").as_double();
+    declare_parameter("min_range", 0.11999999731779099);
+    laser_min_range = get_parameter("min_range").as_double();
 
-    declare_parameter("laser_max_range", 3.5);
-    laser_max_range = get_parameter("laser_max_range").as_double();
+    declare_parameter("max_range", 3.5);
+    laser_max_range = get_parameter("max_range").as_double();
 
-    declare_parameter("laser_angle_increment", 0.01745329238474369);
-    laser_angle_increment = get_parameter("laser_angle_increment").as_double();
+    declare_parameter("angle_increment", 0.01745329238474369);
+    laser_angle_increment = get_parameter("angle_increment").as_double();
 
     declare_parameter("laser_nsamples", 360);
     laser_nsamples = get_parameter("laser_nsamples").as_int();
@@ -245,7 +242,7 @@ private:
 
   // publish the fake sensor markers and path at a slower rate
   void slower_timer_callback(){
-    current_time = this->get_clock()->now();
+    // current_time = this->get_clock()->now();
     if(!draw_only){
       RCLCPP_INFO_STREAM(get_logger(), "Time: "<<current_time.sec<<" "<< current_time.nanosec);
       publish_laser();
@@ -451,7 +448,7 @@ private:
       m.id = i;         // so each has a unique ID
       m.type = 3;       // cylinder
       // add marker if within range. Delete if not.
-      if (turtlelib::distance(robot.get_x(),robot.get_y(),obx.at(i),oby.at(i)) > max_range){
+      if (turtlelib::distance(robot.get_x(),robot.get_y(),obx.at(i),oby.at(i)) > laser_max_range){
         m.action = 2; // delete
       } else {
         m.action = 0; // add/modify

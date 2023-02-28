@@ -112,6 +112,8 @@ public:
 
     path_pub_ = create_publisher<nav_msgs::msg::Path>("~/path", 10);
 
+    measure_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("~/measured", 10);
+
     js_sub_ = create_subscription<sensor_msgs::msg::JointState>(
       "joint_states", 10, std::bind(&Slam::js_cb, this, std::placeholders::_1));
 
@@ -143,10 +145,10 @@ public:
     // Set Q and R covariance matrices
     // Right now they are just Identity. Might need to fiddle with values
     Q = arma::mat(3, 3, arma::fill::zeros);
-    Q.diag() += 0.005;
+    Q.diag() += 1.0;
     RCLCPP_INFO_STREAM(get_logger(), "Q:\n" << Q);
     R = arma::mat(2*max_obstacles, 2*max_obstacles, arma::fill::zeros);
-    R.diag() += 0.005;
+    R.diag() += 1.0;
     RCLCPP_INFO_STREAM(get_logger(), "R:\n" << R);
 
     // Qbar = [Q & 03x2n \\ 02nx3 02nx2n]
@@ -158,6 +160,10 @@ public:
     myIdentity = arma::mat(max_obstacles*2 + 3, max_obstacles*2 + 3, arma::fill::zeros);
     myIdentity.diag() += 1.0;
     RCLCPP_INFO_STREAM(get_logger(), "myIdentity:\n" << myIdentity);
+
+    last_odom_x = 0;
+    last_odom_y = 0;
+    last_odom_theta = 0;
   }
 
 private:
@@ -167,10 +173,15 @@ private:
     // PREDICTION
 
     // 1. Update state estimate. This is already handled by odometry.
-    slam_state.at(0) = robot.get_phi();
-    slam_state.at(1) = robot.get_x();
-    slam_state.at(2) = robot.get_y();
-    RCLCPP_INFO_STREAM(get_logger(), "Slam State\n"<< slam_state);
+    odom_x = robot.get_x();
+    odom_y = robot.get_y();
+    odom_theta = robot.get_phi();
+
+    slam_state.at(0) += (odom_theta - last_odom_theta);
+    slam_state.at(0) = turtlelib::normalize_angle(slam_state.at(0));
+    slam_state.at(1) += (odom_x - last_odom_x);
+    slam_state.at(2) += (odom_y - last_odom_y);
+    RCLCPP_INFO_STREAM(get_logger(), "Initial Slam State\n"<< slam_state);
     // const auto dtheta = turtlelib::normalize_angle(slam_state.at(0) - last_slam_state.at(0));
     const auto dx = slam_state.at(1) - last_slam_state.at(1);
     const auto dy = slam_state.at(2) - last_slam_state.at(2);
@@ -272,11 +283,13 @@ private:
     // Except I don't need to look up, it's just robot.get_x() and robot.get_y() etc.
     // 2. Desired x = slamx - robot.get_x() etc
     // That should be it? 
+    RCLCPP_INFO_STREAM(get_logger(), "Slam State\n"<< slam_state);
     T_map_odom.header.stamp = get_clock()->now();
     const turtlelib::Transform2D Tob = robot.get_config();
     const turtlelib::Transform2D Tmb{turtlelib::Vector2D{slam_state.at(1), slam_state.at(2)},
                                      slam_state.at(0)};
     const auto Tmo = Tmb*Tob.inv();
+    RCLCPP_INFO_STREAM(get_logger(), "Tmb: "<< Tmb);
     // T_map_odom.transform.translation.x = slam_state.at(1) - robot.get_x();
     // T_map_odom.transform.translation.y = slam_state.at(2) - robot.get_y();
     T_map_odom.transform.translation.x = Tmo.translation().x;
@@ -306,8 +319,47 @@ private:
       path_pub_->publish(followed_path);
     }
     iterations++;
+    publish_measurements();
     // Current slam state now becomes the last slam state
     last_slam_state = slam_state;
+    // these for keeping track of odometry
+    last_odom_x = odom_x;
+    last_odom_y = odom_y;
+    last_odom_theta = odom_theta;
+  }
+
+  /// @brief Publish slam measurement marker array
+  void publish_measurements(){
+    visualization_msgs::msg::MarkerArray ma;
+    for (int i = 0; i < max_obstacles; i++) {
+      if (obstacle_initialized.at(i)){
+        visualization_msgs::msg::Marker m;
+        m.header.stamp = get_clock()->now();
+        m.header.frame_id = "map";
+        m.id = i;         // so each has a unique ID
+        m.type = 3;       // cylinder
+        m.action = 0; // add/modify
+        // Set color as green
+        m.color.r = 0.0;
+        m.color.g = 1.0;
+        m.color.b = 0.0;
+        m.color.a = 1.0;
+        // Set Radius
+        const auto obr = 0.038;
+        m.scale.x = 2*obr;
+        m.scale.y = 2*obr;
+        m.scale.z = 0.25;
+        // set position
+        // get the obstacle location relative to the robot frame
+        m.pose.position.x = slam_state.at(3 + 2*i);
+        m.pose.position.y = slam_state.at(3 + 2*i+1);
+        m.pose.position.z = 0.125;
+        // Add to marker array
+        ma.markers.push_back(m);
+      }
+    }
+    // RCLCPP_INFO_STREAM(get_logger(), "Publishing Marker Array");
+    measure_pub_->publish(ma);
   }
 
   void js_cb(const sensor_msgs::msg::JointState & js)
@@ -387,6 +439,7 @@ private:
 
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr measure_pub_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr js_sub_;
   rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr fake_sensor_sub_;
 
@@ -405,6 +458,7 @@ private:
   nav_msgs::msg::Path followed_path;
   long iterations = 0;
   int max_obstacles;
+  double odom_x, odom_y, odom_theta, last_odom_x, last_odom_y, last_odom_theta;
 
   // Sigma
   arma::mat Covariance, Q, R, Qbar, myIdentity;

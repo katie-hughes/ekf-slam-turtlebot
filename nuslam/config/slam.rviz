@@ -12,6 +12,7 @@ Panels:
         - /BlueOdometry1/Shape1
         - /LaserScan1/Topic1
         - /FakeSensors1/Namespaces1
+        - /TF1/Frames1
       Splitter Ratio: 0.5312976837158203
     Tree Height: 515
   - Class: rviz_common/Selection
@@ -462,6 +463,121 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /nusim/path
       Value: true
+    - Class: rviz_default_plugins/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        blue/base_footprint:
+          Value: true
+        blue/base_link:
+          Value: false
+        blue/base_scan:
+          Value: false
+        blue/caster_back_link:
+          Value: false
+        blue/imu_link:
+          Value: false
+        blue/odom:
+          Value: true
+        blue/wheel_left_link:
+          Value: false
+        blue/wheel_right_link:
+          Value: false
+        green/base_footprint:
+          Value: true
+        green/base_link:
+          Value: false
+        green/base_scan:
+          Value: false
+        green/caster_back_link:
+          Value: false
+        green/imu_link:
+          Value: false
+        green/odom:
+          Value: true
+        green/wheel_left_link:
+          Value: false
+        green/wheel_right_link:
+          Value: false
+        map:
+          Value: true
+        nusim/world:
+          Value: true
+        red/base_footprint:
+          Value: true
+        red/base_link:
+          Value: false
+        red/base_scan:
+          Value: false
+        red/caster_back_link:
+          Value: false
+        red/imu_link:
+          Value: false
+        red/wheel_left_link:
+          Value: false
+        red/wheel_right_link:
+          Value: false
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: false
+      Tree:
+        nusim/world:
+          blue/odom:
+            blue/base_footprint:
+              blue/base_link:
+                blue/base_scan:
+                  {}
+                blue/caster_back_link:
+                  {}
+                blue/imu_link:
+                  {}
+                blue/wheel_left_link:
+                  {}
+                blue/wheel_right_link:
+                  {}
+          map:
+            green/odom:
+              green/base_footprint:
+                green/base_link:
+                  green/base_scan:
+                    {}
+                  green/caster_back_link:
+                    {}
+                  green/imu_link:
+                    {}
+                  green/wheel_left_link:
+                    {}
+                  green/wheel_right_link:
+                    {}
+          red/base_footprint:
+            red/base_link:
+              red/base_scan:
+                {}
+              red/caster_back_link:
+                {}
+              red/imu_link:
+                {}
+              red/wheel_left_link:
+                {}
+              red/wheel_right_link:
+                {}
+      Update Interval: 0
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: SlamMeasurements
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /slam/measured
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -544,5 +660,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1750
-  X: 260
+  X: 170
   Y: 38
