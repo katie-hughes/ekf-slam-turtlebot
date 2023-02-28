@@ -174,8 +174,7 @@ private:
     // 1. Update state estimate. This is already handled by odometry.
     Tob = robot.get_config();
     Tmb = Tmo * Tob;
-    slam_state.at(0) = Tmb.rotation();
-    slam_state.at(0) = turtlelib::normalize_angle(slam_state.at(0));
+    slam_state.at(0) = turtlelib::normalize_angle(Tmb.rotation());
     slam_state.at(1) = Tmb.translation().x;
     slam_state.at(2) = Tmb.translation().y;
     // RCLCPP_INFO_STREAM(get_logger(), "Initial Slam State\n"<< slam_state);
@@ -259,7 +258,7 @@ private:
       // RCLCPP_INFO_STREAM(get_logger(), "Hj:\n"<< Hj);
 
       // Kalman gain
-      arma::mat Ri = R.submat(id, id, id + 1, id + 1);
+      arma::mat Ri = R.submat(2*id, 2*id, 2*id + 1, 2*id + 1);
       arma::mat help_Kj = Hj * Covariance * Hj.t() + Ri;
       arma::mat Kj = Covariance * Hj.t() * help_Kj.i();
       // RCLCPP_INFO_STREAM(get_logger(), "Kalman Gain:\n"<< Kj);
@@ -269,6 +268,7 @@ private:
       dzj.at(1) = turtlelib::normalize_angle(dzj.at(1));
       // RCLCPP_INFO_STREAM(get_logger(), "dzj:\n"<< dzj);
       slam_state = slam_state + Kj * dzj;
+      slam_state.at(0) = turtlelib::normalize_angle(slam_state.at(0));
       // RCLCPP_INFO_STREAM(get_logger(), "New Slam State:\n"<< slam_state);
 
       // Covariance update
