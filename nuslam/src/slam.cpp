@@ -151,7 +151,7 @@ public:
     Q.diag() += 1e-3; // e-3
     RCLCPP_INFO_STREAM(get_logger(), "Q:\n" << Q);
     R = arma::mat(2 * max_obstacles, 2 * max_obstacles, arma::fill::zeros);
-    R.diag() += 1e-1; // e-1
+    R.diag() += 1e-1; // 1e-1; // e-1
     RCLCPP_INFO_STREAM(get_logger(), "R:\n" << R);
 
     // Qbar = [Q & 03x2n \\ 02nx3 02nx2n]

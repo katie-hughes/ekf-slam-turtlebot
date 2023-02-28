@@ -1,5 +1,5 @@
 <launch>
-  <arg name="cmd_src" default="none" description="Options for cmd_vel: circle teleop none"/>
+  <arg name="cmd_src" default="teleop" description="Options for cmd_vel: circle teleop none"/>
   <arg name="robot" default="nusim" description="Options for robot model: nusim localhost none"/>
   <arg name="use_rviz" default="true" description="Options for launching rviz: true false"/>
 
