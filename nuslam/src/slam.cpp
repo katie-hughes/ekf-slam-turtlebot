@@ -98,6 +98,20 @@ public:
       throw std::logic_error("Invalid track_width!");
     }
 
+    declare_parameter("max_obstacles", 3);
+    max_obstacles = get_parameter("max_obstacles").as_int();
+    RCLCPP_INFO_STREAM(get_logger(), "Max Obstacles: " << max_obstacles);
+    if (max_obstacles < 1) {
+      throw std::logic_error("Maximum number of obstacles must be at least 1!");
+    }
+
+    declare_parameter("obstacle_radius", 0.038);
+    obstacle_radius = get_parameter("obstacle_radius").as_double();
+    RCLCPP_INFO_STREAM(get_logger(), "Obstacle Radius: " << obstacle_radius);
+    if (obstacle_radius <= 0) {
+      throw std::logic_error("Obstacle radius must be positive!");
+    }
+
     // initialize the odometry object that I will publish with frames
     current_odom.header.frame_id = odom_id;
     current_odom.child_frame_id = body_id;
@@ -128,8 +142,6 @@ public:
       std::bind(&Slam::initial_pose, this, std::placeholders::_1, std::placeholders::_2));
 
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
-
-    max_obstacles = 3;
 
     obstacle_initialized = std::vector<bool>(max_obstacles, false);
 
@@ -343,9 +355,8 @@ private:
         m.color.b = 0.0;
         m.color.a = 1.0;
         // Set Radius
-        const auto obr = 0.038;
-        m.scale.x = 2 * obr;
-        m.scale.y = 2 * obr;
+        m.scale.x = 2 * obstacle_radius;
+        m.scale.y = 2 * obstacle_radius;
         m.scale.z = 0.25;
         // set position
         // get the obstacle location relative to the robot frame
@@ -456,6 +467,7 @@ private:
   nav_msgs::msg::Path followed_path;
   long iterations = 0;
   int max_obstacles;
+  double obstacle_radius;
   turtlelib::Transform2D Tob, Tmb, Tmo;
 
   // Sigma
