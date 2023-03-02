@@ -7,6 +7,6 @@ This will show the red, blue, and green turtles in an environment with cylindric
 
 Publishing to `cmd_vel` topic will move the red robot through the environment, which will update the other two robots accordingly. The green slam robot should stay close to the red robot, which will become even more apparent if you drive into the obstacles in the environment. The image below show the path of each robot as they travel through the environment and collide with the cylinders.
 
-If you want to change the number of obstacles that the slam algorithm can detect, you need to modify the `max_obstacles` parameter in the `slam.yaml` config value. The current configuration can detect up to 3 obstacles.
+If you want to change the number of obstacles that the slam algorithm can detect, you need to modify the `max_obstacles` parameter in the `slam.yaml` config file. The current configuration can detect up to 3 obstacles.
 
 ![Slam Path](images/LabeledSlamPath.png?raw=true "Slam Path")
