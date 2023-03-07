@@ -6,17 +6,29 @@
 
 namespace turtlelib
 {
-  /// @brief Way of grouping the lidar measurements
-  struct RangeBearing
+  /// @brief Specification of polar coordinates (what lidar uses)
+  struct Polar
   {
     /// @brief Range in m
-    double range = 0.0;
+    double r = 0.0;
     /// @brief Bearing in radians
-    double bearing = 0.0;
+    double theta = 0.0;
   };
 
-  /// \brief output a range-bearing as "Range: x Bearing: y"
-    /// os - stream to output to
-    /// rb - the RangeBearing to print
-    std::ostream & operator<<(std::ostream & os, const RangeBearing & rb);
+  /// \brief output a Polar coordinate as "Theta: x r: y"
+  /// os - stream to output to
+  /// p - the coordinates to print
+  std::ostream & operator<<(std::ostream & os, const Polar & p);
+
+  /// @brief Obtain the euclidean distance between two Polar coordinates
+  /// @param p1 polar coordinate 1
+  /// @param p2 polar coordinate 2
+  /// @return distance between the two points
+  double polarDistance(const Polar p1, const Polar p2);
+
+
+  /// @brief simple check if point is at (0,0)
+  /// @param p point
+  /// @return true if the point is at the origin, false otherwise
+  bool atOrigin(const Polar p);
 }
