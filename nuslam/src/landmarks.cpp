@@ -7,6 +7,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 
+#include "turtlelib/circles.hpp"
+
 class Landmarks : public rclcpp::Node
 {
   public:
@@ -22,7 +24,15 @@ class Landmarks : public rclcpp::Node
 
     void laser_cb(const sensor_msgs::msg::LaserScan & msg)
     {
-      RCLCPP_INFO(get_logger(), "Laser Received");
+      RCLCPP_INFO_STREAM(get_logger(), "Laser Received");
+      const auto angle_min = msg.angle_min;
+      const auto angle_max = msg.angle_max;
+      for (int i = 0; i < static_cast<int>(msg.ranges.size()); i++){
+        const auto bearing = angle_min + i*(angle_max-angle_min)/(msg.ranges.size());
+        // RCLCPP_INFO_STREAM(get_logger(), i << ": "<<msg.ranges.at(i));
+        const turtlelib::RangeBearing rb{msg.ranges.at(i), bearing};
+        // RCLCPP_INFO_STREAM(get_logger(), ""<<rb);
+      }
     }
     
 };

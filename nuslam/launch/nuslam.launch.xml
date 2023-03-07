@@ -22,6 +22,9 @@
     <remap from="odom" to="green/odom"/>
   </node>
 
+  <!-- Landmark detection -->
+  <node pkg="nuslam" exec="landmarks"/>
+
   <!-- Do start robot launch -->
   <include file="$(find-pkg-share nuturtle_control)/launch/start_robot.launch.xml">
     <arg name="cmd_src" value="$(var cmd_src)"/>
