@@ -48,8 +48,13 @@ include(CTest)
 # enable_testing()
 add_executable(turtlelib_test tests/tests.cpp)
 target_link_libraries(turtlelib_test turtlelib Catch2::Catch2WithMain)
-
 add_test(NAME Test_of_Turtlelib COMMAND turtlelib_test)
+
+
+add_executable(circle_test tests/circle_tests.cpp)
+target_link_libraries(circle_test turtlelib Catch2::Catch2WithMain)
+add_test(NAME Circle_Detection_Tests COMMAND circle_test)
+
 
 endif()
 

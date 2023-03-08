@@ -97,10 +97,10 @@ class Landmarks : public rclcpp::Node
         RCLCPP_INFO_STREAM(get_logger(), "Circles in Cluster "<<i);
         // ONLY DO IF THERE ARE MORE THAN 3 POINTS!!!
         if (static_cast<int>(clusters.at(i).size()) > 3){
-          const auto classify_circle = turtlelib::isCircle(clusters.at(i));
-          const auto detected_circle = turtlelib::detectCircle(clusters.at(i));
-          RCLCPP_INFO_STREAM(get_logger(), "Circle: "<<detected_circle);
-          RCLCPP_INFO_STREAM(get_logger(), "Classify: "<<classify_circle);
+          if (turtlelib::isCircle(clusters.at(i))){
+            const auto detected_circle = turtlelib::detectCircle(clusters.at(i));
+            RCLCPP_INFO_STREAM(get_logger(), "Circle: "<<detected_circle);
+          }
         } else {
           RCLCPP_INFO_STREAM(get_logger(), "Too Few points");
         }
