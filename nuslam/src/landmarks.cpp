@@ -6,6 +6,8 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
+#include "visualization_msgs/msg/marker_array.hpp"
+#include "builtin_interfaces/msg/time.hpp"
 
 #include "turtlelib/circles.hpp"
 #include "turtlelib/rigid2d.hpp"
@@ -17,20 +19,27 @@ class Landmarks : public rclcpp::Node
     : Node("landmarks")
     {
       laser_sub_ = create_subscription<sensor_msgs::msg::LaserScan>(
-      "scan", 10, std::bind(&Landmarks::laser_cb, this, std::placeholders::_1));
+        "scan", 10, std::bind(&Landmarks::laser_cb, this, std::placeholders::_1));
+
+      circle_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("~/circles", 10);
+
     }
 
   private:
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laser_sub_;
+    rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr circle_pub_;
 
     std::vector<std::vector<turtlelib::Vector2D>> clusters;
     double cluster_threshold = 0.1;
+
+    builtin_interfaces::msg::Time current_stamp;
 
     void laser_cb(const sensor_msgs::msg::LaserScan & msg)
     {
       RCLCPP_INFO_STREAM(get_logger(), "\n\nLaser Received");
       const auto angle_min = msg.angle_min;
       const auto angle_max = msg.angle_max;
+      current_stamp = msg.header.stamp;
       // Cluster is a list of range-bearing measurements
       // at the end I will have a list of clusters
       turtlelib::Vector2D last_measurement;
@@ -113,6 +122,9 @@ class Landmarks : public rclcpp::Node
       }
 
       // TODO publish circles
+      // I think I want to do this as a marker array so I can see them in rviz
+      publishCircles(circles);
+
 
       clusters.clear();
     }
@@ -124,6 +136,37 @@ class Landmarks : public rclcpp::Node
           RCLCPP_INFO_STREAM(get_logger(), ""<<clusters.at(i).at(j));
         }
       }
+    }
+
+  
+    void publishCircles(std::vector<turtlelib::Circle> circle_list){
+      visualization_msgs::msg::MarkerArray ma;
+      for (int i = 0; i < static_cast<int>(circle_list.size()); i++) {
+        visualization_msgs::msg::Marker m;
+        m.header.stamp = current_stamp; // get_clock()->now();
+        m.header.frame_id = "green/base_footprint";
+        m.id = i;         // so each has a unique ID
+        m.type = 3;       // cylinder
+        m.action = 0; // add/modify
+        // Set color as green/blue
+        m.color.r = 0.0;
+        m.color.g = 1.0;
+        m.color.b = 1.0;
+        m.color.a = 1.0;
+        // Set Radius
+        m.scale.x = 2 * circle_list.at(i).r;
+        m.scale.y = 2 * circle_list.at(i).r;
+        m.scale.z = 0.25;
+        // set position
+        // get the obstacle location relative to the robot frame
+        m.pose.position.x = circle_list.at(i).x;
+        m.pose.position.y = circle_list.at(i).y;
+        m.pose.position.z = 0.125;
+        // Add to marker array
+        ma.markers.push_back(m);
+      }
+      // RCLCPP_INFO_STREAM(get_logger(), "Publishing Marker Array");
+      circle_pub_->publish(ma);
     }
     
 };

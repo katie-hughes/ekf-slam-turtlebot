@@ -1,0 +1,21 @@
+<launch>
+  <arg name="cmd_src" default="teleop" description="Options for cmd_vel: circle teleop none"/>
+  <arg name="robot" default="nusim" description="Options for robot model: nusim localhost none"/>
+  <arg name="use_rviz" default="true" description="Options for launching rviz: true false"/>
+
+  <!-- Launch rviz -->
+  <node pkg="rviz2" exec="rviz2"
+    if="$(eval '\'$(var use_rviz)\' == \'true\'')"
+    args="-d $(find-pkg-share nuslam)/config/landmarks.rviz"/>
+
+  <!-- launch nuslam -->
+  <include file="$(find-pkg-share nuslam)/launch/nuslam.launch.xml">
+    <arg name="cmd_src" value="$(var cmd_src)"/>
+    <arg name="robot" value="$(var robot)"/>
+    <arg name="use_rviz" value="false"/>
+  </include>
+
+  <!-- Landmark detection node -->
+  <node pkg="nuslam" exec="landmarks"/>
+
+</launch>
