@@ -26,7 +26,7 @@ namespace turtlelib
     }
 
     Circle detectCircle(const std::vector<Vector2D> cluster){
-      std::cout << "Hello??" << std::endl;
+      // std::cout << "Hello??" << std::endl;
       // compute hatx and haty, the mean of x, y coordinates
       double hatx = 0, haty = 0;
       int npoints = static_cast<int>(cluster.size());
@@ -63,8 +63,8 @@ namespace turtlelib
       // fill in moment matrix
       arma::mat moment_mat = (1.0/npoints)*data_matrix.t()*data_matrix;
 
-      std::cout << "Data Mat\n" << data_matrix << std::endl;
-      std::cout << "Moment Mat\n" << moment_mat << std::endl;
+      // std::cout << "Data Mat\n" << data_matrix << std::endl;
+      // std::cout << "Moment Mat\n" << moment_mat << std::endl;
 
       arma::mat constraint_mat(4, 4, arma::fill::zeros);
       constraint_mat.at(0,0) = 8*zbar;
@@ -73,7 +73,7 @@ namespace turtlelib
       constraint_mat.at(3,0) = 2;
       constraint_mat.at(0,3) = 2;
 
-      std::cout << "Constraint mat\n" << constraint_mat << std::endl;
+      // std::cout << "Constraint mat\n" << constraint_mat << std::endl;
       arma::mat constraint_mat_inv = constraint_mat.i();
 
       // 9. Compute Singular Value Decomposition of Z (data matrix)
@@ -82,66 +82,66 @@ namespace turtlelib
       arma::mat V;
       arma::svd(U, s, V, data_matrix);
 
-      std::cout << "U\n" << U << std::endl;
-      std::cout << "S\n" << s << std::endl;
-      std::cout << "V\n" << V << std::endl;
+      // std::cout << "U\n" << U << std::endl;
+      // std::cout << "S\n" << s << std::endl;
+      // std::cout << "V\n" << V << std::endl;
 
       // if smallest singular value is less than 10^-12 then A is 4th col of V
       // how do I determine this??
       // the elements of S are "singular values"
       double smallest_singular_value = s(3);
-      std::cout << "Smallest singular value " << smallest_singular_value << std::endl;
+      // std::cout << "Smallest singular value " << smallest_singular_value << std::endl;
       arma::vec A;
       if (smallest_singular_value < 1e-12){
-        std::cout << "Take A straight from V" << std::endl;
+        // std::cout << "Take A straight from V" << std::endl;
         // A is 4th column of V matrix
         A = V.col(3);
       } else {
-        std::cout << "Do more calculations" << std::endl;
+        // std::cout << "Do more calculations" << std::endl;
         // arma::mat sigma(npoints, 4, arma::fill::zeros);
         // sigma should NOT be a square matrix. but it might be for this calculation LOL
         arma::mat sigma(4, 4, arma::fill::zeros);
         for (int i = 0; i < 4; i++){
           sigma.at(i,i) = s.at(i);
         }
-        std::cout << "Sigma\n" << sigma << std::endl;
+        // std::cout << "Sigma\n" << sigma << std::endl;
         // std::cout << "should be data mat\n" << U*sigma*V.t() << std::endl;
         // it fails on this line :( V * sigma is incompatible
         arma::mat Y = V * sigma * V.t();
-        std::cout << "Y\n" << Y << std::endl;
+        // std::cout << "Y\n" << Y << std::endl;
         arma::mat Q = Y * constraint_mat_inv * Y;
-        std::cout << "Q\n" << Q << std::endl;
+        // std::cout << "Q\n" << Q << std::endl;
         // Find the eigenvectors and values of Q
         arma::cx_vec eigenvalues;
         arma::cx_mat eigenvectors;
         arma::eig_gen(eigenvalues, eigenvectors, Q);
-        std::cout << "vec\n" << eigenvectors << std::endl;
-        std::cout << "val\n" << eigenvalues << std::endl;
+        // std::cout << "vec\n" << eigenvectors << std::endl;
+        // std::cout << "val\n" << eigenvalues << std::endl;
         // Find the smallest positive eigenvalue of Q
         // the eigenvectors are stored as column vectors
         double smallest_positive_eigenvalue = -1.0;
         double smallest_positive_eigenvalue_index = -1.0;
         for (int i = 0; i < 4; i++){
           const auto curr_eigenvalue = eigenvalues.at(i).real();
-          std::cout << "Eig " << curr_eigenvalue << std::endl;
+          // std::cout << "Eig " << curr_eigenvalue << std::endl;
           if ((curr_eigenvalue > 0) && ((curr_eigenvalue < smallest_positive_eigenvalue) || 
                                         (smallest_positive_eigenvalue == -1.0))){
             smallest_positive_eigenvalue = curr_eigenvalue;
             smallest_positive_eigenvalue_index = i;
           }
         }
-        std::cout << "Smallest " << smallest_positive_eigenvalue << " idx " << smallest_positive_eigenvalue_index << std::endl;
+        // std::cout << "Smallest " << smallest_positive_eigenvalue << " idx " << smallest_positive_eigenvalue_index << std::endl;
         arma::cx_vec Astar = eigenvectors.col(smallest_positive_eigenvalue_index);
-        std::cout << "Astar\n" << Astar << std::endl;
+        // std::cout << "Astar\n" << Astar << std::endl;
         // Solve YA = Astar
         // A = Yinv Astar
         arma::cx_mat A_cx = Y.i() * Astar;
-        std::cout << "A_complex\n" << A_cx << std::endl;
+        // std::cout << "A_complex\n" << A_cx << std::endl;
         A = arma::vec(4);
         for (int i = 0; i < 4; i++){
           A.at(i) = A_cx.at(i).real();
         }
-        std::cout << "A\n" << A << std::endl;
+        // std::cout << "A\n" << A << std::endl;
       }
       // finally convert to circle
       // do this for ease of matching notation
