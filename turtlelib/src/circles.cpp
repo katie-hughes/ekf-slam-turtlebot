@@ -26,7 +26,6 @@ namespace turtlelib
     }
 
     Circle detectCircle(const std::vector<Vector2D> cluster){
-      Circle result;
       // compute hatx and haty, the mean of x, y coordinates
       double hatx = 0, haty = 0;
       int npoints = static_cast<int>(cluster.size());
@@ -62,7 +61,41 @@ namespace turtlelib
       zbar /= npoints;
       // fill in moment matrix
       arma::mat moment_mat = (1.0/npoints)*data_matrix.t()*data_matrix;
-      
+
+      arma::mat constraint_mat(4, 4, arma::fill::zeros);
+      constraint_mat.at(0,0) = 8*zbar;
+      constraint_mat.at(1,1) = 1;
+      constraint_mat.at(2,2) = 1;
+      constraint_mat.at(3,0) = 2;
+      constraint_mat.at(0,3) = 2;
+
+      arma::mat constraint_mat_inv = constraint_mat.i();
+
+      // 9. Compute Singular Value Decomposition of Z (data matrix)
+      arma::mat U;
+      arma::vec sigma;
+      arma::mat V;
+      arma::svd(U, sigma, V, data_matrix);
+
+      // if smallest singular value is less than 10^-12 then A is 4th col of V
+      arma::vec A;
+      // else let Y = 
+      // finally convert to circle
+      A = V.col(3);
+      // do this for ease of matching notation
+      double A1 = A.at(0);
+      double A2 = A.at(1);
+      double A3 = A.at(2);
+      double A4 = A.at(3);
+      // calculate coordinates
+      double a = -0.5*A2/A1;
+      double b = -0.5*A3/A1;
+      double R2 = (A2*A2 + A3*A3 - 4*A1*A4)/(4*A1*A1);
+
+      Circle result;
+      result.r = sqrt(R2);
+      result.x = a + hatx;
+      result.y = b + haty;
       return result;
     }
 }
