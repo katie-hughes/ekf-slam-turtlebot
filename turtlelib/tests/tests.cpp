@@ -326,7 +326,7 @@ namespace turtlelib
         REQUIRE_THAT(distance(0.0, 0.0, 3.0, 4.0), Catch::Matchers::WithinAbs(5.0, 1e-5));
     }
 
-    TEST_CASE("detectCircle", "circles"){
+    TEST_CASE("detectCircle1", "circles"){
         std::vector<Vector2D> test1 = {Vector2D{1,7},
                                        Vector2D{2,6},
                                        Vector2D{5,8},
@@ -339,4 +339,16 @@ namespace turtlelib
         REQUIRE_THAT(real_result1.y, Catch::Matchers::WithinAbs(desired_result1.y, 1e-4));
         REQUIRE_THAT(real_result1.r, Catch::Matchers::WithinAbs(desired_result1.r, 1e-4));
     }
+
+    // TEST_CASE("detectCircle2", "circles"){
+    //     std::vector<Vector2D> test2 = {Vector2D{-1,0},
+    //                                    Vector2D{-0.3,-0.06},
+    //                                    Vector2D{0.3,0.1},
+    //                                    Vector2D{1,0}};
+    //     Circle desired_result2{0.4908357, -22.15212, 22.17979};
+    //     Circle real_result2 = detectCircle(test2);
+    //     REQUIRE_THAT(real_result2.x, Catch::Matchers::WithinAbs(desired_result2.x, 1e-4));
+    //     REQUIRE_THAT(real_result2.y, Catch::Matchers::WithinAbs(desired_result2.y, 1e-4));
+    //     REQUIRE_THAT(real_result2.r, Catch::Matchers::WithinAbs(desired_result2.r, 1e-4));
+    // }
 }
