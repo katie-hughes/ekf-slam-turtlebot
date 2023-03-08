@@ -118,8 +118,30 @@ namespace turtlelib
         std::cout << "vec\n" << eigenvectors << std::endl;
         std::cout << "val\n" << eigenvalues << std::endl;
         // Find the smallest positive eigenvalue of Q
-        // for now just make a fake A matrix
-        A = arma::vec(4, arma::fill::ones);
+        // the eigenvectors are stored as column vectors
+        double smallest_positive_eigenvalue = -1.0;
+        double smallest_positive_eigenvalue_index = -1.0;
+        for (int i = 0; i < 4; i++){
+          const auto curr_eigenvalue = eigenvalues.at(i).real();
+          std::cout << "Eig " << curr_eigenvalue << std::endl;
+          if ((curr_eigenvalue > 0) && ((curr_eigenvalue < smallest_positive_eigenvalue) || 
+                                        (smallest_positive_eigenvalue == -1.0))){
+            smallest_positive_eigenvalue = curr_eigenvalue;
+            smallest_positive_eigenvalue_index = i;
+          }
+        }
+        std::cout << "Smallest " << smallest_positive_eigenvalue << " idx " << smallest_positive_eigenvalue_index << std::endl;
+        arma::cx_vec Astar = eigenvectors.col(smallest_positive_eigenvalue_index);
+        std::cout << "Astar\n" << Astar << std::endl;
+        // Solve YA = Astar
+        // A = Yinv Astar
+        arma::cx_mat A_cx = Y.i() * Astar;
+        std::cout << "A_complex\n" << A_cx << std::endl;
+        A = arma::vec(4);
+        for (int i = 0; i < 4; i++){
+          A.at(i) = A_cx.at(i).real();
+        }
+        std::cout << "A\n" << A << std::endl;
       }
       // finally convert to circle
       // do this for ease of matching notation
