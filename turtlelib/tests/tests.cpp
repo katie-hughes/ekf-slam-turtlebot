@@ -1,5 +1,6 @@
 #include "turtlelib/rigid2d.hpp"
 #include "turtlelib/diff_drive.hpp"
+#include "turtlelib/circles.hpp"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <string>
@@ -323,5 +324,19 @@ namespace turtlelib
         REQUIRE_THAT(distance(0.0, 0.0, 1.0, 0.0), Catch::Matchers::WithinAbs(1.0, 1e-5));
         REQUIRE_THAT(distance(0.0, 0.0, -1.0, 0.0), Catch::Matchers::WithinAbs(1.0, 1e-5));
         REQUIRE_THAT(distance(0.0, 0.0, 3.0, 4.0), Catch::Matchers::WithinAbs(5.0, 1e-5));
+    }
+
+    TEST_CASE("detectCircle", "circles"){
+        std::vector<Vector2D> test1 = {Vector2D{1,7},
+                                       Vector2D{2,6},
+                                       Vector2D{5,8},
+                                       Vector2D{7,7},
+                                       Vector2D{9,5},
+                                       Vector2D{3,7}};
+        Circle desired_result1{4.615482,2.807354,4.8275};
+        Circle real_result1 = detectCircle(test1);
+        REQUIRE_THAT(real_result1.x, Catch::Matchers::WithinAbs(desired_result1.x, 1e-4));
+        REQUIRE_THAT(real_result1.y, Catch::Matchers::WithinAbs(desired_result1.y, 1e-4));
+        REQUIRE_THAT(real_result1.r, Catch::Matchers::WithinAbs(desired_result1.r, 1e-4));
     }
 }

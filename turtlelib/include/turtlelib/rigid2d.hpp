@@ -304,6 +304,12 @@ namespace turtlelib
     /// @return Euclidean distance
     double distance(double x1, double y1, double x2, double y2);
 
+    /// @brief Calculate euclidean distance between two 2D points
+    /// @param v1 point 1
+    /// @param v2 point 2
+    /// @return Euclidiean distance
+    double distance(Vector2D v1, Vector2D v2);
+
 }
 
 #endif

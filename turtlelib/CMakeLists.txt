@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.9)
 project(turtlelib)
 
+find_package(Armadillo REQUIRED)
+include_directories(${ARMADILLO_INCLUDE_DIRS})
+
 # create the turtlelib library
 add_library(turtlelib src/rigid2d.cpp src/diff_drive.cpp src/circles.cpp)
 # The add_library function just added turtlelib as a "target"
@@ -11,6 +14,8 @@ add_library(turtlelib src/rigid2d.cpp src/diff_drive.cpp src/circles.cpp)
 # By adding include/ to the include path, this means that files in e.g., include/turtlelib
 # can be included with #include"turtlelib/file.hpp"
 # target_include_directories(turtlelib PUBLIC include/)
+
+target_link_libraries(turtlelib ${ARMADILLO_LIBRARIES})
 
 # enable C++ 17
 target_compile_features(turtlelib PUBLIC cxx_std_17) 

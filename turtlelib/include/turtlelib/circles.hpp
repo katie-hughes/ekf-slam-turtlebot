@@ -2,7 +2,10 @@
 #include <cmath> 
 #include <string>
 #include <stdexcept>
-#include<iosfwd>
+#include <iosfwd>
+#include <vector>
+#include <armadillo>
+#include "turtlelib/rigid2d.hpp"
 
 namespace turtlelib
 {
@@ -13,6 +16,13 @@ namespace turtlelib
     double r = 0.0;
     /// @brief Bearing in radians
     double theta = 0.0;
+  };
+
+  struct Circle
+  {
+    double x = 0.0;
+    double y = 0.0;
+    double r = 0.0;
   };
 
   /// \brief output a Polar coordinate as "Theta: x r: y"
@@ -31,4 +41,11 @@ namespace turtlelib
   /// @param p point
   /// @return true if the point is at the origin, false otherwise
   bool atOrigin(const Polar p);
+
+  /// @brief Convert polar coordinate to euclidean 2D coordinate
+  /// @param p Polar coordinate
+  /// @return coordinate in (x,y)
+  Vector2D toVector(const Polar p);
+
+  Circle detectCircle(const std::vector<Vector2D> cluster);
 }

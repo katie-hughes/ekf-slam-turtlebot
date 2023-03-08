@@ -258,4 +258,10 @@ namespace turtlelib
     double distance(double x1, double y1, double x2, double y2){
         return sqrt(pow((x2-x1),2) + pow((y2-y1),2));
     }
+
+    double distance(Vector2D v1, Vector2D v2){
+        double dx = v2.x - v1.x; 
+        double dy = v2.y - v1.y;
+        return sqrt(dx * dx + dy * dy);
+    }
 }
