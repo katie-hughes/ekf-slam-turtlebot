@@ -38,7 +38,7 @@ namespace turtlelib
       }
       // compute hatx and haty, the mean of x, y coordinates
       double hatx = 0, haty = 0;
-      int npoints = static_cast<int>(cluster.size());
+      const int npoints = static_cast<int>(cluster.size());
       for (int i = 0; i < npoints; i++){
         hatx += cluster.at(i).x;
         haty += cluster.at(i).y;
@@ -168,5 +168,54 @@ namespace turtlelib
       result.x = a + hatx;
       result.y = b + haty;
       return result;
+    }
+
+    bool isCircle(const std::vector<Vector2D> cluster, double std_threshold,
+                                                       double mean_lo_threshold,
+                                                       double mean_hi_threshold){
+      const int npoints = static_cast<int>(cluster.size());
+      if (npoints <= 3){
+        throw std::logic_error("Must have at least 4 points in cluster!");
+      }
+      // Endpoints P1, P2
+      const auto P1 = cluster.at(0);
+      const auto P2 = cluster.at(npoints-1);
+      // std::cout << "Endpoint 1" << P1 << std::endl;
+      // std::cout << "Endpoint 2" << P2 << std::endl;
+      const auto c = distance(P1, P2);
+      std::vector<double> angles;
+      double angles_mean = 0.0;
+      double angles_std = 0.0;
+      // calculate angle between P1, P, and P2 for P in cluster
+      for (int i = 1; i < npoints - 1; i++){
+        const auto P = cluster.at(i);
+        // use law of cosines
+        // std::cout << "Point" << P << std::endl;
+        const auto a = distance(P1, P);
+        const auto b = distance(P, P2);
+        const auto numerator = a*a + b*b - c*c;
+        const auto denominator = 2*a*b;
+        auto ang = 0.0;
+        // if a or b is 0, then we are at one of the endpoints. so angle is just 0.
+        if (denominator != 0){
+          ang = acos(numerator / denominator);
+        }
+        // std::cout << "Angle " << ang << std::endl;
+        angles_mean += ang;
+        angles.push_back(ang);
+      }
+      angles_mean /= (angles.size());
+      // calcualte standard deviation
+      for (int i = 0; i < (npoints - 2); i++){
+        angles_std += ((angles.at(i) - angles_mean) * (angles.at(i) - angles_mean));
+      }
+      angles_std = sqrt(angles_std/(angles.size()));
+      std::cout << "Angle mean: " << angles_mean << std::endl;
+      std::cout << "Angle std: " << angles_std << std::endl;
+      // do something 
+
+      return ((angles_std < std_threshold) &&
+              (angles_mean > mean_lo_threshold) &&
+              (angles_mean < mean_hi_threshold));
     }
 }

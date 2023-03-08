@@ -351,4 +351,28 @@ namespace turtlelib
         REQUIRE_THAT(real_result2.y, Catch::Matchers::WithinAbs(desired_result2.y, 1e-4));
         REQUIRE_THAT(real_result2.r, Catch::Matchers::WithinAbs(desired_result2.r, 1e-4));
     }
+
+
+    TEST_CASE("isCircle1", "circles"){
+        // i take these from starting clusters when running nuslam
+        std::vector<Vector2D> test1 = {Vector2D{0.530956, 0.877961},
+                                       Vector2D{0.501033, 0.862014},
+                                       Vector2D{0.483308, 0.865862},
+                                       Vector2D{0.469719, 0.877042},
+                                       Vector2D{0.462, 0.899921}};
+
+        std::vector<Vector2D> test2 = {Vector2D{-0.610432, -0.76346},
+                                       Vector2D{-0.589061, -0.763608},
+                                       Vector2D{-0.574354, -0.77196},
+                                       Vector2D{-0.564374, -0.786778}};
+
+        std::vector<Vector2D> test3 = {Vector2D{0.662758, -0.70755},
+                                       Vector2D{0.664875, -0.685499},
+                                       Vector2D{0.674604, -0.671733},
+                                       Vector2D{0.689829, -0.663387},
+                                       Vector2D{0.717297, -0.666165}};
+        REQUIRE(isCircle(test1));
+        REQUIRE(isCircle(test2));
+        REQUIRE(isCircle(test3));
+    }
 }

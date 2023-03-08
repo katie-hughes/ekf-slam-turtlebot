@@ -56,5 +56,18 @@ namespace turtlelib
   /// @return coordinate in (x,y)
   Vector2D toVector(const Polar p);
 
+  /// @brief Detect a 2D circle from a list of points
+  /// @param cluster the input points. Must have a length of at least 4
+  /// @return Circle that best fits these points
   Circle detectCircle(const std::vector<Vector2D> cluster);
+
+  /// @brief Detect whether a series of points should be classified as a circle
+  /// @param cluster input points in the 2D plane. Must have a length of at least 1
+  /// @param std_threshold Maximum standard devation in angle to be considered circle. Default = 0.15
+  /// @param mean_lo_threshold Minimum angle mean to be considered a circle. Default = 90 degrees
+  /// @param mean_hi_threshold Maximum angle mean to be considered a circle. Default = 130 degrees
+  /// @return boolean signifying if cluster should be classified as circle
+  bool isCircle(const std::vector<Vector2D> cluster, double std_threshold=0.15,
+                                                     double mean_lo_threshold=1.50,
+                                                     double mean_hi_threshold=2.50);
 }
