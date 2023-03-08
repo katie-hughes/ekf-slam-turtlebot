@@ -94,9 +94,14 @@ class Landmarks : public rclcpp::Node
 
       // do circle detect
       for (int i = 0; i < static_cast<int>(clusters.size()); i++){
-        RCLCPP_INFO_STREAM(get_logger(), "Cluster "<<i);
-        const auto detected_circle = turtlelib::detectCircle(clusters.at(i));
-        RCLCPP_INFO_STREAM(get_logger(), "Circle "<<detected_circle);
+        RCLCPP_INFO_STREAM(get_logger(), "Circles in Cluster "<<i);
+        // ONLY DO IF THERE ARE MORE THAN 3 POINTS!!!
+        if (static_cast<int>(clusters.at(i).size()) > 3){
+          const auto detected_circle = turtlelib::detectCircle(clusters.at(i));
+          RCLCPP_INFO_STREAM(get_logger(), "Circle: "<<detected_circle);
+        } else {
+          RCLCPP_INFO_STREAM(get_logger(), "Too Few points");
+        }
       }
 
       clusters.clear();
