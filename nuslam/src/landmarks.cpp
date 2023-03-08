@@ -100,6 +100,8 @@ class Landmarks : public rclcpp::Node
           if (turtlelib::isCircle(clusters.at(i))){
             const auto detected_circle = turtlelib::detectCircle(clusters.at(i));
             RCLCPP_INFO_STREAM(get_logger(), "Circle: "<<detected_circle);
+          } else {
+            RCLCPP_INFO_STREAM(get_logger(), "THis is not a circle!");
           }
         } else {
           RCLCPP_INFO_STREAM(get_logger(), "Too Few points");
