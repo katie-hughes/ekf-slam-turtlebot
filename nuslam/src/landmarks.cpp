@@ -70,7 +70,7 @@ class Landmarks : public rclcpp::Node
       if (current_cluster.size() != 0){
         clusters.push_back(current_cluster);
       }
-      // check the first index of first cluster and the last index of the last cluster
+      // determine if first and last cluster should be part of the same thing
       const int nclusters = static_cast<int>(clusters.size());
       if (nclusters > 1){
         // save first and last cluster
@@ -92,6 +92,8 @@ class Landmarks : public rclcpp::Node
 
       printClusters();
 
+      std::vector<turtlelib::Circle> circles;
+
       // do circle detect
       for (int i = 0; i < static_cast<int>(clusters.size()); i++){
         RCLCPP_INFO_STREAM(get_logger(), "Circles in Cluster "<<i);
@@ -100,6 +102,8 @@ class Landmarks : public rclcpp::Node
           if (turtlelib::isCircle(clusters.at(i))){
             const auto detected_circle = turtlelib::detectCircle(clusters.at(i));
             RCLCPP_INFO_STREAM(get_logger(), "Circle: "<<detected_circle);
+            // TODO check that radius is reasonable
+            circles.push_back(detected_circle);
           } else {
             RCLCPP_INFO_STREAM(get_logger(), "THis is not a circle!");
           }
@@ -107,6 +111,8 @@ class Landmarks : public rclcpp::Node
           RCLCPP_INFO_STREAM(get_logger(), "Too Few points");
         }
       }
+
+      // TODO publish circles
 
       clusters.clear();
     }
