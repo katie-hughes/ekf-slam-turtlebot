@@ -32,6 +32,10 @@ namespace turtlelib
 
     Circle detectCircle(const std::vector<Vector2D> cluster){
       // std::cout << "Hello??" << std::endl;
+      // Length of cluster must be at least 4
+      if (cluster.size() <= 3){
+        throw std::logic_error("Must have at least 4 points in cluster!");
+      }
       // compute hatx and haty, the mean of x, y coordinates
       double hatx = 0, haty = 0;
       int npoints = static_cast<int>(cluster.size());
