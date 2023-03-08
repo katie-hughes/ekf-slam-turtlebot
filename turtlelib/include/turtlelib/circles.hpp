@@ -18,10 +18,14 @@ namespace turtlelib
     double theta = 0.0;
   };
 
+  /// @brief Circle representation in the 2D plane
   struct Circle
   {
+    /// @brief X coordinate of origin (m)
     double x = 0.0;
+    /// @brief Y coordinate of origin (m)
     double y = 0.0;
+    /// @brief Radius of circle (m)
     double r = 0.0;
   };
 
@@ -29,6 +33,11 @@ namespace turtlelib
   /// os - stream to output to
   /// p - the coordinates to print
   std::ostream & operator<<(std::ostream & os, const Polar & p);
+
+  /// \brief output a Circle as Center: (x,y) Radius: R"
+  /// os - stream to output to
+  /// c - the coordinates to print
+  std::ostream & operator<<(std::ostream & os, const Circle & c);
 
   /// @brief Obtain the euclidean distance between two Polar coordinates
   /// @param p1 polar coordinate 1

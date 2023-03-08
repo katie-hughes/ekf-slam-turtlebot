@@ -71,9 +71,33 @@ class Landmarks : public rclcpp::Node
         clusters.push_back(current_cluster);
       }
       // check the first index of first cluster and the last index of the last cluster
-      // 
+      const int nclusters = static_cast<int>(clusters.size());
+      if (nclusters > 1){
+        // save first and last cluster
+        auto first_cluster = clusters.at(0);
+        auto last_cluster = clusters.at(nclusters-1);
+        // check first of first and last of last
+        const auto dst = turtlelib::distance(first_cluster.at(0), last_cluster.back());
+        RCLCPP_INFO_STREAM(get_logger(), "First and last cluster distance " << dst);
+        if (dst < cluster_threshold){
+          RCLCPP_INFO_STREAM(get_logger(), "Concatenate first and last clusters");
+          // RCLCPP_INFO_STREAM(get_logger(), "Before:");
+          // printClusters();
+          // concatenate: new first cluster = last_cluster + first_cluster
+          last_cluster.insert(last_cluster.end(), first_cluster.begin(), first_cluster.end());
+          clusters.at(0) = last_cluster;
+          clusters.erase(clusters.end());
+        }
+      }
 
       printClusters();
+
+      // do circle detect
+      for (int i = 0; i < static_cast<int>(clusters.size()); i++){
+        RCLCPP_INFO_STREAM(get_logger(), "Cluster "<<i);
+        const auto detected_circle = turtlelib::detectCircle(clusters.at(i));
+        RCLCPP_INFO_STREAM(get_logger(), "Circle "<<detected_circle);
+      }
 
       clusters.clear();
     }

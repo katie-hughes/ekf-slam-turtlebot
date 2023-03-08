@@ -7,6 +7,11 @@ namespace turtlelib
         return os;
     }
 
+    std::ostream & operator<<(std::ostream & os, const Circle & c){
+      os << "Center: (" << c.x << ", " << c.y << ") Rad: " << c.r;
+      return os;
+    }
+
     double polarDistance(const Polar p1, const Polar p2){
       const auto x1 = p1.r*cos(p1.theta);
       const auto y1 = p1.r*sin(p1.theta);
