@@ -148,7 +148,7 @@ class Landmarks : public rclcpp::Node
         m.id = i;         // so each has a unique ID
         m.type = 3;       // cylinder
         m.action = 0; // add/modify
-        // Set color as green/blue
+        // Set color as teal
         m.color.r = 0.0;
         m.color.g = 1.0;
         m.color.b = 1.0;

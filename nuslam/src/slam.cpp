@@ -112,6 +112,10 @@ public:
       throw std::logic_error("Obstacle radius must be positive!");
     }
 
+    declare_parameter("use_lidar", false);
+    use_lidar = get_parameter("use_lidar").as_bool();
+    RCLCPP_INFO_STREAM(get_logger(), "Use Lidar: " << use_lidar);
+
     // initialize the odometry object that I will publish with frames
     current_odom.header.frame_id = odom_id;
     current_odom.child_frame_id = body_id;
@@ -182,6 +186,36 @@ private:
   /// @param sensor marker array representing simulated sensor data
   void fake_sensor_cb(const visualization_msgs::msg::MarkerArray & sensor)
   {
+    predict();
+    // Iterate through the markers
+    for (int i = 0; i < static_cast<double>(sensor.markers.size()); i++) {
+      // marker x and y coordinates
+      const auto mx = sensor.markers.at(i).pose.position.x;
+      const auto my = sensor.markers.at(i).pose.position.y;
+      // this id will be unique for each marker, easy way of distinguishing
+      const auto id = sensor.markers.at(i).id;
+      // RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
+      // RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
+      // CHECK THAT IT IS NOT "DELETE"
+      const auto act = sensor.markers.at(i).action;
+      if (act == 2) {
+        // Obstacle is out of range. Skip this loop iteration!
+        continue;
+      }
+      incorporate_measurement(mx, my, id);
+    }
+    // update tf based on slam state
+    update_tf();
+    // Update the path that the robot takes for rviz
+    update_path();
+    // publish a marker array corresponding to obstacle locations
+    publish_measurements();
+    // Current slam state now becomes the last slam state
+    last_slam_state = slam_state;
+  }
+
+  /// @brief Prediction stage for EKF algorithm
+  void predict(){
     // PREDICTION
     // 1. Update state estimate. This is already handled by odometry.
     Tob = robot.get_config();
@@ -205,87 +239,82 @@ private:
     // Update Covariance matrix
     Covariance = At * Covariance * At.t() + Qbar;
     // RCLCPP_INFO_STREAM(get_logger(), "Covariance\n"<< Covariance);
-    // Iterate through the markers
-    for (int i = 0; i < static_cast<double>(sensor.markers.size()); i++) {
-      // marker x and y coordinates
-      const auto mx = sensor.markers.at(i).pose.position.x;
-      const auto my = sensor.markers.at(i).pose.position.y;
-      // this id will be unique for each marker, easy way of distinguishing
-      const auto id = sensor.markers.at(i).id;
-      // RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
-      // RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
-      // CHECK THAT IT IS NOT "DELETE"
-      const auto act = sensor.markers.at(i).action;
-      if (act == 2) {
-        // Obstacle is out of range. Skip this loop iteration!
-        continue;
-      }
-      // this is z (current sensor measurement)
-      const auto dxj = mx;
-      const auto dyj = my;
-      const auto dj = dxj * dxj + dyj * dyj;
-      const auto rj = sqrt(dj);
-      const auto phij = turtlelib::normalize_angle(atan2(dyj, dxj));
-      arma::vec zj(2, arma::fill::zeros);
-      zj.at(0) = rj;
-      zj.at(1) = phij;
-      // RCLCPP_INFO_STREAM(get_logger(), "zj\n"<< zj);
+  }
 
-      // check if this obstacle has been seen before.
-      if (!obstacle_initialized.at(id)) {
-        // Obstacle has not been seen. Initialize it!
-        // x coordinate
-        slam_state.at(3 + 2 * id) = slam_state.at(1) + rj *
-          cos(turtlelib::normalize_angle(phij + slam_state.at(0)));
-        // y coordinate
-        slam_state.at(3 + 2 * id + 1) = slam_state.at(2) + rj *
-          sin(turtlelib::normalize_angle(phij + slam_state.at(0)));
-        obstacle_initialized.at(id) = true;
-        RCLCPP_INFO_STREAM(get_logger(), "Initialized Obstacle # " << id);
-      }
-      // this is Zbar (ESTIMATED measurement). Take from state estimation .
-      const auto dxj_hat = slam_state.at(3 + 2 * id) - slam_state.at(1);
-      const auto dyj_hat = slam_state.at(3 + 2 * id + 1) - slam_state.at(2);
-      const auto dj_hat = dxj_hat * dxj_hat + dyj_hat * dyj_hat;
-      const auto rj_hat = sqrt(dj_hat);
-      const auto phij_hat = turtlelib::normalize_angle(atan2(dyj_hat, dxj_hat) - slam_state.at(0));
-      arma::vec zj_hat(2, arma::fill::zeros);
-      zj_hat.at(0) = rj_hat;
-      zj_hat.at(1) = phij_hat;
-      // RCLCPP_INFO_STREAM(get_logger(), "zj_hat\n"<< zj_hat);
+  /// @brief incorporate a measurement into the kalman filter
+  /// @param mx measurement x coordinate (relative)
+  /// @param my measurement y coordinate (relative)
+  /// @param id measurement id
+  void incorporate_measurement(const double mx, const double my, const int id){
+    // this is z (current sensor measurement)
+    const auto dxj = mx;
+    const auto dyj = my;
+    const auto dj = dxj * dxj + dyj * dyj;
+    const auto rj = sqrt(dj);
+    const auto phij = turtlelib::normalize_angle(atan2(dyj, dxj));
+    arma::vec zj(2, arma::fill::zeros);
+    zj.at(0) = rj;
+    zj.at(1) = phij;
+    // RCLCPP_INFO_STREAM(get_logger(), "zj\n"<< zj);
 
-      // H matrix that is constructed from predicted state
-      arma::mat Hj(2, 3 + 2 * max_obstacles, arma::fill::zeros);
-      // "j" is id.
-      Hj.at(1, 0) = -1.0;
-      Hj.at(0, 1) = -dxj_hat / rj_hat;
-      Hj.at(1, 1) = dyj_hat / dj_hat;
-      Hj.at(0, 2) = -dyj_hat / rj_hat;
-      Hj.at(1, 2) = -dxj_hat / dj_hat;
-      // skip 2*(j-1) elements except id starts at 0 and j starts at 1 so it's just 2*id
-      Hj.at(0, 3 + 2 * id) = dxj_hat / rj_hat;
-      Hj.at(1, 3 + 2 * id) = -dyj_hat / dj_hat;
-      Hj.at(0, 4 + 2 * id) = dyj_hat / rj_hat;
-      Hj.at(1, 4 + 2 * id) = dxj_hat / dj_hat;
-      // RCLCPP_INFO_STREAM(get_logger(), "Hj:\n"<< Hj);
-
-      // Kalman gain
-      arma::mat Ri = R.submat(2 * id, 2 * id, 2 * id + 1, 2 * id + 1);
-      arma::mat help_Kj = Hj * Covariance * Hj.t() + Ri;
-      arma::mat Kj = Covariance * Hj.t() * help_Kj.i();
-      // RCLCPP_INFO_STREAM(get_logger(), "Kalman Gain:\n"<< Kj);
-
-      // State update
-      arma::vec dzj = zj - zj_hat;
-      dzj.at(1) = turtlelib::normalize_angle(dzj.at(1));
-      // RCLCPP_INFO_STREAM(get_logger(), "dzj:\n"<< dzj);
-      slam_state = slam_state + Kj * dzj;
-      slam_state.at(0) = turtlelib::normalize_angle(slam_state.at(0));
-      // RCLCPP_INFO_STREAM(get_logger(), "New Slam State:\n"<< slam_state);
-
-      // Covariance update
-      Covariance = (myIdentity - Kj * Hj) * Covariance;
+    // check if this obstacle has been seen before.
+    if (!obstacle_initialized.at(id)) {
+      // Obstacle has not been seen. Initialize it!
+      // x coordinate
+      slam_state.at(3 + 2 * id) = slam_state.at(1) + rj *
+        cos(turtlelib::normalize_angle(phij + slam_state.at(0)));
+      // y coordinate
+      slam_state.at(3 + 2 * id + 1) = slam_state.at(2) + rj *
+        sin(turtlelib::normalize_angle(phij + slam_state.at(0)));
+      obstacle_initialized.at(id) = true;
+      RCLCPP_INFO_STREAM(get_logger(), "Initialized Obstacle # " << id);
     }
+    // this is Zbar (ESTIMATED measurement). Take from state estimation .
+    const auto dxj_hat = slam_state.at(3 + 2 * id) - slam_state.at(1);
+    const auto dyj_hat = slam_state.at(3 + 2 * id + 1) - slam_state.at(2);
+    const auto dj_hat = dxj_hat * dxj_hat + dyj_hat * dyj_hat;
+    const auto rj_hat = sqrt(dj_hat);
+    const auto phij_hat = turtlelib::normalize_angle(atan2(dyj_hat, dxj_hat) - slam_state.at(0));
+    arma::vec zj_hat(2, arma::fill::zeros);
+    zj_hat.at(0) = rj_hat;
+    zj_hat.at(1) = phij_hat;
+    // RCLCPP_INFO_STREAM(get_logger(), "zj_hat\n"<< zj_hat);
+
+    // H matrix that is constructed from predicted state
+    arma::mat Hj(2, 3 + 2 * max_obstacles, arma::fill::zeros);
+    // "j" is id.
+    Hj.at(1, 0) = -1.0;
+    Hj.at(0, 1) = -dxj_hat / rj_hat;
+    Hj.at(1, 1) = dyj_hat / dj_hat;
+    Hj.at(0, 2) = -dyj_hat / rj_hat;
+    Hj.at(1, 2) = -dxj_hat / dj_hat;
+    // skip 2*(j-1) elements except id starts at 0 and j starts at 1 so it's just 2*id
+    Hj.at(0, 3 + 2 * id) = dxj_hat / rj_hat;
+    Hj.at(1, 3 + 2 * id) = -dyj_hat / dj_hat;
+    Hj.at(0, 4 + 2 * id) = dyj_hat / rj_hat;
+    Hj.at(1, 4 + 2 * id) = dxj_hat / dj_hat;
+    // RCLCPP_INFO_STREAM(get_logger(), "Hj:\n"<< Hj);
+
+    // Kalman gain
+    arma::mat Ri = R.submat(2 * id, 2 * id, 2 * id + 1, 2 * id + 1);
+    arma::mat help_Kj = Hj * Covariance * Hj.t() + Ri;
+    arma::mat Kj = Covariance * Hj.t() * help_Kj.i();
+    // RCLCPP_INFO_STREAM(get_logger(), "Kalman Gain:\n"<< Kj);
+
+    // State update
+    arma::vec dzj = zj - zj_hat;
+    dzj.at(1) = turtlelib::normalize_angle(dzj.at(1));
+    // RCLCPP_INFO_STREAM(get_logger(), "dzj:\n"<< dzj);
+    slam_state = slam_state + Kj * dzj;
+    slam_state.at(0) = turtlelib::normalize_angle(slam_state.at(0));
+    // RCLCPP_INFO_STREAM(get_logger(), "New Slam State:\n"<< slam_state);
+
+    // Covariance update
+    Covariance = (myIdentity - Kj * Hj) * Covariance;
+  }
+
+  /// @brief publish appropriate tf based on the slam_state vector.
+  void update_tf(){
     // I want T_map_basefootprint = slam_state
     // But I can only publish T_map_odom
     // 1. Lookup T_odom_basefootprint
@@ -306,12 +335,6 @@ private:
     T_map_odom.transform.rotation.z = q.z();
     T_map_odom.transform.rotation.w = q.w();
     tf_broadcaster_->sendTransform(T_map_odom);
-    // Update the path that the robot takes for rviz
-    update_path();
-    // publish a marker array corresponding to obstacle locations
-    publish_measurements();
-    // Current slam state now becomes the last slam state
-    last_slam_state = slam_state;
   }
 
   /// @brief Update the published path from the slam robot
@@ -470,10 +493,13 @@ private:
   double obstacle_radius;
   turtlelib::Transform2D Tob, Tmb, Tmo;
 
-  // Sigma
+  // SLAM parameters
   arma::mat Covariance, Q, R, Qbar, myIdentity;
   arma::vec slam_state, last_slam_state;
   std::vector<bool> obstacle_initialized;
+
+  // which source to use for slam
+  bool use_lidar;
 };
 
 int main(int argc, char * argv[])

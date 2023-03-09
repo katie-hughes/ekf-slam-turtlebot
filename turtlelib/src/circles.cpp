@@ -133,11 +133,14 @@ namespace turtlelib
         for (int i = 0; i < 4; i++){
           const auto curr_eigenvalue = eigenvalues.at(i).real();
           // std::cout << "Eig " << curr_eigenvalue << std::endl;
-          if ((curr_eigenvalue > 0) && ((curr_eigenvalue < smallest_positive_eigenvalue) || 
+          if ((curr_eigenvalue >= 0) && ((curr_eigenvalue < smallest_positive_eigenvalue) || 
                                         (smallest_positive_eigenvalue == -1.0))){
             smallest_positive_eigenvalue = curr_eigenvalue;
             smallest_positive_eigenvalue_index = i;
           }
+        }
+        if (smallest_positive_eigenvalue_index < 0){
+          throw std::logic_error("There were no positive eigenvalues :( ");
         }
         // std::cout << "Smallest " << smallest_positive_eigenvalue << " idx " << smallest_positive_eigenvalue_index << std::endl;
         arma::cx_vec Astar = eigenvectors.col(smallest_positive_eigenvalue_index);

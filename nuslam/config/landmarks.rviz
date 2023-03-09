@@ -580,7 +580,7 @@ Visualization Manager:
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: MarkerArray
+      Name: DetectedCircles
       Namespaces:
         "": true
       Topic:
