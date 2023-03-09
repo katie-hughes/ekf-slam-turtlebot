@@ -240,6 +240,7 @@ private:
       // incorporate the measurement into the EKF algorithm
       // incorporate_measurement(mx, my, id);
     }
+    // throw std::logic_error("Die ");
     // update tf based on slam state
     update_tf();
     // Update the path that the robot takes for rviz
@@ -267,13 +268,15 @@ private:
     zj.at(1) = phij;
     // RCLCPP_INFO_STREAM(get_logger(), "zj\n"<< zj);
 
-    num_obstacles += 1;
 
     slam_state.at(3 + 2 * num_obstacles) = slam_state.at(1) + rj * 
                       cos(turtlelib::normalize_angle(phij + slam_state.at(0)));
     slam_state.at(3 + 2 * num_obstacles + 1) = slam_state.at(2) + rj *
                       sin(turtlelib::normalize_angle(phij + slam_state.at(0)));
 
+    num_obstacles += 1;
+
+    std::vector<double> maha_distances;
     // iterate through previous measurements
     for (int i = 0; i < num_obstacles; i++){
       // this is Zbar (ESTIMATED measurement). Take from state estimation .
@@ -298,21 +301,54 @@ private:
       Hi.at(1, 3 + 2 * i) = -dyj_hat / dj_hat;
       Hi.at(0, 4 + 2 * i) = dyj_hat / rj_hat;
       Hi.at(1, 4 + 2 * i) = dxj_hat / dj_hat;
-      // RCLCPP_INFO_STREAM(get_logger(), "Hj:\n"<< Hj);
+      // RCLCPP_INFO_STREAM(get_logger(), "Hi:\n"<< Hi);
       arma::mat Ri = R.submat(2 * i, 2 * i, 2 * i + 1, 2 * i + 1);
       arma::mat psi = Hi * Covariance * Hi.t() + Ri;
-      RCLCPP_INFO_STREAM(get_logger(), "psi:\n"<< psi);
+      // RCLCPP_INFO_STREAM(get_logger(), "psi:\n"<< psi);
 
       // compute the Mahalanobis distance
       arma::vec dzj = zj - zj_hat;
       dzj.at(1) = turtlelib::normalize_angle(dzj.at(1));
-      RCLCPP_INFO_STREAM(get_logger(), "dzj:\n"<< dzj);
+      // RCLCPP_INFO_STREAM(get_logger(), "dzj:\n"<< dzj);
 
+      arma::vec mahalanobis_vector = dzj.t() * psi.i() * dzj;
+      auto mahalanobis = mahalanobis_vector.at(0);
+
+      // // set mahalanobis distance for newly added landmark to be distance threshold.
+      // if (i == num_obstacles - 1){
+      //   mahalanobis = mahalanobis_threshold;
+      // }
+      
+      RCLCPP_INFO_STREAM(get_logger(), "maha: "<< mahalanobis);
+      maha_distances.push_back(mahalanobis);
     }
 
-    num_obstacles -= 1;
+    // now analyze maha_distances vector
+    // minimum mahalanobis distance
+    auto dstar = maha_distances.at(0);
+    // this is the index of dstar
+    int ell = 0;
+    for (int i = 0; i < static_cast<int>(maha_distances.size()); i++){
+      if (maha_distances.at(i) < dstar){
+        dstar = maha_distances.at(i);
+        ell = i;
+      }
+    }
 
-    return 0;
+    // check if ell is equal to the thing that we just added
+    if (ell == num_obstacles - 1){
+      RCLCPP_INFO_STREAM(get_logger(), "We have added a new obstacle");
+    } else {
+      RCLCPP_INFO_STREAM(get_logger(), "This is part of obstacle # " << ell);
+      num_obstacles -= 1;
+      // clear out the obstacle
+      slam_state.at(3 + 2 * num_obstacles) = slam_state.at(1) + rj * 
+                      cos(turtlelib::normalize_angle(phij + slam_state.at(0)));
+      slam_state.at(3 + 2 * num_obstacles + 1) = slam_state.at(2) + rj *
+                      sin(turtlelib::normalize_angle(phij + slam_state.at(0)));
+    }
+
+    return ell;
 
   }
 
@@ -604,6 +640,8 @@ private:
   // which source to use for slam
   bool use_lidar;
   int num_obstacles = 0;
+
+  double mahalanobis_threshold = 1.0;
 };
 
 int main(int argc, char * argv[])

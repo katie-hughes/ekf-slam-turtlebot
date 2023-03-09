@@ -99,7 +99,7 @@ class Landmarks : public rclcpp::Node
         }
       }
 
-      printClusters();
+      // printClusters();
 
       std::vector<turtlelib::Circle> circles;
 
