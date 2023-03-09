@@ -98,7 +98,7 @@ public:
       throw std::logic_error("Invalid track_width!");
     }
 
-    declare_parameter("max_obstacles", 3);
+    declare_parameter("max_obstacles", 5);
     max_obstacles = get_parameter("max_obstacles").as_int();
     RCLCPP_INFO_STREAM(get_logger(), "Max Obstacles: " << max_obstacles);
     if (max_obstacles < 1) {
@@ -226,7 +226,6 @@ private:
   /// @param sensor marker array representing converted lidar data
   void detected_circles_cb(const visualization_msgs::msg::MarkerArray & sensor)
   {
-    RCLCPP_INFO_STREAM(get_logger(), "Detect Circles CB");
     // Do EKF prediction
     predict();
     // Iterate through the markers
@@ -235,11 +234,11 @@ private:
       const auto mx = sensor.markers.at(i).pose.position.x;
       const auto my = sensor.markers.at(i).pose.position.y;
       // TODO: Data association to determine ID!!! 
-      const auto id = sensor.markers.at(i).id;
-      // RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
-      // RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
+      const auto id = associate(mx, my);
+      RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
+      RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
       // incorporate the measurement into the EKF algorithm
-      incorporate_measurement(mx, my, id);
+      // incorporate_measurement(mx, my, id);
     }
     // update tf based on slam state
     update_tf();
@@ -249,6 +248,72 @@ private:
     publish_measurements();
     // Current slam state now becomes the last slam state
     last_slam_state = slam_state;
+  }
+
+  /// @brief Creates an id for an obstacle based on data association of previous obstacles
+  /// @param mx obstacle x location (relative)
+  /// @param my obstacle y location (relative)
+  /// @return identifier specifying which obstacle it is a part of
+  int associate(double mx, double my){
+    RCLCPP_INFO_STREAM(get_logger(), "Associate data");
+    // temporary add a new landmark at this location
+    const auto dxj = mx;
+    const auto dyj = my;
+    const auto dj = dxj * dxj + dyj * dyj;
+    const auto rj = sqrt(dj);
+    const auto phij = turtlelib::normalize_angle(atan2(dyj, dxj));
+    arma::vec zj(2, arma::fill::zeros);
+    zj.at(0) = rj;
+    zj.at(1) = phij;
+    // RCLCPP_INFO_STREAM(get_logger(), "zj\n"<< zj);
+
+    num_obstacles += 1;
+
+    slam_state.at(3 + 2 * num_obstacles) = slam_state.at(1) + rj * 
+                      cos(turtlelib::normalize_angle(phij + slam_state.at(0)));
+    slam_state.at(3 + 2 * num_obstacles + 1) = slam_state.at(2) + rj *
+                      sin(turtlelib::normalize_angle(phij + slam_state.at(0)));
+
+    // iterate through previous measurements
+    for (int i = 0; i < num_obstacles; i++){
+      // this is Zbar (ESTIMATED measurement). Take from state estimation .
+      const auto dxj_hat = slam_state.at(3 + 2 * i) - slam_state.at(1);
+      const auto dyj_hat = slam_state.at(3 + 2 * i + 1) - slam_state.at(2);
+      const auto dj_hat = dxj_hat * dxj_hat + dyj_hat * dyj_hat;
+      const auto rj_hat = sqrt(dj_hat);
+      const auto phij_hat = turtlelib::normalize_angle(atan2(dyj_hat, dxj_hat) - slam_state.at(0));
+      arma::vec zj_hat(2, arma::fill::zeros);
+      zj_hat.at(0) = rj_hat;
+      zj_hat.at(1) = phij_hat;
+      // RCLCPP_INFO_STREAM(get_logger(), "zj_hat\n"<< zj_hat);
+      // Compute Hi for that obstacle
+      arma::mat Hi(2, 3 + 2 * max_obstacles, arma::fill::zeros);
+      Hi.at(1, 0) = -1.0;
+      Hi.at(0, 1) = -dxj_hat / rj_hat;
+      Hi.at(1, 1) = dyj_hat / dj_hat;
+      Hi.at(0, 2) = -dyj_hat / rj_hat;
+      Hi.at(1, 2) = -dxj_hat / dj_hat;
+      // skip 2*(j-1) elements except id starts at 0 and j starts at 1 so it's just 2*id
+      Hi.at(0, 3 + 2 * i) = dxj_hat / rj_hat;
+      Hi.at(1, 3 + 2 * i) = -dyj_hat / dj_hat;
+      Hi.at(0, 4 + 2 * i) = dyj_hat / rj_hat;
+      Hi.at(1, 4 + 2 * i) = dxj_hat / dj_hat;
+      // RCLCPP_INFO_STREAM(get_logger(), "Hj:\n"<< Hj);
+      arma::mat Ri = R.submat(2 * i, 2 * i, 2 * i + 1, 2 * i + 1);
+      arma::mat psi = Hi * Covariance * Hi.t() + Ri;
+      RCLCPP_INFO_STREAM(get_logger(), "psi:\n"<< psi);
+
+      // compute the Mahalanobis distance
+      arma::vec dzj = zj - zj_hat;
+      dzj.at(1) = turtlelib::normalize_angle(dzj.at(1));
+      RCLCPP_INFO_STREAM(get_logger(), "dzj:\n"<< dzj);
+
+    }
+
+    num_obstacles -= 1;
+
+    return 0;
+
   }
 
   /// @brief Prediction stage for EKF algorithm
@@ -538,6 +603,7 @@ private:
 
   // which source to use for slam
   bool use_lidar;
+  int num_obstacles = 0;
 };
 
 int main(int argc, char * argv[])
