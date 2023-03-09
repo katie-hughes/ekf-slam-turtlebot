@@ -588,7 +588,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /landmarks/circles
+        Value: /detected_circles
       Value: true
   Enabled: true
   Global Options:

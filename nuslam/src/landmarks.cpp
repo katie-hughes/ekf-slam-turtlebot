@@ -21,7 +21,7 @@ class Landmarks : public rclcpp::Node
       laser_sub_ = create_subscription<sensor_msgs::msg::LaserScan>(
         "scan", 10, std::bind(&Landmarks::laser_cb, this, std::placeholders::_1));
 
-      circle_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("~/circles", 10);
+      circle_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("detected_circles", 10);
 
     }
 

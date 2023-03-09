@@ -8,11 +8,12 @@
     if="$(eval '\'$(var use_rviz)\' == \'true\'')"
     args="-d $(find-pkg-share nuslam)/config/landmarks.rviz"/>
 
-  <!-- launch nuslam -->
+  <!-- launch nuslam, reading from lidar instead of fake sensor -->
   <include file="$(find-pkg-share nuslam)/launch/nuslam.launch.xml">
     <arg name="cmd_src" value="$(var cmd_src)"/>
     <arg name="robot" value="$(var robot)"/>
     <arg name="use_rviz" value="false"/>
+    <arg name="use_lidar" value="true"/>
   </include>
 
   <!-- Landmark detection node -->

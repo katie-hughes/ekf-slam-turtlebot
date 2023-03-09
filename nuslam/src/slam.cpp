@@ -138,8 +138,13 @@ public:
     js_sub_ = create_subscription<sensor_msgs::msg::JointState>(
       "joint_states", 10, std::bind(&Slam::js_cb, this, std::placeholders::_1));
 
-    fake_sensor_sub_ = create_subscription<visualization_msgs::msg::MarkerArray>(
+    if (use_lidar){
+      detected_circles_sub_ = create_subscription<visualization_msgs::msg::MarkerArray>(
+      "detected_circles", 10, std::bind(&Slam::detected_circles_cb, this, std::placeholders::_1));
+    } else {
+      fake_sensor_sub_ = create_subscription<visualization_msgs::msg::MarkerArray>(
       "fake_sensor", 10, std::bind(&Slam::fake_sensor_cb, this, std::placeholders::_1));
+    }
 
     initial_pose_srv_ = create_service<nuturtle_control::srv::InitialPose>(
       "initial_pose",
@@ -186,6 +191,7 @@ private:
   /// @param sensor marker array representing simulated sensor data
   void fake_sensor_cb(const visualization_msgs::msg::MarkerArray & sensor)
   {
+    // Do EKF prediction
     predict();
     // Iterate through the markers
     for (int i = 0; i < static_cast<double>(sensor.markers.size()); i++) {
@@ -202,6 +208,37 @@ private:
         // Obstacle is out of range. Skip this loop iteration!
         continue;
       }
+      // incorporate the measurement into the EKF algorithm
+      incorporate_measurement(mx, my, id);
+    }
+    // update tf based on slam state
+    update_tf();
+    // Update the path that the robot takes for rviz
+    update_path();
+    // publish a marker array corresponding to obstacle locations
+    publish_measurements();
+    // Current slam state now becomes the last slam state
+    last_slam_state = slam_state;
+  }
+
+
+  /// @brief Callback function upon receiving detected circle data that performs EKF slam.
+  /// @param sensor marker array representing converted lidar data
+  void detected_circles_cb(const visualization_msgs::msg::MarkerArray & sensor)
+  {
+    RCLCPP_INFO_STREAM(get_logger(), "Detect Circles CB");
+    // Do EKF prediction
+    predict();
+    // Iterate through the markers
+    for (int i = 0; i < static_cast<double>(sensor.markers.size()); i++) {
+      // marker x and y coordinates
+      const auto mx = sensor.markers.at(i).pose.position.x;
+      const auto my = sensor.markers.at(i).pose.position.y;
+      // TODO: Data association to determine ID!!! 
+      const auto id = sensor.markers.at(i).id;
+      // RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
+      // RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
+      // incorporate the measurement into the EKF algorithm
       incorporate_measurement(mx, my, id);
     }
     // update tf based on slam state
@@ -474,6 +511,7 @@ private:
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr measure_pub_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr js_sub_;
   rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr fake_sensor_sub_;
+  rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr detected_circles_sub_;
 
   rclcpp::Service<nuturtle_control::srv::InitialPose>::SharedPtr initial_pose_srv_;
 

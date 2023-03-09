@@ -2,6 +2,8 @@
   <arg name="cmd_src" default="teleop" description="Options for cmd_vel: circle teleop none"/>
   <arg name="robot" default="nusim" description="Options for robot model: nusim localhost none"/>
   <arg name="use_rviz" default="true" description="Options for launching rviz: true false"/>
+  <arg name="use_lidar" default="false" description="Parameter to choose EKF measurement source. 
+                                                     Should always be false for this launchfile!"/>
 
   <!-- Launch rviz -->
   <node pkg="rviz2" exec="rviz2"
@@ -17,6 +19,8 @@
     <param name="odom_id" value="green/odom"/>
     <param name="wheel_left" value="wheel_left_joint"/>
     <param name="wheel_right" value="wheel_right_joint"/>
+    <!-- Set EKF source -->
+    <param name="use_lidar" value="$(var use_lidar)"/>
     <!-- Read from the odometry robot -->
     <remap from="joint_states" to="blue/joint_states"/>
     <remap from="odom" to="green/odom"/>
