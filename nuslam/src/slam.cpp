@@ -235,12 +235,17 @@ private:
       const auto my = sensor.markers.at(i).pose.position.y;
       // TODO: Data association to determine ID!!! 
       const auto id = associate(mx, my);
+      // const auto id = 0;
       RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
       RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
       // incorporate the measurement into the EKF algorithm
-      // incorporate_measurement(mx, my, id);
+      if (id >= 0){
+        incorporate_measurement(mx, my, id);
+      } else {
+        // id = -1 is an error meaning we are over max obstacles limit
+        throw std::logic_error("Die ");
+      }
     }
-    // throw std::logic_error("Die ");
     // update tf based on slam state
     update_tf();
     // Update the path that the robot takes for rviz
@@ -267,6 +272,10 @@ private:
     zj.at(0) = rj;
     zj.at(1) = phij;
     // RCLCPP_INFO_STREAM(get_logger(), "zj\n"<< zj);
+
+    if (num_obstacles == max_obstacles){
+      return -1;
+    }
 
 
     slam_state.at(3 + 2 * num_obstacles) = slam_state.at(1) + rj * 
@@ -314,12 +323,12 @@ private:
       arma::vec mahalanobis_vector = dzj.t() * psi.i() * dzj;
       auto mahalanobis = mahalanobis_vector.at(0);
 
-      // // set mahalanobis distance for newly added landmark to be distance threshold.
-      // if (i == num_obstacles - 1){
-      //   mahalanobis = mahalanobis_threshold;
-      // }
+      // set mahalanobis distance for newly added landmark to be distance threshold.
+      if (i == num_obstacles - 1){
+        mahalanobis = mahalanobis_threshold;
+      }
       
-      RCLCPP_INFO_STREAM(get_logger(), "maha: "<< mahalanobis);
+      RCLCPP_INFO_STREAM(get_logger(), "maha @ " << i << ": "<< mahalanobis);
       maha_distances.push_back(mahalanobis);
     }
 
