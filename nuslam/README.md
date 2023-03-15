@@ -25,7 +25,7 @@ Below is an image of the result of my SLAM algorithm with known data association
 
 ![Slam Path](images/LabeledSlamPath.png?raw=true "Slam Path")
 
-Finally, below is a video of my SLAM algorithm working with simulated lidar data (with noise) and unknown data association. The initial estimate of the SLAM position is not great, but after taking in more measurements, you can see the green robot "snap" back to the location of the red. 
+Finally, below is a video of my SLAM algorithm working with simulated lidar data (with noise) and unknown data association. The initial estimate of the SLAM position is not great, but after taking in more measurements, you can see the green robot "snap" back to the location of the red. By the end of the run, the green and red robots are essentially on top of each other, while the odometry estimate is far away from the true location.
 
 [BESTSLAM.webm](https://user-images.githubusercontent.com/53623710/224413751-8f278ed7-de68-4f1f-9841-a1173f067ec1.webm)
 
