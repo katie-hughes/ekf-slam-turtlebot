@@ -169,7 +169,7 @@ public:
     // Set Q and R covariance matrices
     // Right now they are just Identity. Might need to fiddle with values
     Q = arma::mat(3, 3, arma::fill::zeros);
-    Q.diag() += 1e-3; // e-3
+    Q.diag() += 1e-2; // e-3
     // RCLCPP_INFO_STREAM(get_logger(), "Q:\n" << Q);
     R = arma::mat(2 * max_obstacles, 2 * max_obstacles, arma::fill::zeros);
     R.diag() += 1e-1; // 1e-1; // e-1

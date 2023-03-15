@@ -1,4 +1,4 @@
 /**:
   ros__parameters:
-    max_obstacles: 10
+    max_obstacles: 20
     obstacle_radius: 0.038

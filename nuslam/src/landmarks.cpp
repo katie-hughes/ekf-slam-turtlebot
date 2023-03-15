@@ -122,6 +122,7 @@ class Landmarks : public rclcpp::Node
         // ONLY DO IF THERE ARE MORE THAN 3 POINTS!!!
         if (static_cast<int>(clusters.at(i).size()) > 3){
           if (turtlelib::isCircle(clusters.at(i))){
+          // if (true){
             const auto detected_circle = turtlelib::detectCircle(clusters.at(i));
             // RCLCPP_INFO_STREAM(get_logger(), "Circle: "<<detected_circle);
             // TODO check that radius is reasonable

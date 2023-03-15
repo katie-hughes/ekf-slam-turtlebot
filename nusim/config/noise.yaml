@@ -2,5 +2,5 @@
   ros__parameters:
     do_noise: true
     input_noise: 0.05
-    slip_fraction: 0.05
+    slip_fraction: 0.25
     basic_sensor_variance: 0.0001

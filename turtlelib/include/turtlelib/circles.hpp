@@ -68,6 +68,6 @@ namespace turtlelib
   /// @param mean_hi_threshold Maximum angle mean to be considered a circle. Default = 130 degrees
   /// @return boolean signifying if cluster should be classified as circle
   bool isCircle(const std::vector<Vector2D> cluster, double std_threshold=0.15,
-                                                     double mean_lo_threshold=1.50,
-                                                     double mean_hi_threshold=2.50);
+                                                     double mean_lo_threshold=1.2,
+                                                     double mean_hi_threshold=2.7);
 }
