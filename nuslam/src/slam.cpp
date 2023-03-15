@@ -155,7 +155,7 @@ public:
     obstacle_initialized = std::vector<bool>(max_obstacles, false);
 
     slam_state = arma::vec(max_obstacles * 2 + 3, arma::fill::zeros);
-    RCLCPP_INFO_STREAM(get_logger(), "Slam State:\n" << slam_state);
+    // RCLCPP_INFO_STREAM(get_logger(), "Slam State:\n" << slam_state);
     last_slam_state = arma::vec(max_obstacles * 2 + 3, arma::fill::zeros);
 
     Covariance = arma::mat(max_obstacles * 2 + 3, max_obstacles * 2 + 3, arma::fill::zeros);
@@ -164,26 +164,26 @@ public:
       // These represent that in the beginning we don't know anything about obstacle loc.
       Covariance.at(i + 3, i + 3) = 999999;
     }
-    RCLCPP_INFO_STREAM(get_logger(), "Covariance:\n" << Covariance);
+    // RCLCPP_INFO_STREAM(get_logger(), "Covariance:\n" << Covariance);
 
     // Set Q and R covariance matrices
     // Right now they are just Identity. Might need to fiddle with values
     Q = arma::mat(3, 3, arma::fill::zeros);
     Q.diag() += 1e-3; // e-3
-    RCLCPP_INFO_STREAM(get_logger(), "Q:\n" << Q);
+    // RCLCPP_INFO_STREAM(get_logger(), "Q:\n" << Q);
     R = arma::mat(2 * max_obstacles, 2 * max_obstacles, arma::fill::zeros);
     R.diag() += 1e-1; // 1e-1; // e-1
-    RCLCPP_INFO_STREAM(get_logger(), "R:\n" << R);
+    // RCLCPP_INFO_STREAM(get_logger(), "R:\n" << R);
 
     // Qbar = [Q & 03x2n \\ 02nx3 02nx2n]
     Qbar = arma::mat(max_obstacles * 2 + 3, max_obstacles * 2 + 3, arma::fill::zeros);
     Qbar.submat(0, 0, 2, 2) = Q;
-    RCLCPP_INFO_STREAM(get_logger(), "Qbar:\n" << Qbar);
+    // RCLCPP_INFO_STREAM(get_logger(), "Qbar:\n" << Qbar);
 
     // i don't know why I can't use their identity constructor but here we are
     myIdentity = arma::mat(max_obstacles * 2 + 3, max_obstacles * 2 + 3, arma::fill::zeros);
     myIdentity.diag() += 1.0;
-    RCLCPP_INFO_STREAM(get_logger(), "myIdentity:\n" << myIdentity);
+    // RCLCPP_INFO_STREAM(get_logger(), "myIdentity:\n" << myIdentity);
   }
 
 private:
@@ -236,14 +236,14 @@ private:
       // TODO: Data association to determine ID!!! 
       const auto id = associate(mx, my);
       // const auto id = 0;
-      RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
-      RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
+      // RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
+      // RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
       // incorporate the measurement into the EKF algorithm
       if (id >= 0){
         incorporate_measurement(mx, my, id);
       } else {
         // id = -1 is an error meaning we are over max obstacles limit
-        throw std::logic_error("Die ");
+        // throw std::logic_error("Die ");
       }
     }
     // update tf based on slam state
@@ -261,7 +261,7 @@ private:
   /// @param my obstacle y location (relative)
   /// @return identifier specifying which obstacle it is a part of
   int associate(double mx, double my){
-    RCLCPP_INFO_STREAM(get_logger(), "Associate data");
+    // RCLCPP_INFO_STREAM(get_logger(), "Associate data");
     // temporary add a new landmark at this location
     const auto dxj = mx;
     const auto dyj = my;
@@ -328,7 +328,7 @@ private:
         mahalanobis = mahalanobis_threshold;
       }
       
-      RCLCPP_INFO_STREAM(get_logger(), "maha @ " << i << ": "<< mahalanobis);
+      // RCLCPP_INFO_STREAM(get_logger(), "maha @ " << i << ": "<< mahalanobis);
       maha_distances.push_back(mahalanobis);
     }
 
@@ -346,9 +346,10 @@ private:
 
     // check if ell is equal to the thing that we just added
     if (ell == num_obstacles - 1){
-      RCLCPP_INFO_STREAM(get_logger(), "We have added a new obstacle");
+      ;
+      // RCLCPP_INFO_STREAM(get_logger(), "We have added a new obstacle");
     } else {
-      RCLCPP_INFO_STREAM(get_logger(), "This is part of obstacle # " << ell);
+      // RCLCPP_INFO_STREAM(get_logger(), "This is part of obstacle # " << ell);
       num_obstacles -= 1;
       // clear out the obstacle
       slam_state.at(3 + 2 * num_obstacles) = slam_state.at(1) + rj * 

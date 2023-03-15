@@ -1,15 +1,20 @@
 <launch>
-  <arg name="cmd_src" default="teleop" description="Options for cmd_vel: circle teleop none"/>
+  <arg name="cmd_src" default="none" description="Options for cmd_vel: circle teleop none"/>
   <arg name="robot" default="nusim" description="Options for robot model: nusim localhost none"/>
   <arg name="use_rviz" default="true" description="Options for launching rviz: true false"/>
 
   <!-- Launch rviz -->
   <node pkg="rviz2" exec="rviz2"
-    if="$(eval '\'$(var use_rviz)\' == \'true\'')"
+    if="$(eval '\'$(var robot)\' == \'nusim\' and \'$(var use_rviz)\' == \'true\'')"
     args="-d $(find-pkg-share nuslam)/config/landmarks.rviz"/>
 
+  <node pkg="rviz2" exec="rviz2"
+    if="$(eval '\'$(var robot)\' == \'none\' and \'$(var use_rviz)\' == \'true\'')"
+    args="-d $(find-pkg-share nuslam)/config/slam_real.rviz"/>
+
   <!-- launch nuslam, reading from lidar instead of fake sensor -->
-  <include file="$(find-pkg-share nuslam)/launch/nuslam.launch.xml">
+  <include file="$(find-pkg-share nuslam)/launch/nuslam.launch.xml"
+    if="$(eval '\'$(var robot)\' != \'none\'')">
     <arg name="cmd_src" value="$(var cmd_src)"/>
     <arg name="robot" value="$(var robot)"/>
     <arg name="use_rviz" value="false"/>
@@ -17,6 +22,14 @@
   </include>
 
   <!-- Landmark detection node -->
-  <node pkg="nuslam" exec="landmarks"/>
+  <node pkg="nuslam" exec="landmarks" 
+  if="$(eval '\'$(var robot)\' == \'localhost\'')">
+    <param name="real_lidar" value="true"/>
+  </node>
+
+  <node pkg="nuslam" exec="landmarks" 
+  if="$(eval '\'$(var robot)\' == \'nusim\'')">
+    <param name="real_lidar" value="false"/>
+  </node>
 
 </launch>

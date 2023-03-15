@@ -107,7 +107,7 @@
   <!-- launch static transform pub: odom located at world frame if not none -->
 
   <node pkg="tf2_ros"
-        if="$(eval '\'$(var robot)\' != \'localhost\'')"
+        if="$(eval '\'$(var robot)\' != \'none\'')"
         exec="static_transform_publisher"
         args="0 0 0 0 0 0 nusim/world blue/odom"/>
 

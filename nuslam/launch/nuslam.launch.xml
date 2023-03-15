@@ -7,12 +7,12 @@
 
   <!-- Launch rviz -->
   <node pkg="rviz2" exec="rviz2"
-        if="$(eval '\'$(var use_rviz)\' == \'true\'')"
+        if="$(eval '\'$(var robot)\' == \'nusim\' and \'$(var use_rviz)\' == \'true\'')"
         args="-d $(find-pkg-share nuslam)/config/slam.rviz"/>
 
-  <!-- nuslam updates the green robot -->
+  <!-- nuslam updates the green robot. If not none -->
   <node pkg="nuslam" exec="slam"
-        if="$(eval '\'$(var robot)\' == \'nusim\'')">
+        if="$(eval '\'$(var robot)\' != \'none\'')">
     <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
     <param from="$(find-pkg-share nuslam)/config/slam.yaml"/>
     <param name="body_id" value="green/base_footprint"/>
@@ -26,14 +26,15 @@
     <remap from="odom" to="green/odom"/>
   </node>
 
-  <!-- Do start robot launch -->
-  <include file="$(find-pkg-share nuturtle_control)/launch/start_robot.launch.xml">
+  <!-- Do start robot launch if not none -->
+  <include file="$(find-pkg-share nuturtle_control)/launch/start_robot.launch.xml"
+    if="$(eval '\'$(var robot)\' != \'none\'')">
     <arg name="cmd_src" value="$(var cmd_src)"/>
     <arg name="robot" value="$(var robot)"/>
     <arg name="use_rviz" value="false"/>
   </include>
 
-  <!-- Load green robot to go along with nuslam -->
+  <!-- Load green robot to go along with nuslam if not none -->
   <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py"
            if="$(eval '\'$(var robot)\' != \'none\'')">
     <arg name="color" value="green"/>
@@ -44,6 +45,7 @@
 
   <!-- launch static transform pub: odom located at world frame if not none -->
   <node pkg="tf2_ros"
+        if="$(eval '\'$(var robot)\' != \'none\'')"
         exec="static_transform_publisher"
         args="0 0 0 0 0 0 nusim/world map"/>
 

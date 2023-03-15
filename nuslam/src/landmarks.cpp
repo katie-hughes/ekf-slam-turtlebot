@@ -8,6 +8,7 @@
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 #include "builtin_interfaces/msg/time.hpp"
+#include "rclcpp/qos.hpp"
 
 #include "turtlelib/circles.hpp"
 #include "turtlelib/rigid2d.hpp"
@@ -18,8 +19,20 @@ class Landmarks : public rclcpp::Node
     Landmarks()
     : Node("landmarks")
     {
+
+    declare_parameter("real_lidar", false);
+    const auto real_lidar = get_parameter("real_lidar").as_bool();
+    RCLCPP_INFO_STREAM(get_logger(), "Real Lidar: " << real_lidar);
+
+    if (real_lidar){
+      // need appropriate qos parameter
       laser_sub_ = create_subscription<sensor_msgs::msg::LaserScan>(
-        "scan", 10, std::bind(&Landmarks::laser_cb, this, std::placeholders::_1));
+      "scan", rclcpp::SensorDataQoS(), std::bind(&Landmarks::laser_cb, this, std::placeholders::_1));
+    } else {
+      // this is just the lidar from nusim which has standard qos
+      laser_sub_ = create_subscription<sensor_msgs::msg::LaserScan>(
+      "scan", 10, std::bind(&Landmarks::laser_cb, this, std::placeholders::_1));
+    }
 
       circle_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("detected_circles", 10);
 
@@ -36,7 +49,7 @@ class Landmarks : public rclcpp::Node
 
     void laser_cb(const sensor_msgs::msg::LaserScan & msg)
     {
-      RCLCPP_INFO_STREAM(get_logger(), "\n\nLaser Received");
+      // RCLCPP_INFO_STREAM(get_logger(), "\n\nLaser Received");
       const auto angle_min = msg.angle_min;
       const auto angle_max = msg.angle_max;
       current_stamp = msg.header.stamp;
@@ -87,9 +100,9 @@ class Landmarks : public rclcpp::Node
         auto last_cluster = clusters.at(nclusters-1);
         // check first of first and last of last
         const auto dst = turtlelib::distance(first_cluster.at(0), last_cluster.back());
-        RCLCPP_INFO_STREAM(get_logger(), "First and last cluster distance " << dst);
+        // RCLCPP_INFO_STREAM(get_logger(), "First and last cluster distance " << dst);
         if (dst < cluster_threshold){
-          RCLCPP_INFO_STREAM(get_logger(), "Concatenate first and last clusters");
+          // RCLCPP_INFO_STREAM(get_logger(), "Concatenate first and last clusters");
           // RCLCPP_INFO_STREAM(get_logger(), "Before:");
           // printClusters();
           // concatenate: new first cluster = last_cluster + first_cluster
@@ -105,19 +118,21 @@ class Landmarks : public rclcpp::Node
 
       // do circle detect
       for (int i = 0; i < static_cast<int>(clusters.size()); i++){
-        RCLCPP_INFO_STREAM(get_logger(), "Circles in Cluster "<<i);
+        // RCLCPP_INFO_STREAM(get_logger(), "Circles in Cluster "<<i);
         // ONLY DO IF THERE ARE MORE THAN 3 POINTS!!!
         if (static_cast<int>(clusters.at(i).size()) > 3){
           if (turtlelib::isCircle(clusters.at(i))){
             const auto detected_circle = turtlelib::detectCircle(clusters.at(i));
-            RCLCPP_INFO_STREAM(get_logger(), "Circle: "<<detected_circle);
+            // RCLCPP_INFO_STREAM(get_logger(), "Circle: "<<detected_circle);
             // TODO check that radius is reasonable
-            circles.push_back(detected_circle);
+            if ((0.01 < detected_circle.r) && (detected_circle.r < 0.1)){
+              circles.push_back(detected_circle);
+            }
           } else {
-            RCLCPP_INFO_STREAM(get_logger(), "THis is not a circle!");
+            // RCLCPP_INFO_STREAM(get_logger(), "THis is not a circle!");
           }
         } else {
-          RCLCPP_INFO_STREAM(get_logger(), "Too Few points");
+          // RCLCPP_INFO_STREAM(get_logger(), "Too Few points");
         }
       }
 
