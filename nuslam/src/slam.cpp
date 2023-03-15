@@ -139,12 +139,12 @@ public:
     js_sub_ = create_subscription<sensor_msgs::msg::JointState>(
       "joint_states", 10, std::bind(&Slam::js_cb, this, std::placeholders::_1));
 
-    if (use_lidar){
+    if (use_lidar) {
       detected_circles_sub_ = create_subscription<visualization_msgs::msg::MarkerArray>(
-      "detected_circles", 10, std::bind(&Slam::detected_circles_cb, this, std::placeholders::_1));
+        "detected_circles", 10, std::bind(&Slam::detected_circles_cb, this, std::placeholders::_1));
     } else {
       fake_sensor_sub_ = create_subscription<visualization_msgs::msg::MarkerArray>(
-      "fake_sensor", 10, std::bind(&Slam::fake_sensor_cb, this, std::placeholders::_1));
+        "fake_sensor", 10, std::bind(&Slam::fake_sensor_cb, this, std::placeholders::_1));
     }
 
     initial_pose_srv_ = create_service<nuturtle_control::srv::InitialPose>(
@@ -234,13 +234,13 @@ private:
       // marker x and y coordinates
       const auto mx = sensor.markers.at(i).pose.position.x;
       const auto my = sensor.markers.at(i).pose.position.y;
-      // TODO: Data association to determine ID!!! 
+      // TODO: Data association to determine ID!!!
       const auto id = associate(mx, my);
       // const auto id = 0;
       // RCLCPP_INFO_STREAM(get_logger(), "X and Y: "<< mx << ", " << my);
       // RCLCPP_INFO_STREAM(get_logger(), "id: "<< id);
       // incorporate the measurement into the EKF algorithm
-      if (id >= 0){
+      if (id >= 0) {
         incorporate_measurement(mx, my, id);
       } else {
         // id = -1 is an error meaning we are over max obstacles limit
@@ -261,7 +261,8 @@ private:
   /// @param mx obstacle x location (relative)
   /// @param my obstacle y location (relative)
   /// @return identifier specifying which obstacle it is a part of
-  int associate(double mx, double my){
+  int associate(double mx, double my)
+  {
     // RCLCPP_INFO_STREAM(get_logger(), "Associate data");
     // temporary add a new landmark at this location
     const auto dxj = mx;
@@ -274,21 +275,21 @@ private:
     zj.at(1) = phij;
     // RCLCPP_INFO_STREAM(get_logger(), "zj\n"<< zj);
 
-    if (num_obstacles == max_obstacles){
+    if (num_obstacles == max_obstacles) {
       return -1;
     }
 
 
-    slam_state.at(3 + 2 * num_obstacles) = slam_state.at(1) + rj * 
-                      cos(turtlelib::normalize_angle(phij + slam_state.at(0)));
+    slam_state.at(3 + 2 * num_obstacles) = slam_state.at(1) + rj *
+      cos(turtlelib::normalize_angle(phij + slam_state.at(0)));
     slam_state.at(3 + 2 * num_obstacles + 1) = slam_state.at(2) + rj *
-                      sin(turtlelib::normalize_angle(phij + slam_state.at(0)));
+      sin(turtlelib::normalize_angle(phij + slam_state.at(0)));
 
     num_obstacles += 1;
 
     std::vector<double> maha_distances;
     // iterate through previous measurements
-    for (int i = 0; i < num_obstacles; i++){
+    for (int i = 0; i < num_obstacles; i++) {
       // this is Zbar (ESTIMATED measurement). Take from state estimation .
       const auto dxj_hat = slam_state.at(3 + 2 * i) - slam_state.at(1);
       const auto dyj_hat = slam_state.at(3 + 2 * i + 1) - slam_state.at(2);
@@ -325,10 +326,10 @@ private:
       auto mahalanobis = mahalanobis_vector.at(0);
 
       // set mahalanobis distance for newly added landmark to be distance threshold.
-      if (i == num_obstacles - 1){
+      if (i == num_obstacles - 1) {
         mahalanobis = mahalanobis_threshold;
       }
-      
+
       // RCLCPP_INFO_STREAM(get_logger(), "maha @ " << i << ": "<< mahalanobis);
       maha_distances.push_back(mahalanobis);
     }
@@ -338,16 +339,15 @@ private:
     auto dstar = maha_distances.at(0);
     // this is the index of dstar
     int ell = 0;
-    for (int i = 0; i < static_cast<int>(maha_distances.size()); i++){
-      if (maha_distances.at(i) < dstar){
+    for (int i = 0; i < static_cast<int>(maha_distances.size()); i++) {
+      if (maha_distances.at(i) < dstar) {
         dstar = maha_distances.at(i);
         ell = i;
       }
     }
 
     // check if ell is equal to the thing that we just added
-    if (ell == num_obstacles - 1){
-      ;
+    if (ell == num_obstacles - 1) {
       // RCLCPP_INFO_STREAM(get_logger(), "We have added a new obstacle");
     } else {
       // RCLCPP_INFO_STREAM(get_logger(), "This is part of obstacle # " << ell);
@@ -362,7 +362,8 @@ private:
   }
 
   /// @brief Prediction stage for EKF algorithm
-  void predict(){
+  void predict()
+  {
     // PREDICTION
     // 1. Update state estimate. This is already handled by odometry.
     Tob = robot.get_config();
@@ -392,7 +393,8 @@ private:
   /// @param mx measurement x coordinate (relative)
   /// @param my measurement y coordinate (relative)
   /// @param id measurement id
-  void incorporate_measurement(const double mx, const double my, const int id){
+  void incorporate_measurement(const double mx, const double my, const int id)
+  {
     // this is z (current sensor measurement)
     const auto dxj = mx;
     const auto dyj = my;
@@ -461,7 +463,8 @@ private:
   }
 
   /// @brief publish appropriate tf based on the slam_state vector.
-  void update_tf(){
+  void update_tf()
+  {
     // I want T_map_basefootprint = slam_state
     // But I can only publish T_map_odom
     // 1. Lookup T_odom_basefootprint
