@@ -469,6 +469,7 @@ private:
     // Except I don't need to look it up, I can use the current config of the diff drive object
     // RCLCPP_INFO_STREAM(get_logger(), "Slam State\n"<< slam_state);
     T_map_odom.header.stamp = get_clock()->now();
+    T_map_odom.header.stamp.nanosec += 3e8;
     Tob = robot.get_config();
     Tmb = turtlelib::Transform2D{turtlelib::Vector2D{slam_state.at(1), slam_state.at(2)},
       slam_state.at(0)};
@@ -586,6 +587,7 @@ private:
         odom_pub_->publish(current_odom);
         // update publisher
         T_odom_base.header.stamp = js.header.stamp;
+        T_odom_base.header.stamp.nanosec += 3e8;
         T_odom_base.transform.translation.x = robot.get_x();
         T_odom_base.transform.translation.y = robot.get_y();
         T_odom_base.transform.rotation.x = q.x();

@@ -116,6 +116,6 @@
   <node pkg="hls_lfcd_lds_driver" exec="hlds_laser_publisher"
         if="$(eval '\'$(var robot)\' == \'localhost\'')">
     <param name="port" value="/dev/ttyUSB0"/>
-    <param name="frame_id" value="blue/base_scan"/>
+    <param name="frame_id" value="green/base_scan"/>
   </node>
 </launch>
