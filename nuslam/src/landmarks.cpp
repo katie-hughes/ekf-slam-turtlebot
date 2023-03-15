@@ -1,3 +1,18 @@
+/// \file landmarks.cpp
+/// \brief Detects circles from lidar data
+///
+/// PARAMETERS:
+///     real_lidar (bool): choose to subscribe to lidar from turtlebot (true) / nusim lidar (false)
+/// PUBLISHES:
+///     detected_circles (visualization_msgs::msg::MarkerArray): circle detection results
+/// SUBSCRIBES:
+///    scan (sensor_msgs::msg::LaserScan): the lidar data
+/// SERVERS:
+///     none
+/// CLIENTS:
+///     none
+
+
 #include <chrono>
 #include <functional>
 #include <memory>

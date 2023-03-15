@@ -10,12 +10,13 @@
 ///     track_width: distance from the center of the robot to the wheels (m)
 /// PUBLISHES:
 ///     odom (nav_msgs::msg::Odometry): current transform between odom_id and body_id
+///     ~/path (nav_msgs/msg/Path): path of the EKF robot.
 ///     ~/measured (visualization_msgs::msg::MarkerArray): SLAM estimates for measured obstacles
 /// SUBSCRIBES:
 ///    joint_states (sensor_msgs::msg::JointState): the joint states of the odometry robot
 ///    fake_sensor (visualization_msgs::msg::MarkerArray): simulated obstacle locations
 /// SERVERS:
-///     initial_pose (nuturtle_control::srv::InitialPose): manually set the pose of the odom robot
+///     ~/initial_pose (nuturtle_control::srv::InitialPose): manually set the pose of the EKF robot
 /// CLIENTS:
 ///     none
 /// BROADCASTS:
@@ -147,7 +148,7 @@ public:
     }
 
     initial_pose_srv_ = create_service<nuturtle_control::srv::InitialPose>(
-      "initial_pose",
+      "~/initial_pose",
       std::bind(&Slam::initial_pose, this, std::placeholders::_1, std::placeholders::_2));
 
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
@@ -352,10 +353,8 @@ private:
       // RCLCPP_INFO_STREAM(get_logger(), "This is part of obstacle # " << ell);
       num_obstacles -= 1;
       // clear out the obstacle
-      slam_state.at(3 + 2 * num_obstacles) = slam_state.at(1) + rj * 
-                      cos(turtlelib::normalize_angle(phij + slam_state.at(0)));
-      slam_state.at(3 + 2 * num_obstacles + 1) = slam_state.at(2) + rj *
-                      sin(turtlelib::normalize_angle(phij + slam_state.at(0)));
+      slam_state.at(3 + 2 * num_obstacles) = 0;
+      slam_state.at(3 + 2 * num_obstacles + 1) = 0;
     }
 
     return ell;
