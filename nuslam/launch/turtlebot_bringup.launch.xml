@@ -1,0 +1,9 @@
+<!-- ros2 launch nuslam landmark_detect.launch.xml robot:=localhost -->
+
+<launch>
+
+<include file="$(find-pkg-share nuslam)/launch/landmark_detect.launch.xml">
+    <arg name="robot" value="localhost"/>
+</include>
+
+</launch>

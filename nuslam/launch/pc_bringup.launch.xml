@@ -1,0 +1,15 @@
+<!-- ros2 launch nuslam landmark_detect.launch.xml robot:=localhost -->
+
+<launch>
+
+<include file="$(find-pkg-share nuslam)/launch/landmark_detect.launch.xml">
+    <arg name="robot" value="none"/>
+</include>
+
+<!-- run teleop keyboard node for control -->
+
+<node pkg="turtlebot3_teleop" exec="teleop_keyboard"
+      launch-prefix="xterm -e" >
+  </node>
+
+</launch>
