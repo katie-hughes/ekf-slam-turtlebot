@@ -19,7 +19,7 @@ If you want to change the number of obstacles that the slam algorithm can detect
 
 Additionally, if you want to adjust the noise levels (or turn noise off completely), this can be done in the `noise.yaml` file in the `nusim` package.
 
-### Results
+## Simulation Results
 
 Below is an image of the result of my SLAM algorithm with known data association.
 
@@ -37,3 +37,25 @@ At the end of this run, the final position of the red `nusim` (real) robot was (
 | ------| ------------- | --------------- |
 | green (SLAM) | 0.4 cm | 0.2 cm |
 | blue (odometry) | 3.2 cm | 37.3 cm |
+
+
+## Real Turtlebot Results
+
+Below is a video of my turtlebot navigating through cylindrical obstacles in real life. 
+
+
+https://user-images.githubusercontent.com/53623710/225216531-364b9822-6d98-4daa-ac6b-2652c49226df.MOV
+
+
+Here is the corresponding screen in rviz:
+
+
+[BESTSLAMREALLIFEWOOHOOO.webm](https://user-images.githubusercontent.com/53623710/225217659-fcdc4722-7a2c-4a27-9520-b5af003238f8.webm)
+
+
+At the end, here are the approximate final positions of the blue and green robots. The SLAM robot tended to jump around in location on the order of a few cm, but it was definitely more accurate than the odometry estimate. It also was able to identify all of the obstacles in the arena. Additionally, it identified some of the pillars on the surrounding walls as obstacles too. 
+
+| robot | x coordinate | y coordinate | 
+| ------| ------------- | --------------- |
+| green (SLAM) | -4.2 cm | -5.0 cm |
+| blue (odometry) | 13.0 cm | 16.3 cm |
