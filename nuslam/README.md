@@ -59,3 +59,7 @@ At the end, here are the approximate final positions of the blue and green robot
 | ------| ------------- | --------------- |
 | green (SLAM) | -4.2 cm | -5.0 cm |
 | blue (odometry) | 13.0 cm | 16.3 cm |
+
+
+### Worked With
+Nick Morales, Dilan Wijesinghe, Shantao Cao, Ritika Ghosh, Ayush Gaggar
