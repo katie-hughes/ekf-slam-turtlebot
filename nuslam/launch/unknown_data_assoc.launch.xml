@@ -1,0 +1,8 @@
+<launch>
+
+<include file="$(find-pkg-share nuslam)/launch/landmark_detect.launch.xml">
+    <arg name="robot" value="nusim"/>
+    <arg name="cmd_src" value="teleop"/>
+</include>
+
+</launch>
